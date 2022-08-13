@@ -9,7 +9,7 @@ import ProAPI from './../API/ProAPI';
 //     check: Boolean;
 //   }
 
-export const getAll = createAsyncThunk('products/getAll', async () => {
+export const getAllPro = createAsyncThunk('products/getAllPro', async () => {
   const {data: products} = await ProAPI.getAll();
   return products;
 });
@@ -20,7 +20,7 @@ const floorSlice = createSlice({
   },
   reducers: {},
   extraReducers: (builder: any) => {
-    builder.addCase(getAll.fulfilled, (state: any, action: any) => {
+    builder.addCase(getAllPro.fulfilled, (state: any, action: any) => {
       state.value = action.payload;
     });
   },

@@ -1,0 +1,2329 @@
+diff --git a/node_modules/metro-config/src/configTypes.flow.js b/node_modules/metro-config/src/configTypes.flow.js
+index ead9705..c754aa5 100644
+--- a/node_modules/metro-config/src/configTypes.flow.js
++++ b/node_modules/metro-config/src/configTypes.flow.js
+@@ -1,10 +1,11 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+  *
+  * @format
+- *
++ *  strict-local
+  */
++
+ "use strict";
+diff --git a/node_modules/metro-config/src/configTypes.flow.js.flow b/node_modules/metro-config/src/configTypes.flow.js.flow
+index 11c073d..3997fca 100644
+--- a/node_modules/metro-config/src/configTypes.flow.js.flow
++++ b/node_modules/metro-config/src/configTypes.flow.js.flow
+@@ -1,5 +1,5 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+@@ -10,44 +10,41 @@
+ 
+ 'use strict';
+ 
++import type {BabelSourceMap} from '@babel/core';
+ import type {IncomingMessage, ServerResponse} from 'http';
+ import type {CacheStore} from 'metro-cache';
+-import typeof MetroCache from 'metro-cache';
+ import type {CustomResolver} from 'metro-resolver';
+-import type {MixedSourceMap} from 'metro-source-map';
+-import type {JsTransformerConfig} from 'metro-transform-worker';
+-import type {TransformResult} from 'metro/src/DeltaBundler';
++import type {MetroSourceMap} from 'metro-source-map';
+ import type {
+   DeltaResult,
+   Graph,
+   Module,
+-  SerializerOptions,
+ } from 'metro/src/DeltaBundler/types.flow.js';
+-import type {Reporter} from 'metro/src/lib/reporting';
++import type {TransformResult} from 'metro/src/DeltaBundler';
++import type {JsTransformerConfig} from 'metro/src/JSTransformer/worker';
+ import type {TransformVariants} from 'metro/src/ModuleGraph/types.flow.js';
++import type {DynamicRequiresBehavior} from 'metro/src/ModuleGraph/worker/collectDependencies';
+ import type Server from 'metro/src/Server';
++import type {Reporter} from 'metro/src/lib/reporting';
++
++export type PostMinifyProcess = ({
++  code: string,
++  map: ?BabelSourceMap,
++}) => {code: string, map: ?BabelSourceMap};
+ 
+ export type PostProcessBundleSourcemap = ({
+   code: Buffer | string,
+-  map: MixedSourceMap,
++  map: MetroSourceMap,
+   outFileName: string,
+-  ...
+-}) => {
+-  code: Buffer | string,
+-  map: MixedSourceMap | string,
+-  ...
+-};
++}) => {code: Buffer | string, map: MetroSourceMap | string};
+ 
+ type ExtraTransformOptions = {
+-  +preloadedModules: {[path: string]: true, ...} | false,
++  +preloadedModules: {[path: string]: true} | false,
+   +ramGroups: Array<string>,
+   +transform: {|
+     +experimentalImportSupport: boolean,
+-    +inlineRequires: {+blockList: {[string]: true, ...}, ...} | boolean,
+-    +nonInlinedRequires?: $ReadOnlyArray<string>,
+-    +unstable_disableES6Transforms?: boolean,
++    +inlineRequires: {+blacklist: {[string]: true}} | boolean,
+   |},
+-  ...
+ };
+ 
+ export type GetTransformOptionsOpts = {|
+@@ -65,39 +62,62 @@ export type GetTransformOptions = (
+ export type Middleware = (
+   IncomingMessage,
+   ServerResponse,
+-  ((e: ?Error) => mixed),
++  ?() => mixed,
+ ) => mixed;
+ 
++export type OldConfigT = {
++  assetRegistryPath: string,
++  cacheStores: Array<CacheStore<TransformResult<>>>,
++  cacheVersion: string,
++  createModuleIdFactory: () => (path: string) => number,
++  enhanceMiddleware: (Middleware, Server) => Middleware,
++  extraNodeModules: {[id: string]: string},
++  +dynamicDepsInPackages: DynamicRequiresBehavior,
++  getAssetExts: () => Array<string>,
++  getAsyncRequireModulePath(): string,
++  getBlacklistRE(): RegExp,
++  getEnableBabelRCLookup(): boolean,
++  getModulesRunBeforeMainModule: (entryFilePath: string) => Array<string>,
++  getPlatforms: () => Array<string>,
++  getPolyfillModuleNames: () => Array<string>,
++  getPolyfills: ({platform: ?string}) => $ReadOnlyArray<string>,
++  getProjectRoots: ?() => Array<string>, // @deprecated
++  getProjectRoot: () => string,
++  getProvidesModuleNodeModules?: () => Array<string>,
++  getResolverMainFields: () => $ReadOnlyArray<string>,
++  getRunModuleStatement: (number | string) => string,
++  getSourceExts: () => Array<string>,
++  getTransformModulePath: () => string,
++  getTransformOptions: GetTransformOptions,
++  getUseGlobalHotkey: () => boolean,
++  getWatchFolders: () => Array<string>,
++  getWorkerPath: () => string,
++  hasteImplModulePath?: ?string,
++  postMinifyProcess: PostMinifyProcess,
++  postProcessBundleSourcemap: PostProcessBundleSourcemap,
++  processModuleFilter: (modules: Module<>) => boolean,
++  resolveRequest: ?CustomResolver,
++  transformVariants: () => TransformVariants,
++};
++
+ type ResolverConfigT = {|
+   assetExts: $ReadOnlyArray<string>,
+-  assetResolutions: $ReadOnlyArray<string>,
+-  blacklistRE?: RegExp | Array<RegExp>,
+-  blockList: RegExp | Array<RegExp>,
+-  disableHierarchicalLookup: boolean,
+-  dependencyExtractor: ?string,
+-  emptyModulePath: string,
+-  extraNodeModules: {[name: string]: string, ...},
++  blacklistRE: RegExp,
++  extraNodeModules: {[name: string]: string},
+   hasteImplModulePath: ?string,
+-  unstable_hasteMapModulePath: ?string,
+-  nodeModulesPaths: $ReadOnlyArray<string>,
+   platforms: $ReadOnlyArray<string>,
+-  resolveRequest: ?CustomResolver,
++  providesModuleNodeModules: $ReadOnlyArray<string>,
+   resolverMainFields: $ReadOnlyArray<string>,
++  resolveRequest: ?CustomResolver,
+   sourceExts: $ReadOnlyArray<string>,
+   useWatchman: boolean,
+ |};
+ 
+ type SerializerConfigT = {|
+   createModuleIdFactory: () => (path: string) => number,
+-  customSerializer: ?(
+-    entryPoint: string,
+-    preModules: $ReadOnlyArray<Module<>>,
+-    graph: Graph<>,
+-    options: SerializerOptions,
+-  ) => Promise<string | {|code: string, map: string|}>,
+   experimentalSerializerHook: (graph: Graph<>, delta: DeltaResult<>) => mixed,
+   getModulesRunBeforeMainModule: (entryFilePath: string) => Array<string>,
+-  getPolyfills: ({platform: ?string, ...}) => $ReadOnlyArray<string>,
++  getPolyfills: ({platform: ?string}) => $ReadOnlyArray<string>,
+   getRunModuleStatement: (number | string) => string,
+   polyfillModuleNames: $ReadOnlyArray<string>,
+   postProcessBundleSourcemap: PostProcessBundleSourcemap,
+@@ -107,19 +127,16 @@ type SerializerConfigT = {|
+ type TransformerConfigT = {|
+   ...JsTransformerConfig,
+   getTransformOptions: GetTransformOptions,
++  postMinifyProcess: PostMinifyProcess,
+   transformVariants: TransformVariants,
+   workerPath: string,
+-  publicPath: string,
+-  experimentalImportBundleSupport: boolean,
+ |};
+ 
+ type MetalConfigT = {|
+   cacheStores: $ReadOnlyArray<CacheStore<TransformResult<>>>,
+   cacheVersion: string,
+-  hasteMapCacheDirectory?: string,
+   maxWorkers: number,
+   projectRoot: string,
+-  stickyWorkers: boolean,
+   transformerPath: string,
+   reporter: Reporter,
+   resetCache: boolean,
+@@ -127,35 +144,18 @@ type MetalConfigT = {|
+ |};
+ 
+ type ServerConfigT = {|
++  enableVisualizer: boolean,
+   enhanceMiddleware: (Middleware, Server) => Middleware,
+   useGlobalHotkey: boolean,
+   port: number,
+-  unstable_serverRoot: ?string,
+-  rewriteRequestUrl: string => string,
+-  runInspectorProxy: boolean,
+-  verifyConnections: boolean,
+-|};
+-
+-type SymbolicatorConfigT = {|
+-  customizeFrame: ({
+-    +file: ?string,
+-    +lineNumber: ?number,
+-    +column: ?number,
+-    +methodName: ?string,
+-    ...
+-  }) => ?{|+collapse?: boolean|} | Promise<?{|+collapse?: boolean|}>,
+ |};
+ 
+ export type InputConfigT = $Shape<{|
+   ...MetalConfigT,
+   ...$ReadOnly<{|
+-    cacheStores:
+-      | $ReadOnlyArray<CacheStore<TransformResult<>>>
+-      | (MetroCache => $ReadOnlyArray<CacheStore<TransformResult<>>>),
+     resolver: $Shape<ResolverConfigT>,
+     server: $Shape<ServerConfigT>,
+     serializer: $Shape<SerializerConfigT>,
+-    symbolicator: $Shape<SymbolicatorConfigT>,
+     transformer: $Shape<TransformerConfigT>,
+   |}>,
+ |}>;
+@@ -166,7 +166,6 @@ export type IntermediateConfigT = {|
+     resolver: ResolverConfigT,
+     server: ServerConfigT,
+     serializer: SerializerConfigT,
+-    symbolicator: SymbolicatorConfigT,
+     transformer: TransformerConfigT,
+   |},
+ |};
+@@ -177,27 +176,6 @@ export type ConfigT = $ReadOnly<{|
+     resolver: $ReadOnly<ResolverConfigT>,
+     server: $ReadOnly<ServerConfigT>,
+     serializer: $ReadOnly<SerializerConfigT>,
+-    symbolicator: $ReadOnly<SymbolicatorConfigT>,
+     transformer: $ReadOnly<TransformerConfigT>,
+   |}>,
+ |}>;
+-
+-export type YargArguments = {
+-  config?: string,
+-  cwd?: string,
+-  port?: string | number,
+-  host?: string,
+-  projectRoot?: string,
+-  watchFolders?: Array<string>,
+-  assetExts?: Array<string>,
+-  sourceExts?: Array<string>,
+-  platforms?: Array<string>,
+-  'max-workers'?: string | number,
+-  maxWorkers?: string | number,
+-  transformer?: string,
+-  'reset-cache'?: boolean,
+-  resetCache?: boolean,
+-  runInspectorProxy?: boolean,
+-  verbose?: boolean,
+-  ...
+-};
+diff --git a/node_modules/metro-config/src/convertConfig.js b/node_modules/metro-config/src/convertConfig.js
+new file mode 100644
+index 0000000..25daa2c
+--- /dev/null
++++ b/node_modules/metro-config/src/convertConfig.js
+@@ -0,0 +1,189 @@
++/**
++ * Copyright (c) Facebook, Inc. and its affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ *
++ *
++ * @format
++ */
++
++"use strict";
++
++// We get the metro runServer signature here and create the new config out of it
++let convertOldToNew = (() => {
++  var _ref = _asyncToGenerator(function*(_ref2) {
++    let config = _ref2.config;
++    var _ref2$resetCache = _ref2.resetCache;
++    let resetCache = _ref2$resetCache === undefined ? false : _ref2$resetCache;
++    var _ref2$maxWorkers = _ref2.maxWorkers;
++    let maxWorkers =
++        _ref2$maxWorkers === undefined ? getMaxWorkers() : _ref2$maxWorkers,
++      minifierPath = _ref2.minifierPath;
++    var _ref2$port = _ref2.port;
++    let port = _ref2$port === undefined ? null : _ref2$port;
++    var _ref2$reporter = _ref2.reporter;
++    let reporter =
++      _ref2$reporter === undefined
++        ? new TerminalReporter(new Terminal(process.stdout))
++        : _ref2$reporter;
++    const getBlacklistRE = config.getBlacklistRE,
++      cacheStores = config.cacheStores,
++      createModuleIdFactory = config.createModuleIdFactory,
++      cacheVersion = config.cacheVersion,
++      getProjectRoot = config.getProjectRoot,
++      getWatchFolders = config.getWatchFolders,
++      getTransformModulePath = config.getTransformModulePath,
++      resolveRequest = config.resolveRequest,
++      getAssetExts = config.getAssetExts,
++      getPlatforms = config.getPlatforms,
++      getProvidesModuleNodeModules = config.getProvidesModuleNodeModules,
++      getResolverMainFields = config.getResolverMainFields,
++      getSourceExts = config.getSourceExts,
++      hasteImplModulePath = config.hasteImplModulePath,
++      dynamicDepsInPackages = config.dynamicDepsInPackages,
++      getPolyfillModuleNames = config.getPolyfillModuleNames,
++      getAsyncRequireModulePath = config.getAsyncRequireModulePath,
++      getRunModuleStatement = config.getRunModuleStatement,
++      getPolyfills = config.getPolyfills,
++      postProcessBundleSourcemap = config.postProcessBundleSourcemap,
++      getModulesRunBeforeMainModule = config.getModulesRunBeforeMainModule,
++      getUseGlobalHotkey = config.getUseGlobalHotkey,
++      enhanceMiddleware = config.enhanceMiddleware,
++      assetRegistryPath = config.assetRegistryPath,
++      getEnableBabelRCLookup = config.getEnableBabelRCLookup,
++      getTransformOptions = config.getTransformOptions,
++      postMinifyProcess = config.postMinifyProcess,
++      getWorkerPath = config.getWorkerPath,
++      extraNodeModules = config.extraNodeModules,
++      transformVariants = config.transformVariants,
++      processModuleFilter = config.processModuleFilter;
++
++    const defaultConfig = yield getDefaultConfig(getProjectRoot());
++
++    const assetExts = defaultConfig.resolver.assetExts.concat(
++      (getAssetExts && getAssetExts()) || []
++    );
++
++    const sourceExts = defaultConfig.resolver.sourceExts.concat(
++      (getSourceExts && getSourceExts()) || []
++    );
++
++    const platforms =
++      (getPlatforms && getPlatforms()) || defaultConfig.resolver.platforms;
++
++    const providesModuleNodeModules =
++      typeof getProvidesModuleNodeModules === "function"
++        ? getProvidesModuleNodeModules()
++        : defaultConfig.resolver.providesModuleNodeModules;
++
++    const watchFolders = getWatchFolders();
++
++    return {
++      resolver: {
++        assetExts,
++        platforms,
++        providesModuleNodeModules,
++        resolverMainFields: getResolverMainFields(),
++        sourceExts,
++        hasteImplModulePath,
++        extraNodeModules,
++        resolveRequest,
++        blacklistRE: getBlacklistRE()
++          ? getBlacklistRE()
++          : defaultConfig.resolver.blacklistRE,
++        useWatchman: true
++      },
++
++      serializer: {
++        createModuleIdFactory:
++          createModuleIdFactory ||
++          defaultConfig.serializer.createModuleIdFactory,
++        polyfillModuleNames: getPolyfillModuleNames(),
++        getRunModuleStatement,
++        getPolyfills,
++        postProcessBundleSourcemap,
++        processModuleFilter:
++          processModuleFilter || defaultConfig.serializer.processModuleFilter,
++        getModulesRunBeforeMainModule,
++        experimentalSerializerHook: function() {}
++      },
++
++      server: {
++        useGlobalHotkey: getUseGlobalHotkey(),
++        port,
++        enableVisualizer: false,
++        enhanceMiddleware
++      },
++
++      transformer: {
++        assetPlugins: defaultConfig.transformer.assetPlugins,
++        assetRegistryPath,
++        asyncRequireModulePath: getAsyncRequireModulePath(),
++        babelTransformerPath: getTransformModulePath(),
++        dynamicDepsInPackages,
++        enableBabelRCLookup: getEnableBabelRCLookup(),
++        enableBabelRuntime: true,
++        getTransformOptions,
++        minifierConfig: defaultConfig.transformer.minifierConfig,
++        minifierPath: minifierPath || defaultConfig.transformer.minifierPath,
++        optimizationSizeLimit: 150 * 1024, // 150 KiB enforced for old configs.
++        postMinifyProcess,
++        transformVariants: transformVariants
++          ? transformVariants()
++          : defaultConfig.transformer.transformVariants,
++        workerPath: getWorkerPath()
++      },
++
++      reporter,
++      cacheStores,
++      cacheVersion,
++      projectRoot: getProjectRoot(),
++      watchFolders,
++      transformerPath: defaultConfig.transformerPath,
++      resetCache,
++      maxWorkers
++    };
++  });
++  return function convertOldToNew(_x) {
++    return _ref.apply(this, arguments);
++  };
++})();
++function _asyncToGenerator(fn) {
++  return function() {
++    var gen = fn.apply(this, arguments);
++    return new Promise(function(resolve, reject) {
++      function step(key, arg) {
++        try {
++          var info = gen[key](arg);
++          var value = info.value;
++        } catch (error) {
++          reject(error);
++          return;
++        }
++        if (info.done) {
++          resolve(value);
++        } else {
++          return Promise.resolve(value).then(
++            function(value) {
++              step("next", value);
++            },
++            function(err) {
++              step("throw", err);
++            }
++          );
++        }
++      }
++      return step("next");
++    });
++  };
++}
++const TerminalReporter = require("metro/src/lib/TerminalReporter");
++const getDefaultConfig = require("./defaults");
++const getMaxWorkers = require("metro/src/lib/getMaxWorkers");
++var _require = require("metro-core");
++const Terminal = _require.Terminal;
++
++module.exports = {
++  convertOldToNew
++};
+diff --git a/node_modules/metro-config/src/convertConfig.js.flow b/node_modules/metro-config/src/convertConfig.js.flow
+new file mode 100644
+index 0000000..38bd41d
+--- /dev/null
++++ b/node_modules/metro-config/src/convertConfig.js.flow
+@@ -0,0 +1,163 @@
++/**
++ * Copyright (c) Facebook, Inc. and its affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ *
++ * @flow
++ * @format
++ */
++
++'use strict';
++
++const TerminalReporter = require('metro/src/lib/TerminalReporter');
++
++const getDefaultConfig = require('./defaults');
++const getMaxWorkers = require('metro/src/lib/getMaxWorkers');
++
++const {Terminal} = require('metro-core');
++
++import type {ConfigT, OldConfigT} from './configTypes.flow';
++import type {Reporter} from 'metro/src/lib/reporting';
++
++type DeprecatedMetroOptions = {|
++  resetCache?: boolean,
++|};
++
++type PublicMetroOptions = {|
++  ...DeprecatedMetroOptions,
++  config: OldConfigT,
++  maxWorkers?: number,
++  minifierPath?: string,
++  port?: ?number,
++  reporter?: Reporter,
++|};
++
++// We get the metro runServer signature here and create the new config out of it
++async function convertOldToNew({
++  config,
++  resetCache = false,
++  maxWorkers = getMaxWorkers(),
++  minifierPath,
++  // $FlowFixMe TODO t0 https://github.com/facebook/flow/issues/183
++  port = null,
++  reporter = new TerminalReporter(new Terminal(process.stdout)),
++}: PublicMetroOptions): Promise<ConfigT> {
++  const {
++    getBlacklistRE,
++    cacheStores,
++    createModuleIdFactory,
++    cacheVersion,
++    getProjectRoot,
++    getWatchFolders,
++    getTransformModulePath,
++    resolveRequest,
++    getAssetExts,
++    getPlatforms,
++    getProvidesModuleNodeModules,
++    getResolverMainFields,
++    getSourceExts,
++    hasteImplModulePath,
++    dynamicDepsInPackages,
++    getPolyfillModuleNames,
++    getAsyncRequireModulePath,
++    getRunModuleStatement,
++    getPolyfills,
++    postProcessBundleSourcemap,
++    getModulesRunBeforeMainModule,
++    getUseGlobalHotkey,
++    enhanceMiddleware,
++    assetRegistryPath,
++    getEnableBabelRCLookup,
++    getTransformOptions,
++    postMinifyProcess,
++    getWorkerPath,
++    extraNodeModules,
++    transformVariants,
++    processModuleFilter,
++  } = config;
++
++  const defaultConfig = await getDefaultConfig(getProjectRoot());
++
++  const assetExts = defaultConfig.resolver.assetExts.concat(
++    (getAssetExts && getAssetExts()) || [],
++  );
++  const sourceExts = defaultConfig.resolver.sourceExts.concat(
++    (getSourceExts && getSourceExts()) || [],
++  );
++  const platforms =
++    (getPlatforms && getPlatforms()) || defaultConfig.resolver.platforms;
++
++  const providesModuleNodeModules =
++    typeof getProvidesModuleNodeModules === 'function'
++      ? getProvidesModuleNodeModules()
++      : defaultConfig.resolver.providesModuleNodeModules;
++
++  const watchFolders = getWatchFolders();
++
++  return {
++    resolver: {
++      assetExts,
++      platforms,
++      providesModuleNodeModules,
++      resolverMainFields: getResolverMainFields(),
++      sourceExts,
++      hasteImplModulePath,
++      extraNodeModules,
++      resolveRequest,
++      blacklistRE: getBlacklistRE()
++        ? getBlacklistRE()
++        : defaultConfig.resolver.blacklistRE,
++      useWatchman: true,
++    },
++    serializer: {
++      createModuleIdFactory:
++        createModuleIdFactory || defaultConfig.serializer.createModuleIdFactory,
++      polyfillModuleNames: getPolyfillModuleNames(),
++      getRunModuleStatement,
++      getPolyfills,
++      postProcessBundleSourcemap,
++      processModuleFilter:
++        processModuleFilter || defaultConfig.serializer.processModuleFilter,
++      getModulesRunBeforeMainModule,
++      experimentalSerializerHook: () => {},
++    },
++    server: {
++      useGlobalHotkey: getUseGlobalHotkey(),
++      port,
++      enableVisualizer: false,
++      enhanceMiddleware,
++    },
++    transformer: {
++      assetPlugins: defaultConfig.transformer.assetPlugins,
++      assetRegistryPath,
++      asyncRequireModulePath: getAsyncRequireModulePath(),
++      babelTransformerPath: getTransformModulePath(),
++      dynamicDepsInPackages,
++      enableBabelRCLookup: getEnableBabelRCLookup(),
++      enableBabelRuntime: true,
++      getTransformOptions,
++      minifierConfig: defaultConfig.transformer.minifierConfig,
++      minifierPath: minifierPath || defaultConfig.transformer.minifierPath,
++      optimizationSizeLimit: 150 * 1024, // 150 KiB enforced for old configs.
++      postMinifyProcess,
++      transformVariants: transformVariants
++        ? transformVariants()
++        : defaultConfig.transformer.transformVariants,
++      workerPath: getWorkerPath(),
++    },
++
++    reporter,
++    cacheStores,
++    cacheVersion,
++    projectRoot: getProjectRoot(),
++    watchFolders,
++    transformerPath: defaultConfig.transformerPath,
++    resetCache,
++    maxWorkers,
++  };
++}
++
++module.exports = {
++  convertOldToNew,
++};
+diff --git a/node_modules/metro-config/src/defaults/blacklist.js b/node_modules/metro-config/src/defaults/blacklist.js
+new file mode 100644
+index 0000000..138704e
+--- /dev/null
++++ b/node_modules/metro-config/src/defaults/blacklist.js
+@@ -0,0 +1,48 @@
++/**
++ * Copyright (c) Facebook, Inc. and its affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ *
++ * @format
++ */
++"use strict";
++
++var path = require("path");
++
++// Don't forget to everything listed here to `package.json`
++// modulePathIgnorePatterns.
++var sharedBlacklist = [
++  /node_modules[/\\]react[/\\]dist[/\\].*/,
++
++  /website\/node_modules\/.*/,
++
++  /heapCapture\/bundle\.js/,
++
++  /.*\/__tests__\/.*/
++];
++
++function escapeRegExp(pattern) {
++  if (Object.prototype.toString.call(pattern) === "[object RegExp]") {
++    return pattern.source.replace(/\//g, path.sep);
++  } else if (typeof pattern === "string") {
++    var escaped = pattern.replace(/[\-\[\]\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
++    // convert the '/' into an escaped local file separator
++    return escaped.replace(/\//g, "\\" + path.sep);
++  } else {
++    throw new Error("Unexpected blacklist pattern: " + pattern);
++  }
++}
++
++function blacklist(additionalBlacklist) {
++  return new RegExp(
++    "(" +
++      (additionalBlacklist || [])
++        .concat(sharedBlacklist)
++        .map(escapeRegExp)
++        .join("|") +
++      ")$"
++  );
++}
++
++module.exports = blacklist;
+diff --git a/node_modules/metro-config/src/defaults/defaults.js b/node_modules/metro-config/src/defaults/defaults.js
+index a782a1a..742bf79 100644
+--- a/node_modules/metro-config/src/defaults/defaults.js
++++ b/node_modules/metro-config/src/defaults/defaults.js
+@@ -1,10 +1,10 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+  *
+- *
++ *  strict
+  * @format
+  */
+ "use strict";
+@@ -20,32 +20,37 @@ exports.assetExts = [
+   "png",
+   "psd",
+   "svg",
+-  "webp", // Video formats
++  "webp",
++  // Video formats
+   "m4v",
+   "mov",
+   "mp4",
+   "mpeg",
+   "mpg",
+-  "webm", // Audio formats
++  "webm",
++  // Audio formats
+   "aac",
+   "aiff",
+   "caf",
+   "m4a",
+   "mp3",
+-  "wav", // Document formats
++  "wav",
++  // Document formats
+   "html",
+   "pdf",
+-  "yaml",
+-  "yml", // Font formats
++  // Font formats
+   "otf",
+-  "ttf", // Archives (virtual files)
+-  "zip",
++  "ttf"
+ ];
+-exports.assetResolutions = ["1", "1.5", "2", "3", "4"];
++
+ exports.sourceExts = ["js", "json", "ts", "tsx"];
+-exports.moduleSystem = require.resolve(
+-  "metro-runtime/src/polyfills/require.js"
+-);
++
++exports.moduleSystem = require.resolve("metro/src/lib/polyfills/require.js");
++
+ exports.platforms = ["ios", "android", "windows", "web"];
++
++exports.providesModuleNodeModules = ["react-native", "react-native-windows"];
++
+ exports.DEFAULT_METRO_MINIFIER_PATH = "metro-minify-uglify";
++
+ exports.defaultCreateModuleIdFactory = defaultCreateModuleIdFactory;
+diff --git a/node_modules/metro-config/src/defaults/defaults.js.flow b/node_modules/metro-config/src/defaults/defaults.js.flow
+index 35edba5..492eba5 100644
+--- a/node_modules/metro-config/src/defaults/defaults.js.flow
++++ b/node_modules/metro-config/src/defaults/defaults.js.flow
+@@ -1,5 +1,5 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+@@ -7,7 +7,6 @@
+  * @flow strict
+  * @format
+  */
+-
+ 'use strict';
+ 
+ const defaultCreateModuleIdFactory = require('metro/src/lib/createModuleIdFactory');
+@@ -39,25 +38,19 @@ exports.assetExts = [
+   // Document formats
+   'html',
+   'pdf',
+-  'yaml',
+-  'yml',
+   // Font formats
+   'otf',
+   'ttf',
+-  // Archives (virtual files)
+-  'zip',
+ ];
+ 
+-exports.assetResolutions = ['1', '1.5', '2', '3', '4'];
+-
+ exports.sourceExts = ['js', 'json', 'ts', 'tsx'];
+ 
+-exports.moduleSystem = (require.resolve(
+-  'metro-runtime/src/polyfills/require.js',
+-): string);
++exports.moduleSystem = require.resolve('metro/src/lib/polyfills/require.js');
+ 
+ exports.platforms = ['ios', 'android', 'windows', 'web'];
+ 
++exports.providesModuleNodeModules = ['react-native', 'react-native-windows'];
++
+ exports.DEFAULT_METRO_MINIFIER_PATH = 'metro-minify-uglify';
+ 
+ exports.defaultCreateModuleIdFactory = defaultCreateModuleIdFactory;
+diff --git a/node_modules/metro-config/src/defaults/exclusionList.js b/node_modules/metro-config/src/defaults/exclusionList.js
+deleted file mode 100644
+index 06f8f32..0000000
+--- a/node_modules/metro-config/src/defaults/exclusionList.js
++++ /dev/null
+@@ -1,45 +0,0 @@
+-/**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- *
+- * @format
+- */
+-"use strict";
+-
+-var path = require("path");
+-
+-var list = [/\/__tests__\/.*/];
+-
+-function escapeRegExp(pattern) {
+-  if (Object.prototype.toString.call(pattern) === "[object RegExp]") {
+-    // the forward slash may or may not be escaped in regular expression depends
+-    // on if it's in brackets. See this post for details
+-    // https://github.com/nodejs/help/issues/3039. The or condition in string
+-    // replace regexp is to cover both use cases.
+-    // We should replace all forward slashes to proper OS specific separators.
+-    // The separator needs to be escaped in the regular expression source string,
+-    // hence the '\\' prefix.
+-    return pattern.source.replace(/\/|\\\//g, "\\" + path.sep);
+-  } else if (typeof pattern === "string") {
+-    // Make sure all the special characters used by regular expression are properly
+-    // escaped. The string inputs are supposed to match as is.
+-    var escaped = pattern.replace(/[\-\[\]\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"); // convert the '/' into an escaped local file separator. The separator needs
+-    // to be escaped in the regular expression source string, hence the '\\' prefix.
+-
+-    return escaped.replace(/\//g, "\\" + path.sep);
+-  } else {
+-    throw new Error("Unexpected exclusion pattern: " + pattern);
+-  }
+-}
+-
+-function exclusionList(additionalExclusions) {
+-  return new RegExp(
+-    "(" +
+-      (additionalExclusions || []).concat(list).map(escapeRegExp).join("|") +
+-      ")$"
+-  );
+-}
+-
+-module.exports = exclusionList;
+diff --git a/node_modules/metro-config/src/defaults/index.js b/node_modules/metro-config/src/defaults/index.js
+index 8e69cc7..88d2a1a 100644
+--- a/node_modules/metro-config/src/defaults/index.js
++++ b/node_modules/metro-config/src/defaults/index.js
+@@ -1,5 +1,5 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+@@ -7,153 +7,146 @@
+  *
+  * @format
+  */
+-"use strict";
+-
+-const {
+-  DEFAULT_METRO_MINIFIER_PATH,
+-  assetExts,
+-  assetResolutions,
+-  defaultCreateModuleIdFactory,
+-  platforms,
+-  sourceExts,
+-} = require("./defaults");
+-
+-const exclusionList = require("./exclusionList");
+ 
+-const { FileStore } = require("metro-cache");
+-
+-const { Terminal } = require("metro-core");
+-
+-const getMaxWorkers = require("metro/src/lib/getMaxWorkers");
++"use strict";
++let getDefaultConfig = (() => {
++  var _ref3 = _asyncToGenerator(function*(rootPath) {
++    // We can add more logic here to get a sensible default configuration, for
++    // now we just return a stub.
+ 
++    return getDefaultValues(rootPath);
++  });
++  return function getDefaultConfig(_x) {
++    return _ref3.apply(this, arguments);
++  };
++})();
++function _asyncToGenerator(fn) {
++  return function() {
++    var gen = fn.apply(this, arguments);
++    return new Promise(function(resolve, reject) {
++      function step(key, arg) {
++        try {
++          var info = gen[key](arg);
++          var value = info.value;
++        } catch (error) {
++          reject(error);
++          return;
++        }
++        if (info.done) {
++          resolve(value);
++        } else {
++          return Promise.resolve(value).then(
++            function(value) {
++              step("next", value);
++            },
++            function(err) {
++              step("throw", err);
++            }
++          );
++        }
++      }
++      return step("next");
++    });
++  };
++}
+ const TerminalReporter = require("metro/src/lib/TerminalReporter");
+-
++const blacklist = require("./blacklist");
++const getMaxWorkers = require("metro/src/lib/getMaxWorkers");
+ const os = require("os");
+-
+ const path = require("path");
+-
+-const getDefaultValues = (projectRoot) => ({
++var _require = require("./defaults");
++const providesModuleNodeModules = _require.providesModuleNodeModules,
++  assetExts = _require.assetExts,
++  sourceExts = _require.sourceExts,
++  platforms = _require.platforms,
++  DEFAULT_METRO_MINIFIER_PATH = _require.DEFAULT_METRO_MINIFIER_PATH,
++  defaultCreateModuleIdFactory = _require.defaultCreateModuleIdFactory;
++var _require2 = require("metro-cache");
++const FileStore = _require2.FileStore;
++var _require3 = require("metro-core");
++const Terminal = _require3.Terminal;
++const getDefaultValues = projectRoot => ({
+   resolver: {
+     assetExts,
+-    assetResolutions,
+     platforms,
+     sourceExts,
+-    blockList: exclusionList(),
+-    dependencyExtractor: undefined,
+-    disableHierarchicalLookup: false,
+-    emptyModulePath: require.resolve(
+-      "metro-runtime/src/modules/empty-module.js"
+-    ),
++    providesModuleNodeModules: providesModuleNodeModules.slice(),
++    resolverMainFields: ["browser", "main"],
+     extraNodeModules: {},
+-    hasteImplModulePath: undefined,
+-    unstable_hasteMapModulePath: undefined,
+-    nodeModulesPaths: [],
+     resolveRequest: null,
+-    resolverMainFields: ["browser", "main"],
+-    useWatchman: true,
++    hasteImplModulePath: undefined,
++    blacklistRE: blacklist(),
++    useWatchman: true
+   },
+   serializer: {
+     polyfillModuleNames: [],
+-    getRunModuleStatement: (moduleId) => `__r(${JSON.stringify(moduleId)});`,
++    getRunModuleStatement: moduleId => `__r(${JSON.stringify(moduleId)});`,
+     getPolyfills: () => [],
+-    postProcessBundleSourcemap: ({ code, map, outFileName }) => ({
+-      code,
+-      map,
+-    }),
++    postProcessBundleSourcemap: _ref => {
++      let code = _ref.code,
++        map = _ref.map,
++        outFileName = _ref.outFileName;
++      return { code, map };
++    },
+     getModulesRunBeforeMainModule: () => [],
+-    processModuleFilter: (module) => true,
++    processModuleFilter: module => true,
+     createModuleIdFactory: defaultCreateModuleIdFactory,
+-    experimentalSerializerHook: () => {},
+-    customSerializer: null,
++    experimentalSerializerHook: () => {}
+   },
+   server: {
+     useGlobalHotkey: true,
+     port: 8080,
+-    enhanceMiddleware: (middleware) => middleware,
+-    rewriteRequestUrl: (url) => url,
+-    runInspectorProxy: true,
+-    verifyConnections: false,
+-    unstable_serverRoot: null,
+-  },
+-  symbolicator: {
+-    customizeFrame: () => {},
++    enableVisualizer: false,
++    enhanceMiddleware: middleware => middleware
+   },
+   transformer: {
+     assetPlugins: [],
+-    asyncRequireModulePath: "metro-runtime/src/modules/asyncRequire",
++    asyncRequireModulePath: "metro/src/lib/bundle-modules/asyncRequire",
+     assetRegistryPath: "missing-asset-registry-path",
+-    babelTransformerPath: "metro-babel-transformer",
++    babelTransformerPath: "metro/src/defaultTransformer",
+     dynamicDepsInPackages: "throwAtRuntime",
+     enableBabelRCLookup: true,
+     enableBabelRuntime: true,
+-    experimentalImportBundleSupport: false,
+-    getTransformOptions: async () => ({
+-      transform: {
+-        experimentalImportSupport: false,
+-        inlineRequires: false,
+-        unstable_disableES6Transforms: false,
+-      },
+-      preloadedModules: false,
+-      ramGroups: [],
+-    }),
+-    globalPrefix: "",
+-    hermesParser: false,
++    getTransformOptions: (() => {
++      var _ref2 = _asyncToGenerator(function*() {
++        return {
++          transform: {
++            experimentalImportSupport: false,
++            inlineRequires: false
++          },
++          preloadedModules: false,
++          ramGroups: []
++        };
++      });
++      return function getTransformOptions() {
++        return _ref2.apply(this, arguments);
++      };
++    })(),
+     minifierConfig: {
+-      mangle: {
+-        toplevel: false,
+-      },
+-      output: {
+-        ascii_only: true,
+-        quote_style: 3,
+-        wrap_iife: true,
+-      },
+-      sourceMap: {
+-        includeSources: false,
+-      },
++      mangle: { toplevel: false },
++      output: { ascii_only: true, quote_style: 3, wrap_iife: true },
++      sourceMap: { includeSources: false },
+       toplevel: false,
+       compress: {
+         // reduce_funcs inlines single-use functions, which cause perf regressions.
+-        reduce_funcs: false,
+-      },
++        reduce_funcs: false
++      }
+     },
+     minifierPath: DEFAULT_METRO_MINIFIER_PATH,
+-    optimizationSizeLimit: 150 * 1024,
+-    // 150 KiB.
+-    transformVariants: {
+-      default: {},
+-    },
+-    workerPath: "metro/src/DeltaBundler/Worker",
+-    publicPath: "/assets",
+-    allowOptionalDependencies: false,
+-    unstable_collectDependenciesPath:
+-      "metro/src/ModuleGraph/worker/collectDependencies.js",
+-    unstable_dependencyMapReservedName: null,
+-    unstable_disableModuleWrapping: false,
+-    unstable_disableNormalizePseudoGlobals: false,
+-    unstable_compactOutput: false,
++    optimizationSizeLimit: 150 * 1024, // 150 KiB.
++    postMinifyProcess: x => x,
++    transformVariants: { default: {} },
++    workerPath: "metro/src/DeltaBundler/Worker"
+   },
+-  cacheStores: [
+-    new FileStore({
+-      root: path.join(os.tmpdir(), "metro-cache"),
+-    }),
+-  ],
+-  cacheVersion: "1.0",
+-  // We assume the default project path is two levels up from
++  cacheStores: [new FileStore({ root: path.join(os.tmpdir(), "metro-cache") })],
++  cacheVersion: "1.0", // We assume the default project path is two levels up from
+   // node_modules/metro/
+   projectRoot: projectRoot || path.resolve(__dirname, "../../.."),
+-  stickyWorkers: true,
+   watchFolders: [],
+-  transformerPath: require.resolve("metro-transform-worker"),
++  transformerPath: require.resolve("metro/src/JSTransformer/worker.js"),
+   maxWorkers: getMaxWorkers(),
+   resetCache: false,
+-  reporter: new TerminalReporter(new Terminal(process.stdout)),
++  reporter: new TerminalReporter(new Terminal(process.stdout))
+ });
+-
+-async function getDefaultConfig(rootPath) {
+-  // We can add more logic here to get a sensible default configuration, for
+-  // now we just return a stub.
+-  return getDefaultValues(rootPath);
+-}
+-
+ module.exports = getDefaultConfig;
+ module.exports.getDefaultValues = getDefaultValues;
+diff --git a/node_modules/metro-config/src/defaults/index.js.flow b/node_modules/metro-config/src/defaults/index.js.flow
+index c5f75c3..82c59ca 100644
+--- a/node_modules/metro-config/src/defaults/index.js.flow
++++ b/node_modules/metro-config/src/defaults/index.js.flow
+@@ -1,5 +1,5 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+@@ -10,42 +10,37 @@
+ 
+ 'use strict';
+ 
+-import type {ConfigT} from '../configTypes.flow';
++const TerminalReporter = require('metro/src/lib/TerminalReporter');
++
++const blacklist = require('./blacklist');
++const getMaxWorkers = require('metro/src/lib/getMaxWorkers');
++const os = require('os');
++const path = require('path');
+ 
+ const {
+-  DEFAULT_METRO_MINIFIER_PATH,
++  providesModuleNodeModules,
+   assetExts,
+-  assetResolutions,
+-  defaultCreateModuleIdFactory,
+-  platforms,
+   sourceExts,
++  platforms,
++  DEFAULT_METRO_MINIFIER_PATH,
++  defaultCreateModuleIdFactory,
+ } = require('./defaults');
+-const exclusionList = require('./exclusionList');
+ const {FileStore} = require('metro-cache');
+ const {Terminal} = require('metro-core');
+-const getMaxWorkers = require('metro/src/lib/getMaxWorkers');
+-const TerminalReporter = require('metro/src/lib/TerminalReporter');
+-const os = require('os');
+-const path = require('path');
++
++import type {ConfigT} from '../configTypes.flow';
+ 
+ const getDefaultValues = (projectRoot: ?string): ConfigT => ({
+   resolver: {
+     assetExts,
+-    assetResolutions,
+     platforms,
+     sourceExts,
+-    blockList: exclusionList(),
+-    dependencyExtractor: undefined,
+-    disableHierarchicalLookup: false,
+-    emptyModulePath: require.resolve(
+-      'metro-runtime/src/modules/empty-module.js',
+-    ),
++    providesModuleNodeModules: providesModuleNodeModules.slice(),
++    resolverMainFields: ['browser', 'main'],
+     extraNodeModules: {},
+-    hasteImplModulePath: undefined,
+-    unstable_hasteMapModulePath: undefined,
+-    nodeModulesPaths: [],
+     resolveRequest: null,
+-    resolverMainFields: ['browser', 'main'],
++    hasteImplModulePath: undefined,
++    blacklistRE: blacklist(),
+     useWatchman: true,
+   },
+ 
+@@ -59,43 +54,27 @@ const getDefaultValues = (projectRoot: ?string): ConfigT => ({
+     processModuleFilter: module => true,
+     createModuleIdFactory: defaultCreateModuleIdFactory,
+     experimentalSerializerHook: () => {},
+-    customSerializer: null,
+   },
+ 
+   server: {
+     useGlobalHotkey: true,
+     port: 8080,
++    enableVisualizer: false,
+     enhanceMiddleware: middleware => middleware,
+-    rewriteRequestUrl: url => url,
+-    runInspectorProxy: true,
+-    verifyConnections: false,
+-    unstable_serverRoot: null,
+-  },
+-
+-  symbolicator: {
+-    customizeFrame: () => {},
+   },
+-
+   transformer: {
+     assetPlugins: [],
+-    asyncRequireModulePath: 'metro-runtime/src/modules/asyncRequire',
++    asyncRequireModulePath: 'metro/src/lib/bundle-modules/asyncRequire',
+     assetRegistryPath: 'missing-asset-registry-path',
+-    babelTransformerPath: 'metro-babel-transformer',
++    babelTransformerPath: 'metro/src/defaultTransformer',
+     dynamicDepsInPackages: 'throwAtRuntime',
+     enableBabelRCLookup: true,
+     enableBabelRuntime: true,
+-    experimentalImportBundleSupport: false,
+     getTransformOptions: async () => ({
+-      transform: {
+-        experimentalImportSupport: false,
+-        inlineRequires: false,
+-        unstable_disableES6Transforms: false,
+-      },
++      transform: {experimentalImportSupport: false, inlineRequires: false},
+       preloadedModules: false,
+       ramGroups: [],
+     }),
+-    globalPrefix: '',
+-    hermesParser: false,
+     minifierConfig: {
+       mangle: {
+         toplevel: false,
+@@ -116,16 +95,9 @@ const getDefaultValues = (projectRoot: ?string): ConfigT => ({
+     },
+     minifierPath: DEFAULT_METRO_MINIFIER_PATH,
+     optimizationSizeLimit: 150 * 1024, // 150 KiB.
++    postMinifyProcess: x => x,
+     transformVariants: {default: {}},
+     workerPath: 'metro/src/DeltaBundler/Worker',
+-    publicPath: '/assets',
+-    allowOptionalDependencies: false,
+-    unstable_collectDependenciesPath:
+-      'metro/src/ModuleGraph/worker/collectDependencies.js',
+-    unstable_dependencyMapReservedName: null,
+-    unstable_disableModuleWrapping: false,
+-    unstable_disableNormalizePseudoGlobals: false,
+-    unstable_compactOutput: false,
+   },
+   cacheStores: [
+     new FileStore({
+@@ -136,9 +108,8 @@ const getDefaultValues = (projectRoot: ?string): ConfigT => ({
+   // We assume the default project path is two levels up from
+   // node_modules/metro/
+   projectRoot: projectRoot || path.resolve(__dirname, '../../..'),
+-  stickyWorkers: true,
+   watchFolders: [],
+-  transformerPath: require.resolve('metro-transform-worker'),
++  transformerPath: require.resolve('metro/src/JSTransformer/worker.js'),
+   maxWorkers: getMaxWorkers(),
+   resetCache: false,
+   reporter: new TerminalReporter(new Terminal(process.stdout)),
+diff --git a/node_modules/metro-config/src/defaults/validConfig.js b/node_modules/metro-config/src/defaults/validConfig.js
+deleted file mode 100644
+index 97fe11b..0000000
+--- a/node_modules/metro-config/src/defaults/validConfig.js
++++ /dev/null
+@@ -1,33 +0,0 @@
+-/**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- *
+- *
+- * @format
+- */
+-"use strict";
+-
+-module.exports = async () => {
+-  const defaultConfig = await require("./index")("/path/to/project");
+-  const validConfig = {
+-    ...defaultConfig,
+-    resolver: {
+-      ...defaultConfig.resolver,
+-      resolveRequest: function CustomResolver() {},
+-      hasteImplModulePath: "./path",
+-      unstable_hasteMapModulePath: "./path",
+-    },
+-    server: { ...defaultConfig.server, unstable_serverRoot: "" },
+-    transformer: {
+-      ...defaultConfig.transformer,
+-      getTransformOptions: function getTransformOptions() {},
+-    },
+-    serializer: {
+-      ...defaultConfig.serializer,
+-      customSerializer: function customSerializer() {},
+-    },
+-  };
+-  return validConfig;
+-};
+diff --git a/node_modules/metro-config/src/defaults/validConfig.js.flow b/node_modules/metro-config/src/defaults/validConfig.js.flow
+deleted file mode 100644
+index a15f0aa..0000000
+--- a/node_modules/metro-config/src/defaults/validConfig.js.flow
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- *
+- * @flow
+- * @format
+- */
+-
+-'use strict';
+-
+-module.exports = (async () => {
+-  const defaultConfig = await require('./index')('/path/to/project');
+-  const validConfig = {
+-    ...defaultConfig,
+-    resolver: {
+-      ...defaultConfig.resolver,
+-      resolveRequest: function CustomResolver() {},
+-      hasteImplModulePath: './path',
+-      unstable_hasteMapModulePath: './path',
+-    },
+-    server: {
+-      ...defaultConfig.server,
+-      unstable_serverRoot: '',
+-    },
+-    transformer: {
+-      ...defaultConfig.transformer,
+-      getTransformOptions: function getTransformOptions() {},
+-    },
+-    serializer: {
+-      ...defaultConfig.serializer,
+-      customSerializer: function customSerializer() {},
+-    },
+-  };
+-
+-  return validConfig;
+-}: () => any);
+diff --git a/node_modules/metro-config/src/index.js b/node_modules/metro-config/src/index.js
+index a127db7..b236d79 100644
+--- a/node_modules/metro-config/src/index.js
++++ b/node_modules/metro-config/src/index.js
+@@ -1,21 +1,26 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+  *
+- *
++ *  strict-local
+  * @format
+  */
++
+ "use strict";
+ 
++const convertConfig = require("./convertConfig");
+ const getDefaultConfig = require("./defaults");
+-
+-const { loadConfig, mergeConfig, resolveConfig } = require("./loadConfig");
++var _require = require("./loadConfig");
++const loadConfig = _require.loadConfig,
++  resolveConfig = _require.resolveConfig,
++  mergeConfig = _require.mergeConfig;
+ 
+ module.exports = {
+   loadConfig,
+   resolveConfig,
+   mergeConfig,
+   getDefaultConfig,
++  convert: convertConfig
+ };
+diff --git a/node_modules/metro-config/src/index.js.flow b/node_modules/metro-config/src/index.js.flow
+index 08df6a1..64ccc44 100644
+--- a/node_modules/metro-config/src/index.js.flow
++++ b/node_modules/metro-config/src/index.js.flow
+@@ -1,5 +1,5 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+@@ -10,12 +10,15 @@
+ 
+ 'use strict';
+ 
++const convertConfig = require('./convertConfig');
+ const getDefaultConfig = require('./defaults');
+-const {loadConfig, mergeConfig, resolveConfig} = require('./loadConfig');
++
++const {loadConfig, resolveConfig, mergeConfig} = require('./loadConfig');
+ 
+ module.exports = {
+   loadConfig,
+   resolveConfig,
+   mergeConfig,
+   getDefaultConfig,
++  convert: convertConfig,
+ };
+diff --git a/node_modules/metro-config/src/loadConfig.js b/node_modules/metro-config/src/loadConfig.js
+index c7a7d1d..ab4a107 100644
+--- a/node_modules/metro-config/src/loadConfig.js
++++ b/node_modules/metro-config/src/loadConfig.js
+@@ -1,5 +1,5 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+@@ -7,279 +7,251 @@
+  *
+  * @format
+  */
+-"use strict";
+-
+-const getDefaultConfig = require("./defaults");
+ 
+-const validConfig = require("./defaults/validConfig");
+-
+-const cosmiconfig = require("cosmiconfig");
++"use strict";
++var _extends =
++  Object.assign ||
++  function(target) {
++    for (var i = 1; i < arguments.length; i++) {
++      var source = arguments[i];
++      for (var key in source) {
++        if (Object.prototype.hasOwnProperty.call(source, key)) {
++          target[key] = source[key];
++        }
++      }
++    }
++    return target;
++  };
++let resolveConfig = (() => {
++  var _ref = _asyncToGenerator(function*(path, cwd) {
++    if (path) {
++      return explorer.load(path);
++    }
+ 
+-const fs = require("fs");
++    const result = yield explorer.search(cwd);
++    if (result == null) {
++      // No config file found, return a default
++      return {
++        isEmpty: true,
++        filepath: join(cwd || process.cwd(), "metro.config.stub.js"),
++        config: {}
++      };
++    }
+ 
+-const { validate } = require("jest-validate");
++    return result;
++  });
++  return function resolveConfig(_x, _x2) {
++    return _ref.apply(this, arguments);
++  };
++})();
++let loadMetroConfigFromDisk = (() => {
++  var _ref2 = _asyncToGenerator(function*(path, cwd, defaultConfigOverrides) {
++    const resolvedConfigResults = yield resolveConfig(path, cwd);
++    const configModule = resolvedConfigResults.config,
++      filepath = resolvedConfigResults.filepath;
++    const rootPath = dirname(filepath);
++
++    const defaultConfig = yield getDefaultConfig(rootPath);
++
++    if (typeof configModule === "function") {
++      // Get a default configuration based on what we know, which we in turn can pass
++      // to the function.
++
++      const resultedConfig = yield configModule(defaultConfig);
++      return resultedConfig;
++    }
+ 
+-const MetroCache = require("metro-cache");
++    return mergeConfig(defaultConfig, defaultConfigOverrides, configModule);
++  });
++  return function loadMetroConfigFromDisk(_x3, _x4, _x5) {
++    return _ref2.apply(this, arguments);
++  };
++})();
+ 
+-const path = require("path");
++/**
++ * Load the metro configuration from disk
++ * @param  {object} argv                    Arguments coming from the CLI, can be empty
++ * @param  {object} defaultConfigOverrides  A configuration that can override the default config
++ * @return {object}                         Configuration returned
++ */ let loadConfig = (() => {
++  var _ref3 = _asyncToGenerator(function*() {
++    let argv =
++      arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
++    let defaultConfigOverrides =
++      arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
++    argv.config = overrideArgument(argv.config);
++
++    const configuration = yield loadMetroConfigFromDisk(
++      argv.config,
++      argv.cwd,
++      defaultConfigOverrides
++    );
++
++    // Override the configuration with cli parameters
++    const configWithArgs = overrideConfigWithArguments(configuration, argv);
++
++    const overriddenConfig = {};
++
++    // The resolver breaks if "json" is missing from `resolver.sourceExts`
++    const sourceExts = configWithArgs.resolver.sourceExts;
++    if (!configWithArgs.resolver.sourceExts.includes("json")) {
++      overriddenConfig.resolver = {
++        sourceExts: [].concat(_toConsumableArray(sourceExts), ["json"])
++      };
++    }
+ 
+-const { dirname, join } = require("path");
++    overriddenConfig.watchFolders = [configWithArgs.projectRoot].concat(
++      _toConsumableArray(configWithArgs.watchFolders)
++    );
+ 
++    // Set the watchfolders to include the projectRoot, as Metro assumes that is
++    // the case
++    return mergeConfig(configWithArgs, overriddenConfig);
++  });
++  return function loadConfig() {
++    return _ref3.apply(this, arguments);
++  };
++})();
++function _toConsumableArray(arr) {
++  if (Array.isArray(arr)) {
++    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++)
++      arr2[i] = arr[i];
++    return arr2;
++  } else {
++    return Array.from(arr);
++  }
++}
++function _asyncToGenerator(fn) {
++  return function() {
++    var gen = fn.apply(this, arguments);
++    return new Promise(function(resolve, reject) {
++      function step(key, arg) {
++        try {
++          var info = gen[key](arg);
++          var value = info.value;
++        } catch (error) {
++          reject(error);
++          return;
++        }
++        if (info.done) {
++          resolve(value);
++        } else {
++          return Promise.resolve(value).then(
++            function(value) {
++              step("next", value);
++            },
++            function(err) {
++              step("throw", err);
++            }
++          );
++        }
++      }
++      return step("next");
++    });
++  };
++}
++const cosmiconfig = require("cosmiconfig");
++const getDefaultConfig = require("./defaults");
++var _require = require("path");
++const dirname = _require.dirname,
++  resolve = _require.resolve,
++  join = _require.join;
+ /**
+  * Takes the last argument if multiple of the same argument are given
+- */
+-function overrideArgument(arg) {
++ */ function overrideArgument(arg) {
+   if (arg == null) {
+     return arg;
+   }
+-
+   if (Array.isArray(arg)) {
+-    // $FlowFixMe[incompatible-return]
+     return arg[arg.length - 1];
+   }
+-
+   return arg;
+ }
+-
+ const explorer = cosmiconfig("metro", {
+-  searchPlaces: ["metro.config.js", "metro.config.json", "package.json"],
++  searchPlaces: [
++    "metro.config.js",
++    "metro.config.json",
++    "package.json",
++    "rn-cli.config.js"
++  ],
+   loaders: {
+     ".json": cosmiconfig.loadJson,
+     ".yaml": cosmiconfig.loadYaml,
+     ".yml": cosmiconfig.loadYaml,
+     ".js": cosmiconfig.loadJs,
+     ".es6": cosmiconfig.loadJs,
+-    noExt: cosmiconfig.loadYaml,
+-  },
+-});
+-
+-const isFile = (filePath) =>
+-  fs.existsSync(filePath) && !fs.lstatSync(filePath).isDirectory();
+-
+-const resolve = (filePath) => {
+-  // Attempt to resolve the path with the node resolution algorithm but fall back to resolving
+-  // the file relative to the current working directory if the input is not an absolute path.
+-  try {
+-    return require.resolve(filePath);
+-  } catch (error) {
+-    if (path.isAbsolute(filePath) || error.code !== "MODULE_NOT_FOUND") {
+-      throw error;
+-    }
+-  }
+-
+-  const possiblePath = path.resolve(process.cwd(), filePath);
+-  return isFile(possiblePath) ? possiblePath : filePath;
+-};
+-
+-async function resolveConfig(filePath, cwd) {
+-  if (filePath) {
+-    return explorer.load(resolve(filePath));
++    noExt: cosmiconfig.loadYaml
+   }
+-
+-  const result = await explorer.search(cwd);
+-
+-  if (result == null) {
+-    // No config file found, return a default
+-    return {
+-      isEmpty: true,
+-      filepath: join(cwd || process.cwd(), "metro.config.stub.js"),
+-      config: {},
+-    };
+-  }
+-
+-  return result;
+-}
+-
+-function mergeConfig(defaultConfig, ...configs) {
+-  // If the file is a plain object we merge the file with the default config,
++});
++function mergeConfig(defaultConfig) {
++  for (
++    var _len = arguments.length,
++      configs = Array(_len > 1 ? _len - 1 : 0),
++      _key = 1;
++    _key < _len;
++    _key++
++  ) {
++    configs[_key - 1] = arguments[_key];
++  } // If the file is a plain object we merge the file with the default config,
+   // for the function we don't do this since that's the responsibility of the user
+   return configs.reduce(
+-    (totalConfig, nextConfig) => ({
+-      ...totalConfig,
+-      ...nextConfig,
+-      cacheStores:
+-        nextConfig.cacheStores != null
+-          ? typeof nextConfig.cacheStores === "function"
+-            ? nextConfig.cacheStores(MetroCache)
+-            : nextConfig.cacheStores
+-          : totalConfig.cacheStores,
+-      resolver: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+-        ...totalConfig.resolver,
+-        ...(nextConfig.resolver || {}),
+-        dependencyExtractor:
+-          nextConfig.resolver && nextConfig.resolver.dependencyExtractor != null
+-            ? resolve(nextConfig.resolver.dependencyExtractor)
+-            : totalConfig.resolver.dependencyExtractor,
+-        hasteImplModulePath:
+-          nextConfig.resolver && nextConfig.resolver.hasteImplModulePath != null
+-            ? resolve(nextConfig.resolver.hasteImplModulePath)
+-            : totalConfig.resolver.hasteImplModulePath,
+-      },
+-      serializer: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+-        ...totalConfig.serializer,
+-        ...(nextConfig.serializer || {}),
+-      },
+-      transformer: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+-        ...totalConfig.transformer,
+-        ...(nextConfig.transformer || {}),
+-        babelTransformerPath:
+-          nextConfig.transformer &&
+-          nextConfig.transformer.babelTransformerPath != null
+-            ? resolve(nextConfig.transformer.babelTransformerPath)
+-            : totalConfig.transformer.babelTransformerPath,
+-      },
+-      server: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+-        ...totalConfig.server,
+-        ...(nextConfig.server || {}),
+-      },
+-      symbolicator: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+-        ...totalConfig.symbolicator,
+-        ...(nextConfig.symbolicator || {}),
+-      },
+-    }),
++    (totalConfig, nextConfig) =>
++      _extends({}, totalConfig, nextConfig, {
++        resolver: _extends({}, totalConfig.resolver, nextConfig.resolver || {}),
++        serializer: _extends(
++          {},
++          totalConfig.serializer,
++          nextConfig.serializer || {}
++        ),
++        transformer: _extends(
++          {},
++          totalConfig.transformer,
++          nextConfig.transformer || {}
++        ),
++        server: _extends({}, totalConfig.server, nextConfig.server || {})
++      }),
+     defaultConfig
+   );
+ }
+-
+-async function loadMetroConfigFromDisk(path, cwd, defaultConfigOverrides) {
+-  const resolvedConfigResults = await resolveConfig(path, cwd);
+-  const { config: configModule, filepath } = resolvedConfigResults;
+-  const rootPath = dirname(filepath);
+-  const defaults = await getDefaultConfig(rootPath);
+-  const defaultConfig = mergeConfig(defaults, defaultConfigOverrides);
+-
+-  if (typeof configModule === "function") {
+-    // Get a default configuration based on what we know, which we in turn can pass
+-    // to the function.
+-    const resultedConfig = await configModule(defaultConfig);
+-    return mergeConfig(defaultConfig, resultedConfig);
+-  }
+-
+-  return mergeConfig(defaultConfig, configModule);
+-}
+-
+ function overrideConfigWithArguments(config, argv) {
+   // We override some config arguments here with the argv
+-  const output = {
+-    resolver: {},
+-    serializer: {},
+-    server: {},
+-    transformer: {},
+-  };
+-
++  const output = { resolver: {}, serializer: {}, server: {}, transformer: {} };
+   if (argv.port != null) {
+     output.server.port = Number(argv.port);
+   }
+-
+-  if (argv.runInspectorProxy != null) {
+-    output.server.runInspectorProxy = Boolean(argv.runInspectorProxy);
+-  }
+-
+   if (argv.projectRoot != null) {
+     output.projectRoot = argv.projectRoot;
+   }
+-
+   if (argv.watchFolders != null) {
+     output.watchFolders = argv.watchFolders;
+   }
+-
+   if (argv.assetExts != null) {
+     output.resolver.assetExts = argv.assetExts;
+   }
+-
+   if (argv.sourceExts != null) {
+     output.resolver.sourceExts = argv.sourceExts;
+   }
+-
+   if (argv.platforms != null) {
+     output.resolver.platforms = argv.platforms;
+   }
+-
++  if (argv.providesModuleNodeModules != null) {
++    output.resolver.providesModuleNodeModules = argv.providesModuleNodeModules;
++  }
+   if (argv["max-workers"] != null || argv.maxWorkers != null) {
+     output.maxWorkers = Number(argv["max-workers"] || argv.maxWorkers);
+   }
+-
+   if (argv.transformer != null) {
+-    output.transformer.babelTransformerPath = argv.transformer;
++    output.transformer.babelTransformerPath = resolve(argv.transformer);
+   }
+-
+   if (argv["reset-cache"] != null) {
+     output.resetCache = argv["reset-cache"];
+   }
+-
+   if (argv.resetCache != null) {
+     output.resetCache = argv.resetCache;
+   }
+-
+   if (argv.verbose === false) {
+-    output.reporter = {
+-      update: () => {},
+-    }; // TODO: Ask if this is the way to go
++    output.reporter = { update: () => {} }; // TODO: Ask if this is the way to go
+   }
+-
+   return mergeConfig(config, output);
+ }
+-/**
+- * Load the metro configuration from disk
+- * @param  {object} argv                    Arguments coming from the CLI, can be empty
+- * @param  {object} defaultConfigOverrides  A configuration that can override the default config
+- * @return {object}                         Configuration returned
+- */
+-
+-async function loadConfig(argv = {}, defaultConfigOverrides = {}) {
+-  argv.config = overrideArgument(argv.config);
+-  const configuration = await loadMetroConfigFromDisk(
+-    argv.config,
+-    argv.cwd,
+-    defaultConfigOverrides
+-  );
+-  validate(configuration, {
+-    exampleConfig: await validConfig(),
+-    recursiveBlacklist: ["reporter", "resolver", "transformer"],
+-    deprecatedConfig: {
+-      blacklistRE:
+-        () => `Warning: Metro config option \`blacklistRE\` is deprecated.
+-         Please use \`blockList\` instead.`,
+-    },
+-  }); // Override the configuration with cli parameters
+-
+-  const configWithArgs = overrideConfigWithArguments(configuration, argv);
+-  const overriddenConfig = {}; // The resolver breaks if "json" is missing from `resolver.sourceExts`
+-
+-  const sourceExts = configWithArgs.resolver.sourceExts;
+-
+-  if (!configWithArgs.resolver.sourceExts.includes("json")) {
+-    overriddenConfig.resolver = {
+-      sourceExts: [...sourceExts, "json"],
+-    };
+-  }
+-
+-  overriddenConfig.watchFolders = [
+-    configWithArgs.projectRoot,
+-    ...configWithArgs.watchFolders,
+-  ]; // Set the watchfolders to include the projectRoot, as Metro assumes that is
+-  // the case
+-
+-  return mergeConfig(configWithArgs, overriddenConfig);
+-}
+-
+-module.exports = {
+-  loadConfig,
+-  resolveConfig,
+-  mergeConfig,
+-};
++module.exports = { loadConfig, resolveConfig, mergeConfig };
+diff --git a/node_modules/metro-config/src/loadConfig.js.flow b/node_modules/metro-config/src/loadConfig.js.flow
+index 26f3ac2..6d76901 100644
+--- a/node_modules/metro-config/src/loadConfig.js.flow
++++ b/node_modules/metro-config/src/loadConfig.js.flow
+@@ -1,5 +1,5 @@
+ /**
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
++ * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+  * This source code is licensed under the MIT license found in the
+  * LICENSE file in the root directory of this source tree.
+@@ -10,22 +10,36 @@
+ 
+ 'use strict';
+ 
+-import type {ConfigT, InputConfigT, YargArguments} from './configTypes.flow';
+-
+-const getDefaultConfig = require('./defaults');
+-const validConfig = require('./defaults/validConfig');
+ const cosmiconfig = require('cosmiconfig');
+-const fs = require('fs');
+-const {validate} = require('jest-validate');
+-const MetroCache = require('metro-cache');
+-const path = require('path');
+-const {dirname, join} = require('path');
++const getDefaultConfig = require('./defaults');
++
++const {dirname, resolve, join} = require('path');
++
++import type {ConfigT, InputConfigT} from './configTypes.flow';
+ 
+ type CosmiConfigResult = {
+   filepath: string,
+   isEmpty: boolean,
+   config: (ConfigT => Promise<ConfigT>) | (ConfigT => ConfigT) | InputConfigT,
+-  ...
++};
++
++type YargArguments = {
++  config?: string,
++  cwd?: string,
++  port?: string | number,
++  host?: string,
++  projectRoot?: string,
++  watchFolders?: Array<string>,
++  assetExts?: Array<string>,
++  sourceExts?: Array<string>,
++  platforms?: Array<string>,
++  providesModuleNodeModules?: Array<string>,
++  'max-workers'?: string | number,
++  maxWorkers?: string | number,
++  transformer?: string,
++  'reset-cache'?: boolean,
++  resetCache?: boolean,
++  verbose?: boolean,
+ };
+ 
+ /**
+@@ -37,7 +51,6 @@ function overrideArgument<T>(arg: Array<T> | T): T {
+   }
+ 
+   if (Array.isArray(arg)) {
+-    // $FlowFixMe[incompatible-return]
+     return arg[arg.length - 1];
+   }
+ 
+@@ -45,7 +58,12 @@ function overrideArgument<T>(arg: Array<T> | T): T {
+ }
+ 
+ const explorer = cosmiconfig('metro', {
+-  searchPlaces: ['metro.config.js', 'metro.config.json', 'package.json'],
++  searchPlaces: [
++    'metro.config.js',
++    'metro.config.json',
++    'package.json',
++    'rn-cli.config.js',
++  ],
+ 
+   loaders: {
+     '.json': cosmiconfig.loadJson,
+@@ -57,30 +75,12 @@ const explorer = cosmiconfig('metro', {
+   },
+ });
+ 
+-const isFile = (filePath: string) =>
+-  fs.existsSync(filePath) && !fs.lstatSync(filePath).isDirectory();
+-
+-const resolve = (filePath: string) => {
+-  // Attempt to resolve the path with the node resolution algorithm but fall back to resolving
+-  // the file relative to the current working directory if the input is not an absolute path.
+-  try {
+-    return require.resolve(filePath);
+-  } catch (error) {
+-    if (path.isAbsolute(filePath) || error.code !== 'MODULE_NOT_FOUND') {
+-      throw error;
+-    }
+-  }
+-
+-  const possiblePath = path.resolve(process.cwd(), filePath);
+-  return isFile(possiblePath) ? possiblePath : filePath;
+-};
+-
+ async function resolveConfig(
+-  filePath?: string,
++  path?: string,
+   cwd?: string,
+ ): Promise<CosmiConfigResult> {
+-  if (filePath) {
+-    return explorer.load(resolve(filePath));
++  if (path) {
++    return explorer.load(path);
+   }
+ 
+   const result = await explorer.search(cwd);
+@@ -107,61 +107,22 @@ function mergeConfig<T: InputConfigT>(
+       ...totalConfig,
+       ...nextConfig,
+ 
+-      cacheStores:
+-        nextConfig.cacheStores != null
+-          ? typeof nextConfig.cacheStores === 'function'
+-            ? nextConfig.cacheStores(MetroCache)
+-            : nextConfig.cacheStores
+-          : totalConfig.cacheStores,
+-
+       resolver: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+         ...totalConfig.resolver,
+         ...(nextConfig.resolver || {}),
+-        dependencyExtractor:
+-          nextConfig.resolver && nextConfig.resolver.dependencyExtractor != null
+-            ? resolve(nextConfig.resolver.dependencyExtractor)
+-            : totalConfig.resolver.dependencyExtractor,
+-        hasteImplModulePath:
+-          nextConfig.resolver && nextConfig.resolver.hasteImplModulePath != null
+-            ? resolve(nextConfig.resolver.hasteImplModulePath)
+-            : totalConfig.resolver.hasteImplModulePath,
+       },
+       serializer: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+         ...totalConfig.serializer,
+         ...(nextConfig.serializer || {}),
+       },
+       transformer: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+         ...totalConfig.transformer,
+         ...(nextConfig.transformer || {}),
+-        babelTransformerPath:
+-          nextConfig.transformer &&
+-          nextConfig.transformer.babelTransformerPath != null
+-            ? resolve(nextConfig.transformer.babelTransformerPath)
+-            : totalConfig.transformer.babelTransformerPath,
+       },
+       server: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+         ...totalConfig.server,
+         ...(nextConfig.server || {}),
+       },
+-      symbolicator: {
+-        /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+-         * an error found when Flow v0.111 was deployed. To see the error,
+-         * delete this comment and run Flow. */
+-        ...totalConfig.symbolicator,
+-        ...(nextConfig.symbolicator || {}),
+-      },
+     }),
+     defaultConfig,
+   );
+@@ -180,18 +141,17 @@ async function loadMetroConfigFromDisk(
+   const {config: configModule, filepath} = resolvedConfigResults;
+   const rootPath = dirname(filepath);
+ 
+-  const defaults = await getDefaultConfig(rootPath);
+-  const defaultConfig: ConfigT = mergeConfig(defaults, defaultConfigOverrides);
++  const defaultConfig: ConfigT = await getDefaultConfig(rootPath);
+ 
+   if (typeof configModule === 'function') {
+     // Get a default configuration based on what we know, which we in turn can pass
+     // to the function.
+ 
+     const resultedConfig = await configModule(defaultConfig);
+-    return mergeConfig(defaultConfig, resultedConfig);
++    return resultedConfig;
+   }
+ 
+-  return mergeConfig(defaultConfig, configModule);
++  return mergeConfig(defaultConfig, defaultConfigOverrides, configModule);
+ }
+ 
+ function overrideConfigWithArguments(
+@@ -211,10 +171,6 @@ function overrideConfigWithArguments(
+     output.server.port = Number(argv.port);
+   }
+ 
+-  if (argv.runInspectorProxy != null) {
+-    output.server.runInspectorProxy = Boolean(argv.runInspectorProxy);
+-  }
+-
+   if (argv.projectRoot != null) {
+     output.projectRoot = argv.projectRoot;
+   }
+@@ -235,12 +191,16 @@ function overrideConfigWithArguments(
+     output.resolver.platforms = argv.platforms;
+   }
+ 
++  if (argv.providesModuleNodeModules != null) {
++    output.resolver.providesModuleNodeModules = argv.providesModuleNodeModules;
++  }
++
+   if (argv['max-workers'] != null || argv.maxWorkers != null) {
+     output.maxWorkers = Number(argv['max-workers'] || argv.maxWorkers);
+   }
+ 
+   if (argv.transformer != null) {
+-    output.transformer.babelTransformerPath = argv.transformer;
++    output.transformer.babelTransformerPath = resolve(argv.transformer);
+   }
+ 
+   if (argv['reset-cache'] != null) {
+@@ -266,8 +226,8 @@ function overrideConfigWithArguments(
+  * @return {object}                         Configuration returned
+  */
+ async function loadConfig(
+-  argv?: YargArguments = {},
+-  defaultConfigOverrides?: InputConfigT = {},
++  argv: YargArguments = {},
++  defaultConfigOverrides: InputConfigT = {},
+ ): Promise<ConfigT> {
+   argv.config = overrideArgument(argv.config);
+ 
+@@ -277,16 +237,6 @@ async function loadConfig(
+     defaultConfigOverrides,
+   );
+ 
+-  validate(configuration, {
+-    exampleConfig: await validConfig(),
+-    recursiveBlacklist: ['reporter', 'resolver', 'transformer'],
+-    deprecatedConfig: {
+-      blacklistRE: () =>
+-        `Warning: Metro config option \`blacklistRE\` is deprecated.
+-         Please use \`blockList\` instead.`,
+-    },
+-  });
+-
+   // Override the configuration with cli parameters
+   const configWithArgs = overrideConfigWithArguments(configuration, argv);
+ 
+diff --git a/node_modules/metro-config/src/oldConfig.js b/node_modules/metro-config/src/oldConfig.js
+new file mode 100644
+index 0000000..6e0083a
+--- /dev/null
++++ b/node_modules/metro-config/src/oldConfig.js
+@@ -0,0 +1,111 @@
++/**
++ * Copyright (c) Facebook, Inc. and its affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ *
++ *
++ * @format
++ */
++"use strict";
++function _asyncToGenerator(fn) {
++  return function() {
++    var gen = fn.apply(this, arguments);
++    return new Promise(function(resolve, reject) {
++      function step(key, arg) {
++        try {
++          var info = gen[key](arg);
++          var value = info.value;
++        } catch (error) {
++          reject(error);
++          return;
++        }
++        if (info.done) {
++          resolve(value);
++        } else {
++          return Promise.resolve(value).then(
++            function(value) {
++              step("next", value);
++            },
++            function(err) {
++              step("throw", err);
++            }
++          );
++        }
++      }
++      return step("next");
++    });
++  };
++}
++
++const blacklist = require("./defaults/blacklist");
++const os = require("os");
++const path = require("path");
++var _require = require("./defaults/defaults");
++const defaultCreateModuleIdFactory = _require.defaultCreateModuleIdFactory,
++  platforms = _require.platforms,
++  providesModuleNodeModules = _require.providesModuleNodeModules;
++var _require2 = require("metro-cache");
++const FileStore = _require2.FileStore;
++
++const DEFAULT = {
++  assetRegistryPath: "missing-asset-registry-path",
++  enhanceMiddleware: middleware => middleware,
++  extraNodeModules: {},
++  cacheStores: [
++    new FileStore({
++      root: path.join(os.tmpdir(), "metro-cache")
++    })
++  ],
++
++  cacheVersion: "1.0",
++  createModuleIdFactory: defaultCreateModuleIdFactory,
++  dynamicDepsInPackages: "throwAtRuntime",
++  getAsyncRequireModulePath: () => "metro/src/lib/bundle-modules/asyncRequire",
++  getAssetExts: () => [],
++  getBlacklistRE: () => blacklist(),
++  getEnableBabelRCLookup: () => true,
++  getPlatforms: () => platforms,
++  getPolyfillModuleNames: () => [],
++  getProjectRoots: undefined,
++  // We assume the default project path is two levels up from
++  // node_modules/metro/
++  getProjectRoot: () => path.resolve(__dirname, "../../.."),
++  getWatchFolders: () => [],
++  getProvidesModuleNodeModules: () => providesModuleNodeModules.slice(),
++  getRunModuleStatement: moduleId => `__r(${JSON.stringify(moduleId)});`,
++  getSourceExts: () => [],
++  getTransformModulePath: () => "metro/src/defaultTransformer",
++  getTransformOptions: (() => {
++    var _ref = _asyncToGenerator(function*() {
++      return {
++        transform: { experimentalImportSupport: false, inlineRequires: false },
++        preloadedModules: false,
++        ramGroups: []
++      };
++    });
++    return function getTransformOptions() {
++      return _ref.apply(this, arguments);
++    };
++  })(),
++
++  getPolyfills: () => [],
++  getUseGlobalHotkey: () => true,
++  postMinifyProcess: x => x,
++  postProcessBundleSourcemap: _ref2 => {
++    let code = _ref2.code,
++      map = _ref2.map,
++      outFileName = _ref2.outFileName;
++    return { code, map };
++  },
++  resolveRequest: null,
++  getResolverMainFields: () => ["browser", "main"],
++  getModulesRunBeforeMainModule: () => [],
++  getWorkerPath: () => "metro/src/DeltaBundler/Worker",
++  processModuleFilter: module => true,
++  transformVariants: () => ({ default: {} })
++};
++
++module.exports = {
++  DEFAULT
++};
+diff --git a/node_modules/metro-config/src/oldConfig.js.flow b/node_modules/metro-config/src/oldConfig.js.flow
+new file mode 100644
+index 0000000..37ff948
+--- /dev/null
++++ b/node_modules/metro-config/src/oldConfig.js.flow
+@@ -0,0 +1,72 @@
++/**
++ * Copyright (c) Facebook, Inc. and its affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ *
++ * @flow
++ * @format
++ */
++'use strict';
++
++const blacklist = require('./defaults/blacklist');
++const os = require('os');
++const path = require('path');
++
++const {
++  defaultCreateModuleIdFactory,
++  platforms,
++  providesModuleNodeModules,
++} = require('./defaults/defaults');
++const {FileStore} = require('metro-cache');
++
++import type {OldConfigT as ConfigT} from './configTypes.flow.js';
++
++const DEFAULT = ({
++  assetRegistryPath: 'missing-asset-registry-path',
++  enhanceMiddleware: middleware => middleware,
++  extraNodeModules: {},
++  cacheStores: [
++    new FileStore({
++      root: path.join(os.tmpdir(), 'metro-cache'),
++    }),
++  ],
++  cacheVersion: '1.0',
++  createModuleIdFactory: defaultCreateModuleIdFactory,
++  dynamicDepsInPackages: 'throwAtRuntime',
++  getAsyncRequireModulePath: () => 'metro/src/lib/bundle-modules/asyncRequire',
++  getAssetExts: () => [],
++  getBlacklistRE: () => blacklist(),
++  getEnableBabelRCLookup: () => true,
++  getPlatforms: () => platforms,
++  getPolyfillModuleNames: () => [],
++  getProjectRoots: undefined,
++  // We assume the default project path is two levels up from
++  // node_modules/metro/
++  getProjectRoot: () => path.resolve(__dirname, '../../..'),
++  getWatchFolders: () => [],
++  getProvidesModuleNodeModules: () => providesModuleNodeModules.slice(),
++  getRunModuleStatement: (moduleId: number | string) =>
++    `__r(${JSON.stringify(moduleId)});`,
++  getSourceExts: () => [],
++  getTransformModulePath: () => 'metro/src/defaultTransformer',
++  getTransformOptions: async () => ({
++    transform: {experimentalImportSupport: false, inlineRequires: false},
++    preloadedModules: false,
++    ramGroups: [],
++  }),
++  getPolyfills: () => [],
++  getUseGlobalHotkey: () => true,
++  postMinifyProcess: x => x,
++  postProcessBundleSourcemap: ({code, map, outFileName}) => ({code, map}),
++  resolveRequest: null,
++  getResolverMainFields: () => ['browser', 'main'],
++  getModulesRunBeforeMainModule: () => [],
++  getWorkerPath: () => 'metro/src/DeltaBundler/Worker',
++  processModuleFilter: module => true,
++  transformVariants: () => ({default: {}}),
++}: ConfigT);
++
++module.exports = {
++  DEFAULT,
++};

@@ -34,7 +34,6 @@ const Order = () => {
   const checkUser = useAppSelect((data: any) => data.checkuser.value);
   const tables = useAppSelect((data: any) => data.tables.value);
   const saveorders = useAppSelect((data: any) => data.saveorders.value);
-  console.log(saveorders)
   //   const vegetables =  [
 
   //     {name:"beans",price: 5},
@@ -84,7 +83,7 @@ const Order = () => {
                       : item.floor_id == dataFloors?._id
                   ) {
                     return (
-                      <Col>
+                      <Col key={index}>
                         <TouchableOpacity
                           style={styles.table}
                           onPress={() => console.log(item._id)}

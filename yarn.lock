@@ -5993,6 +5993,11 @@ react-native-elements@^3.4.2:
     react-native-ratings "8.0.4"
     react-native-size-matters "^0.3.1"
 
+react-native-form-component@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/react-native-form-component/-/react-native-form-component-2.4.0.tgz#e7dffed85c26f888c34c23dbcb044ae2a7012262"
+  integrity sha512-/FRaj0h2rIYMLvhtAfnunSF6JuC7W7jrA4riZp8IRkXLCvi1z5wBAV4C0eKZ9RoLeZzgDiM89swEb8O5yRjuPQ==
+
 react-native-gesture-handler@^2.5.0:
   version "2.5.0"
   resolved "https://registry.npmjs.org/react-native-gesture-handler/-/react-native-gesture-handler-2.5.0.tgz"
