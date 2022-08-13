@@ -22,7 +22,8 @@ export const remove = (id) => {
     const url = `/categoris/${id}`;
     return axiosClient.delete(url);
 }
-export const uploadCate = (id, data) => {
+export const upload = (id, data) => {
+    console.log(id,data,'2 thằng lên')
     const url = `/categoris/${id}`;
     return axiosClient.put(url, data);
 }

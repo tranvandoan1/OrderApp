@@ -1,6 +1,8 @@
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -14,21 +16,15 @@ import {Controller, useForm} from 'react-hook-form';
 import UserAPI from '../API/Users';
 import ProAPI from '../API/ProAPI';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {checkUser} from '../size';
 type FormData = {
   email: string;
   password: string;
 };
 const Signin = ({navigation}: any) => {
   const [check, setCheck] = useState<Boolean>(false);
-  const [checkUser, setCheckUser] = useState<any>();
-  useEffect(() => {
-    async function checkUser() {
-      const logStorage: any = await AsyncStorage?.getItem('user');
-      const user = JSON.parse(logStorage);
-      setCheckUser(user.data);
-    }
-    checkUser();
-  }, []);
+  const checkUserStorage: any = checkUser();
+  console.log(checkUserStorage,'3ewqdsa22re')
   const {
     control,
     handleSubmit,
@@ -53,7 +49,6 @@ const Signin = ({navigation}: any) => {
         'user',
         JSON.stringify({data: data.user, token: data.token}),
       );
-
       setCheck(false);
       navigation?.navigate('Home');
     } catch (error: any) {
@@ -63,7 +58,7 @@ const Signin = ({navigation}: any) => {
   };
   return (
     <>
-      {checkUser !== undefined ? (
+      {checkUserStorage == undefined ? (
         navigation?.navigate('Home')
       ) : (
         <View style={{flex: 1, backgroundColor: '#fff'}}>
@@ -84,48 +79,52 @@ const Signin = ({navigation}: any) => {
             </View>
             <View>
               <Text style={styles.title}>Đăng nhập</Text>
-
-              <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={({field: {onChange, onBlur, value}}: any) => (
-                  <TextInput
-                    style={errors.email ? styles.inputActive : styles.input}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    placeholder="Email/SĐT"
-                    placeholderTextColor={errors.email && 'red'}
-                  />
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={({field: {onChange, onBlur, value}}: any) => (
+                    <TextInput
+                      style={errors.email ? styles.inputActive : styles.input}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      placeholder="Email/SĐT"
+                      placeholderTextColor={errors.email && 'red'}
+                    />
+                  )}
+                  name="email"
+                />
+                {errors.email && (
+                  <Text style={styles.validate}>Email không để trống !</Text>
                 )}
-                name="email"
-              />
-              {errors.email && (
-                <Text style={styles.validate}>Email không để trống !</Text>
-              )}
-              <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={({field: {onChange, onBlur, value}}: any) => (
-                  <TextInput
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    style={errors.password ? styles.inputActive : styles.input}
-                    placeholder="Password"
-                    secureTextEntry={true}
-                    placeholderTextColor={errors.password && 'red'}
-                  />
+                <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={({field: {onChange, onBlur, value}}: any) => (
+                    <TextInput
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      style={
+                        errors.password ? styles.inputActive : styles.input
+                      }
+                      placeholder="Password"
+                      secureTextEntry={true}
+                      placeholderTextColor={errors.password && 'red'}
+                    />
+                  )}
+                  name="password"
+                />
+                {errors.password && (
+                  <Text style={styles.validate}>Password không để trống !</Text>
                 )}
-                name="password"
-              />
-              {errors.password && (
-                <Text style={styles.validate}>Password không để trống !</Text>
-              )}
+              </KeyboardAvoidingView>
 
               <TouchableOpacity onPress={handleSubmit(onSubmit)}>
                 <Text style={styles.signin}>

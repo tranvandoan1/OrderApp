@@ -23,18 +23,12 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkUser } from '../size';
 const Setting = ({navigation}: any) => {
-  const [checkUser, setCheckUser] = useState<any>();
   const [modalVisible, setModalVisible] = useState(false);
   const [checkLognout, setCheckLognout] = useState(false);
-  useEffect(() => {
-    async function checkUser() {
-      const logStorage: any = await AsyncStorage.getItem('user');
-      const user = JSON.parse(logStorage);
-      setCheckUser(user.data);
-    }
-    checkUser();
-  }, []);
+  const checkUserStorage:any = checkUser();
+  console.log(checkUserStorage.data,'dasdasd')
   const logout = async () => {
     setCheckLognout(true);
     setModalVisible(false);
@@ -106,7 +100,7 @@ const Setting = ({navigation}: any) => {
             <Avatar
               rounded
               source={{
-                uri: `${checkUser?.avatar}`,
+                uri: `${checkUserStorage.data?.avatar}`,
               }}
               size={150}
             />
@@ -118,7 +112,7 @@ const Setting = ({navigation}: any) => {
             <ScrollView>
               <TouchableOpacity style={[styles.item, {marginTop: 0}]}>
                 <View style={styles.li}>
-                  <Icon name="chart" size={20} style={{marginRight: 5}} />
+                  <Icon name="chart" size={30} style={{marginRight: 4}} />
                   <Text style={styles.text}>Thống kê</Text>
                 </View>
                 <IconMaterialIcons name="navigate-next" size={20} />

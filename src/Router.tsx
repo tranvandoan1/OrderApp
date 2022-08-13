@@ -17,23 +17,14 @@ import ListProducts from './Manage/Products/ListProducts';
 import {store} from './App/Store';
 import {Provider} from 'react-redux';
 import ListCate from './Manage/Categoris/ListCate';
+import {checkUser} from './size';
 const Tab = createBottomTabNavigator();
 
 function Router() {
-  const [checkUser, setCheckUser] = React.useState<any>();
-  useEffect(() => {
-    async function checkUser() {
-      const logStorage: any = await AsyncStorage.getItem('user');
-      const user = JSON.parse(logStorage);
-      setInterval(() => {
-        setCheckUser(user.data);
-      }, 2000);
-    }
-    checkUser();
-  }, []);
+  const checkUserStorage:any = checkUser();
   return (
     <>
-      {checkUser == undefined ? (
+      {checkUserStorage.data == undefined ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'blue'} />
         </View>
@@ -110,21 +101,25 @@ function Router() {
 }
 const Stack = createNativeStackNavigator();
 function App() {
+  const checkUserStorage:any = checkUser();
+  console.log(checkUserStorage.data,'dasdasd')
   return (
     <>
       <Provider store={store}>
         <NavigationContainer>
           <Stack.Navigator>
-            <Stack.Screen
-              name="Signin"
-              component={Signin}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="Signup"
-              component={SignUp}
-              options={{headerShown: false}}
-            />
+              <>
+                <Stack.Screen
+                  name="Signin"
+                  component={Signin}
+                  options={{headerShown: false}}
+                />
+                <Stack.Screen
+                  name="Signup"
+                  component={SignUp}
+                  options={{headerShown: false}}
+                />
+              </>
             <Stack.Screen
               name="Home"
               component={Router}
