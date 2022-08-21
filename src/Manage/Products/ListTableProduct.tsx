@@ -19,8 +19,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {Size} from '../../size';
 
 const MyComponent = () => {
-  const width = Size().width;
-  const height = Size().height;
+  const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const products = useAppSelect((data: any) => data.products.value);
@@ -40,11 +39,14 @@ const MyComponent = () => {
                   flexDirection: 'row',
                   paddingVertical: 10,
                   borderColor: 'rgb(219,219,219)',
-                  borderBottomWidth: 1,
+                  borderBottomWidth: 0.5,
                   alignItems: 'center',
                 }}>
                 <View style={{width: '40%'}}>
-                  <Text style={styles.listTxt}>{item.name}</Text>
+                  <Text
+                    style={[styles.listTxt, {fontSize: width < 720 ? 18 : 21}]}>
+                    {item.name}
+                  </Text>
                 </View>
                 <View
                   style={{
@@ -61,7 +63,7 @@ const MyComponent = () => {
                   <Text
                     style={[
                       styles.listTxt,
-                      {textAlign: 'center'},
+                      {textAlign: 'center', fontSize: width < 720 ? 18 : 20},
                     ]}>{`${item.price
                     .toString()
                     .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${
@@ -80,14 +82,14 @@ const MyComponent = () => {
                       onPress={() => console.log(item._id, 'edit')}>
                       <Feather
                         name="edit"
-                        style={{fontSize: 22, marginRight: 10, color: 'blue'}}
+                        style={{fontSize: 27, marginRight: 10, color: 'blue'}}
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => console.log(item._id, 'xóa')}>
                       <MaterialIcons
                         name="delete-outline"
-                        style={{fontSize: 25, color: 'red'}}
+                        style={{fontSize: 30, color: 'red'}}
                       />
                     </TouchableOpacity>
                   </View>
@@ -105,7 +107,7 @@ export default MyComponent;
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 18,
+    fontSize: 21,
     padding: 10,
     textAlign: 'center',
   },
@@ -113,8 +115,8 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
     // fontFamily: Platform.OS == 'android' ? 'Roboto-Light' : 'Roboto-Bold',
     fontStyle: 'normal',
-    fontSize: 16,
+
     fontWeight: '400',
-    color: 'black',
+    color: '#fff',
   },
 });

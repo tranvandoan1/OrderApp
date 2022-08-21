@@ -23,20 +23,20 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { checkUser } from '../size';
+import {checkUserAsyncStorage} from '../checkUser';
+import {Size} from '../size';
 const Setting = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [checkLognout, setCheckLognout] = useState(false);
-  const checkUserStorage:any = checkUser();
-  console.log(checkUserStorage.data,'dasdasd')
+  const X = checkUserAsyncStorage();
+  const checkUserStorage = Object.values(X)[2];
+  const width = Size().width;
   const logout = async () => {
     setCheckLognout(true);
     setModalVisible(false);
-    await setInterval(() => {
-      setCheckLognout(false);
-    }, 2000);
     await AsyncStorage.removeItem('user');
-    navigation.navigate('Signin');
+    setCheckLognout(false);
+    navigation?.navigate('Signin');
   };
   return (
     <>
@@ -44,7 +44,7 @@ const Setting = ({navigation}: any) => {
         <View style={styles.loading1}>
           <ActivityIndicator size="large" color={'#fff'} />
         </View>
-      ) : checkUser == undefined ? (
+      ) : checkUserStorage == undefined ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'#fff'} />
         </View>
@@ -89,12 +89,12 @@ const Setting = ({navigation}: any) => {
           </Modal>
         </View>
       ) : (
-        <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <View style={{flex: 1, backgroundColor: 'black'}}>
           <View
             style={{
               flexDirection: 'column',
               alignItems: 'center',
-              backgroundColor: 'rgba(0, 0, 0, .5)',
+              backgroundColor: '#EEEEEE',
               padding: 10,
             }}>
             <Avatar
@@ -104,41 +104,71 @@ const Setting = ({navigation}: any) => {
               }}
               size={150}
             />
-            <Text style={{color: '#fff', fontSize: 18, margin: 10}}>
-              {checkUser?.name}
+            <Text
+              style={{
+                color: 'black',
+                fontSize: width < 720 ? 18 : 25,
+                margin: 10,
+              }}>
+              {checkUserStorage.data?.name}
             </Text>
           </View>
           <SafeAreaView style={{flex: 1}}>
             <ScrollView>
               <TouchableOpacity style={[styles.item, {marginTop: 0}]}>
                 <View style={styles.li}>
-                  <Icon name="chart" size={30} style={{marginRight: 4}} />
-                  <Text style={styles.text}>Thống kê</Text>
+                  <Icon
+                    name="chart"
+                    size={40}
+                    style={{marginRight: 4, color: '#EEEEEE'}}
+                  />
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Thống kê
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons
+                  name="navigate-next"
+                  size={30}
+                  color={'#EEEEEE'}
+                /> */}
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.item}>
                 <View style={styles.li}>
                   <MaterialCommunityIcons
                     name="home-city-outline"
-                    size={20}
-                    style={{marginRight: 10, marginLeft: 5}}
+                    size={30}
+                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
                   />
-                  <Text style={styles.text}>Tầng</Text>
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Tầng
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons
+                  name="navigate-next"
+                  size={30}
+                  color={'#EEEEEE'}
+                /> */}
               </TouchableOpacity>
               <TouchableOpacity style={styles.item}>
                 <View style={styles.li}>
                   <MaterialCommunityIcons
                     name="table-furniture"
-                    size={20}
-                    style={{marginRight: 10, marginLeft: 5}}
+                    size={30}
+                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
                   />
-                  <Text style={styles.text}>Bàn</Text>
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Bàn
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons
+                  name="navigate-next"
+                  size={30}
+                  color={'#EEEEEE'}
+                /> */}
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.item}
@@ -146,12 +176,19 @@ const Setting = ({navigation}: any) => {
                 <View style={styles.li}>
                   <MaterialIcons
                     name="category"
-                    size={20}
-                    style={{marginRight: 10,marginLeft:5}}
+                    size={30}
+                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
                   />
-                  <Text style={styles.text}>Danh mục</Text>
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Danh mục
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons
+                  name="navigate-next"
+                  size={30}
+                  color={'#EEEEEE'}
+                /> */}
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.item}
@@ -159,47 +196,71 @@ const Setting = ({navigation}: any) => {
                 <View style={styles.li}>
                   <FontAwesome
                     name="product-hunt"
-                    size={20}
-                    style={{marginRight: 10, marginLeft: 5}}
+                    size={30}
+                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
                   />
-                  <Text style={styles.text}>Sản phẩm</Text>
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Sản phẩm
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons
+                  name="navigate-next"
+                  size={30}
+                  color={'#EEEEEE'}
+                /> */}
               </TouchableOpacity>
               <TouchableOpacity style={styles.item}>
                 <View style={styles.li}>
                   <Feather
                     name="shopping-cart"
-                    size={20}
-                    style={{marginRight: 10, marginLeft: 5}}
+                    size={30}
+                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
                   />
-                  <Text style={styles.text}>Đơn hàng</Text>
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Đơn hàng
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons
+                  name="navigate-next"
+                  size={30}
+                  color={'#EEEEEE'}
+                /> */}
               </TouchableOpacity>
               <TouchableOpacity style={styles.item}>
                 <View style={styles.li}>
                   <AntDesign
                     name="user"
-                    size={20}
-                    style={{marginRight: 10, marginLeft: 5}}
+                    size={30}
+                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
                   />
-                  <Text style={styles.text}>Tài khoản</Text>
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Tài khoản
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons
+                  name="navigate-next"
+                  size={30}
+                  color={'#EEEEEE'}
+                /> */}
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.item}
+                style={[styles.item, {borderBottomWidth: 0}]}
                 onPress={() => setModalVisible(true)}>
                 <View style={styles.li}>
                   <MaterialCommunityIcons
                     name="logout"
-                    size={20}
-                    style={{marginRight: 10, marginLeft: 5}}
+                    size={30}
+                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
                   />
-                  <Text style={styles.text}>Đăng xuất</Text>
+                  <Text
+                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    Đăng xuất
+                  </Text>
                 </View>
-                <IconMaterialIcons name="navigate-next" size={20} />
+                {/* <IconMaterialIcons name="navigate-next" size={30} /> */}
               </TouchableOpacity>
             </ScrollView>
           </SafeAreaView>
@@ -216,18 +277,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderColor: 'rgb(219, 219, 219)',
-    borderWidth: 0.5,
+    borderBottomWidth: 0.3,
     marginVertical: 5,
     paddingVertical: 10,
   },
   li: {
     flexDirection: 'row',
-
     alignItems: 'center',
   },
-  text: {
-    fontSize: 16,
-  },
+
   loading: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -240,7 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 22,
-    backgroundColor: 'rgba(0, 0, 0, .9)',
+    backgroundColor: 'rgba(0, 0, 0, .5)',
   },
   modalView: {
     borderTopRightRadius: 20,

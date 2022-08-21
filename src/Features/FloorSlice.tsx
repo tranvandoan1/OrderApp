@@ -5,15 +5,26 @@ export const getAll = createAsyncThunk('floor/getAll', async () => {
   const {data: floors} = await FloorAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
-  const dataFloor:any = [];
-  floors.filter((item: any) => {
-    if (item.user_id == user.data._id) {
-      dataFloor.push(item);
+  const dataFloor: any = [];
+  const newData: any = [];
+  for (let i = 0; i < floors.length; i++) {
+    if (floors[i].user_id == user.data._id) {
+      floors[i].name = floors[i].name.replace(/[^0-9]/g, '');
+      dataFloor.push(floors[i]);
     }
+  }
+
+  dataFloor.sort((a: any, b: any) => {
+    return a.name - b.name;
   });
-  return dataFloor;
+
+  for (let i = 0; i < dataFloor.length; i++) {
+    dataFloor[i].name = `Tầng ${dataFloor[i].name}`;
+    newData.push(dataFloor[i]);
+  }
+  return newData;
 });
-const floortSlice = createSlice({
+const floorSlice = createSlice({
   name: 'floor',
   initialState: {
     value: [],
@@ -25,4 +36,4 @@ const floortSlice = createSlice({
     });
   },
 });
-export default floortSlice.reducer;
+export default floorSlice.reducer;

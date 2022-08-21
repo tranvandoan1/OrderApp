@@ -1,6 +1,5 @@
 import {configureStore} from '@reduxjs/toolkit';
 import cateSlice from '../Features/CateSlice';
-import checkUserSlice from '../Features/CheckUserSlice';
 import floorSlice from '../Features/FloorSlice';
 import productsSlice from '../Features/ProductsSlice';
 import saveOrderSlice from '../Features/SaveOrderSlice';
@@ -11,7 +10,6 @@ export const store = configureStore({
     products: productsSlice,
     categoris: cateSlice,
     floors: floorSlice,
-    checkuser: checkUserSlice,
     tables: tableSlice,
     saveorders: saveOrderSlice,
   },
