@@ -7,122 +7,125 @@ import Icons from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/EvilIcons';
 
 import Manage from './Manage/Manage';
-import Order from './Order/Order';
 import Signin from './Login/Signin';
 import SignUp from './Login/SignUp';
 
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ListProducts from './Manage/Products/ListProducts';
 import {store} from './App/Store';
 import {Provider} from 'react-redux';
 import ListCate from './Manage/Categoris/ListCate';
-import {checkUser} from './size';
+import {Size} from './size';
+import Floor from './Order/Floors';
+import Order from './Order/Order';
 const Tab = createBottomTabNavigator();
 
 function Router() {
-  const checkUserStorage:any = checkUser();
+  const width = Size().width;
   return (
-    <>
-      {checkUserStorage.data == undefined ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={'blue'} />
-        </View>
-      ) : (
-        <Tab.Navigator screenOptions={({route}) => ({})}>
-          <Tab.Screen
-            name="Order"
-            component={Order}
-            options={{
-              headerShown: false,
-              tabBarIcon: () => <View></View>,
-              tabBarActiveBackgroundColor: 'tomato',
-              tabBarLabel: ({focused, color}) => (
-                <View
-                  style={{
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: 5,
-                  }}>
-                  <Icon
-                    name="cart"
-                    size={26}
-                    style={{color: focused ? '#fff' : 'tomato'}}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '600',
-                      color: focused ? '#fff' : 'tomato',
-                    }}>
-                    Gọi món
-                  </Text>
-                </View>
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="manage"
-            component={Manage}
-            options={{
-              headerShown: false,
-              tabBarIcon: () => <View></View>,
-              tabBarActiveBackgroundColor: 'tomato',
-              tabBarLabel: ({focused, color}) => (
-                <View
-                  style={{
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: 5,
-                  }}>
-                  <Icons
-                    name="user"
-                    size={26}
-                    style={{color: focused ? '#fff' : 'tomato'}}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: focused ? '#fff' : 'tomato',
-                      fontWeight: '600',
-                    }}>
-                    Quản lý
-                  </Text>
-                </View>
-              ),
-            }}
-          />
-        </Tab.Navigator>
-      )}
-    </>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: '#e91e63',
+      }}>
+      <Tab.Screen
+        name="Order"
+        component={Floor}
+        options={{
+          headerShown: false,
+          tabBarIcon: () => <View></View>,
+          tabBarActiveBackgroundColor: 'tomato',
+          tabBarLabel: ({focused, color}) => (
+            <View
+              style={{
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 5,
+                height: '100%',
+              }}>
+              <Icon
+                name="cart"
+                size={width < 720 ? 26 : 40}
+                style={{
+                  color: focused ? '#fff' : 'tomato',
+                  fontWeight: '600',
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: width < 720 ? 12 : 18,
+                  fontWeight: '600',
+                  color: focused ? '#fff' : 'tomato',
+                }}>
+                Gọi món
+              </Text>
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="manage"
+        component={Manage}
+        options={{
+          headerShown: false,
+          tabBarIcon: () => <View></View>,
+          tabBarActiveBackgroundColor: 'tomato',
+          tabBarLabel: ({focused, color}) => (
+            <View
+              style={{
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 5,
+              }}>
+              <Icons
+                name="user"
+                size={width < 720 ? 26 : 30}
+                style={{
+                  color: focused ? '#fff' : 'tomato',
+                  fontWeight: '600',
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: width < 720 ? 12 : 18,
+                  color: focused ? '#fff' : 'tomato',
+                  fontWeight: '600',
+                }}>
+                Quản lý
+              </Text>
+            </View>
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 const Stack = createNativeStackNavigator();
 function App() {
-  const checkUserStorage:any = checkUser();
-  console.log(checkUserStorage.data,'dasdasd')
   return (
     <>
       <Provider store={store}>
         <NavigationContainer>
           <Stack.Navigator>
-              <>
-                <Stack.Screen
-                  name="Signin"
-                  component={Signin}
-                  options={{headerShown: false}}
-                />
-                <Stack.Screen
-                  name="Signup"
-                  component={SignUp}
-                  options={{headerShown: false}}
-                />
-              </>
+            <Stack.Screen
+              name="Signin"
+              component={Signin}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="Signup"
+              component={SignUp}
+              options={{headerShown: false}}
+            />
             <Stack.Screen
               name="Home"
               component={Router}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="orders"
+              component={Order}
               options={{headerShown: false}}
             />
             <Stack.Screen

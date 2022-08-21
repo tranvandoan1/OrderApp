@@ -1,17 +1,19 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import ProAPI from './../API/ProAPI';
-// type  value={
-
-//     name: String;
-//     photo: String;
-//     price: Number;
-//     cate_id: String;
-//     check: Boolean;
-//   }
 
 export const getAllPro = createAsyncThunk('products/getAllPro', async () => {
   const {data: products} = await ProAPI.getAll();
-  return products;
+  const logStorage: any = await AsyncStorage.getItem('user');
+  const user = JSON.parse(logStorage);
+  const dataPro: any = [];
+  for (let i = 0; i < products.length; i++) {
+    if (products[i].user_id == user.data._id) {
+      dataPro.push(products[i]);
+    }
+  }
+
+  return dataPro;
 });
 const floorSlice = createSlice({
   name: 'products',

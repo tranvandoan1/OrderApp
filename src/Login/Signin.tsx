@@ -16,15 +16,15 @@ import {Controller, useForm} from 'react-hook-form';
 import UserAPI from '../API/Users';
 import ProAPI from '../API/ProAPI';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {checkUser} from '../size';
+import {checkUserAsyncStorage} from '../checkUser';
 type FormData = {
   email: string;
   password: string;
 };
 const Signin = ({navigation}: any) => {
   const [check, setCheck] = useState<Boolean>(false);
-  const checkUserStorage: any = checkUser();
-  console.log(checkUserStorage,'3ewqdsa22re')
+  const X: any = checkUserAsyncStorage();
+  const checkUserStorage: any = Object.values(X)[2];
   const {
     control,
     handleSubmit,
@@ -58,7 +58,7 @@ const Signin = ({navigation}: any) => {
   };
   return (
     <>
-      {checkUserStorage == undefined ? (
+      {checkUserStorage !== undefined  ? (
         navigation?.navigate('Home')
       ) : (
         <View style={{flex: 1, backgroundColor: '#fff'}}>

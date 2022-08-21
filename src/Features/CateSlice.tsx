@@ -8,6 +8,7 @@ export const getAll = createAsyncThunk('categoris/getAll', async () => {
 export const addCate = createAsyncThunk(
   'categoris/addCate',
   async (data: any) => {
+   
     const {data: categoris} = await add(data);
     return categoris;
   },
@@ -23,7 +24,6 @@ export const editCatee = createAsyncThunk(
   'categoris/editCatee',
   async (data: any) => {
     const {data: categoris} = await upload(data.id, data.data);
-    console.log(categoris, 'thay rồi');
     return categoris;
   },
 );
@@ -44,7 +44,6 @@ const cateSlice = createSlice({
       state.value = action.payload;
     });
     builder.addCase(editCatee.fulfilled, (state: any, action: any) => {
-      console.log(action.payload, '32wqsdasar2r4ewds');
       state.value = action.payload;
     });
   },

@@ -1,8 +1,11 @@
 import {
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  SafeAreaView,
+  ScrollView,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -10,15 +13,17 @@ import React, {useEffect, useState} from 'react';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
 import {getAll} from '../../Features/CateSlice';
-import ModalDelete from './../../Modal/ModalCategoris/ModalDelete';
+import {removeCate} from '../../Features/CateSlice';
+import ModalDelete from '../../Modal/ModalCategoris/ModalDelete';
 import {Size} from '../../size';
+import {SectionGrid} from 'react-native-super-grid';
 import {FlatGrid} from 'react-native-super-grid';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 type Props = {
   onClickAddDataEdit: (e: any) => void;
   onClickOpenModal: () => void;
 };
-const ListTableCate = (props: Props) => {
+const ListTableFloor = (props: Props) => {
   const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
@@ -36,7 +41,7 @@ const ListTableCate = (props: Props) => {
           <ActivityIndicator size="large" color={'blue'} />
         </View>
       ) : (
-        <View style={{paddingTop: 10}}>
+        <View style={{paddingTop:10}}>
           <FlatGrid
             itemDimension={400}
             data={categoris.slice().reverse()}
@@ -63,6 +68,13 @@ const ListTableCate = (props: Props) => {
                   onPress={() => (setModalVisible(true), setId(item._id))}
                   style={{position: 'absolute', top: 13, right: 11}}>
                   <Fontisto name="close" size={20} color={'red'} />
+                  {/* <Text
+                    style={{
+                      fontSize: width < 720 ? 17 : 23,
+                      color: 'black',
+                    }}>
+                    Xóa
+                  </Text> */}
                 </TouchableOpacity>
               </TouchableOpacity>
             )}
@@ -78,7 +90,7 @@ const ListTableCate = (props: Props) => {
   );
 };
 
-export default ListTableCate;
+export default ListTableFloor;
 
 const styles = StyleSheet.create({
   logo: {
