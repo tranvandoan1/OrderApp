@@ -26,3 +26,7 @@ export const remove = id => {
   const url = `/saveorder/${id}`;
   return axiosClient.delete(url);
 };
+export const removes = saveorder => {
+  const url = `/saveorders`;
+  return axiosClient.post(url, saveorder);
+};

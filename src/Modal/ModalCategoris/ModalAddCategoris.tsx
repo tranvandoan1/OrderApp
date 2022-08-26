@@ -54,12 +54,13 @@ const ModalAddCategoris = (props: Props) => {
     } else {
       try {
         setCheck(true);
-        let formData = new FormData();
-        formData.append(
-          'name',
-          value == undefined ? props.dataEdit.name : value,
+
+        await dispatch(
+          editCatee({
+            id: props.dataEdit._id,
+            data: {name: value == undefined ? props.dataEdit.name : value},
+          }),
         );
-        await dispatch(editCatee({id: props.dataEdit._id, data: formData}));
 
         setCheck(false);
         setValue(undefined);
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff',
     fontWeight: '500',
+    fontSize:18
   },
   title: {
     textAlign: 'center',

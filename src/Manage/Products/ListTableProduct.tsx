@@ -28,7 +28,7 @@ const MyComponent = () => {
     dispatch(getAllPro());
   }, []);
   return (
-    <View style={{paddingHorizontal: 5}}>
+    <View style={{paddingHorizontal: 5,flex:1}}>
       <SafeAreaView>
         <ScrollView showsVerticalScrollIndicator={false}>
           {products.map((item: any, index: any) => {
@@ -113,10 +113,8 @@ const styles = StyleSheet.create({
   },
   listTxt: {
     textTransform: 'capitalize',
-    // fontFamily: Platform.OS == 'android' ? 'Roboto-Light' : 'Roboto-Bold',
     fontStyle: 'normal',
-
     fontWeight: '400',
-    color: '#fff',
+    color: 'black',
   },
 });

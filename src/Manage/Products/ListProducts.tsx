@@ -17,7 +17,7 @@ const ListProducts = ({navigation}: any) => {
   const [modalAddEidtVisible, setModalAddEditPro] = useState(false);
   const [dataEdit, setDataEdit] = useState();
   return (
-    <View style={{flex: 1, backgroundColor: 'black'}}>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <TouchableOpacity onPress={() => navigation.navigate('manage')}>
@@ -45,11 +45,8 @@ const ListProducts = ({navigation}: any) => {
         onCloseModal={() => (setModalAddEditPro(false), setDataEdit(undefined))}
         dataEdit={dataEdit}
       />
-      <SafeAreaView style={{flex: 1}}>
-        <ScrollView style={{padding:5}}>
-          <ListTableProduct />
-        </ScrollView>
-      </SafeAreaView>
+
+      <ListTableProduct />
     </View>
   );
 };

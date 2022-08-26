@@ -25,10 +25,6 @@ import {getAll} from '../../Features/CateSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {Size} from '../../size';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
-import ImagePicker from 'react-native-image-crop-picker';
-import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
-// import storage from '@react-native-firebase/storage';
 
 type Props = {
   dataEdit: any;
@@ -179,12 +175,6 @@ const ModalAddEditPro = (props: Props) => {
   };
 
   const uploadImage = async () => {
-    if (image == null) {
-      return null;
-    }
-    const uploadUri = image;
-    let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
-    const task: any = storage().ref(filename).putFile(uploadUri);
 
     // Add timestamp to File Name
     // const extension = filename.split('.').pop();

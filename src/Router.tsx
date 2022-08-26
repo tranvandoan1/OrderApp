@@ -25,7 +25,8 @@ function Router() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#e91e63',
+        tabBarActiveTintColor: 'tomato',
+        tabBarStyle: {height: 60},
       }}>
       <Tab.Screen
         name="Order"
