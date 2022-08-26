@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useEffect, useState} from 'react';
-import { Dimensions } from 'react-native';
 
 export let checkUserAsyncStorage = async () => {
   const [checkUser, setCheckUser] = useState();

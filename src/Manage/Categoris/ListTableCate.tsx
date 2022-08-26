@@ -30,7 +30,7 @@ const ListTableCate = (props: Props) => {
   }, []);
 
   return (
-    <View style={{flex: 1, backgroundColor: 'black'}}>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
       {categoris.length <= 0 ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'blue'} />
@@ -95,12 +95,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginBottom: 5,
-    borderColor: 'black',
+    borderColor: 'rgb(219,219,219)',
     borderWidth: 0.5,
     margin: 10,
     position: 'relative',
     borderRadius: 2,
     flexDirection: 'row',
+    elevation: 5,
+    shadowColor: 'tomato',
   },
   loading: {
     flexDirection: 'row',

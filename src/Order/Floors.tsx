@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   Text,
@@ -12,15 +11,20 @@ import {
 } from 'react-native';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../App/Store';
-import {getAll} from '../Features/FloorSlice';
+import {getAllFloor} from '../Features/FloorSlice';
 import Entypo from 'react-native-vector-icons/Entypo';
 import {getAllTable} from '../Features/TableSlice';
 import {checkUserAsyncStorage} from '../checkUser';
 import {FlatGrid} from 'react-native-super-grid';
 import {getAllSaveOrder} from '../Features/SaveOrderSlice';
 import {Size} from '../size';
-
-const Floor = ({navigation}: any) => {
+import {getCheckSaveOrder} from './../Features/CheckSaveOrder';
+type Props = {
+  route: any;
+  navigation: any;
+};
+const Floor = ({navigation}: any, props: Props) => {
+  console.log(props.route, 'qưedasas');
   const [dataFloors, setDataFloors] = useState<any>();
   const width = Size().width;
   const X = checkUserAsyncStorage();
@@ -29,10 +33,13 @@ const Floor = ({navigation}: any) => {
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const floors = useAppSelect((data: any) => data.floors.value);
   const tables = useAppSelect((data: any) => data.tables.value);
+  const checkSaveOrder = useAppSelect((data: any) => data.checkSaveOrder.value);
+
   useEffect(() => {
-    dispatch(getAll());
+    dispatch(getAllFloor());
     dispatch(getAllTable());
     dispatch(getAllSaveOrder());
+    dispatch(getCheckSaveOrder());
   }, []);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -40,10 +47,12 @@ const Floor = ({navigation}: any) => {
   const table2 = tables?.filter(
     (item: any) => item.floor_id == dataFloors?._id,
   );
-  const order = (id: any) => {
+  const order = (item: any) => {
     navigation?.navigate('orders', {
-      id_table: id,
+      id_table: item._id,
       floor_id: dataFloors == undefined ? floors[0]._id : dataFloors._id,
+      name_table: item.name,
+      name_floor: dataFloors == undefined ? floors[0].name : dataFloors.name,
     });
   };
   return (
@@ -69,19 +78,59 @@ const Floor = ({navigation}: any) => {
             </TouchableOpacity>
           </View>
           <FlatGrid
-            itemDimension={300}
+            itemDimension={200}
             data={dataFloors == undefined ? table1 : table2}
             renderItem={({item}) => {
               return (
                 <View style={styles.listTable}>
                   <TouchableOpacity
                     style={styles.table}
-                    onPress={() => order(item._id)}
+                    onPress={() => order(item)}
                     key={item._id}>
-                    {/* <Image
-                      style={{width: 50, height: 50}}
-                      source={require('../assets/images/playstore.png')}
-                    /> */}
+                    {checkSaveOrder.map((check: any, index: any) => {
+                      if (check._id == item._id) {
+                        if (check.data.length > 0) {
+                          return (
+                            <View
+                              style={{
+                                position: 'absolute',
+                                top: 10,
+                                right: 10,
+                              }}>
+                              {/* <BlinkView
+                                key={index}
+                                delayVisible={500}
+                                delayInvisible={200}
+                                duration={500}
+                                blinking> */}
+                              <View
+                                style={{
+                                  width: 20,
+                                  height: 20,
+                                  borderRadius: 100,
+                                  backgroundColor: '#00FF00',
+                                }}></View>
+                              {/* </BlinkView> */}
+                            </View>
+                          );
+                        }
+                        check.data.map((price: any) => {
+                          const tien = price.price * price.amount;
+                          console.log(tien, 'ewdasxz');
+                          return (
+                            <Text style={{fontSize: 20, color: 'black'}}>
+                              {tien}
+                            </Text>
+                          );
+                        });
+                      }
+                    })}
+                    <Image
+                      source={{
+                        uri: 'https://png.pngtree.com/png-clipart/20220613/original/pngtree-dining-table-chairs-set-illustration-png-image_7997183.png',
+                      }}
+                      style={{width: 100, height: 100}}
+                    />
                     <Text
                       style={[
                         styles.nameTable,
@@ -142,15 +191,6 @@ const Floor = ({navigation}: any) => {
 };
 
 const styles = StyleSheet.create({
-  signin: {
-    backgroundColor: 'blue',
-    width: '100%',
-    padding: 15,
-    borderRadius: 2,
-    textAlign: 'center',
-    color: '#fff',
-    fontWeight: '500',
-  },
   header: {
     width: '100%',
     paddingVertical: 15,
@@ -158,7 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'blue',
+    backgroundColor: 'tomato',
     paddingHorizontal: 10,
   },
   titlePro: {
@@ -198,19 +238,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   listTable: {
-    backgroundColor: 'blue',
-    borderRadius: 5,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 4,
+    shadowColor: 'tomato',
+    overflow: 'hidden',
   },
   table: {
     borderColor: 'rgb(219, 219, 219)',
     borderWidth: 1,
     paddingVertical: 30,
     paddingHorizontal: 10,
+    flexDirection: 'column',
+    borderRadius: 10,
+    alignItems: 'center',
   },
   nameTable: {
     textTransform: 'capitalize',
     textAlign: 'center',
-    color: '#fff',
+    color: 'black',
     fontWeight: '600',
   },
   loading: {

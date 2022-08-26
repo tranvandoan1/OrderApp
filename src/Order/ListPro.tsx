@@ -1,10 +1,14 @@
 import {
+  ActivityIndicator,
   ImageBackground,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
+  Pressable,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -12,16 +16,16 @@ import {Size} from '../size';
 import {checkUserAsyncStorage} from '../checkUser';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../App/Store';
-import {getAll} from './../Features/FloorSlice';
-import {getAllTable} from '../Features/TableSlice';
 import {
   addSaveOrder,
   getAllSaveOrder,
-  uploadSaveOrder,
+  uploadSaveOrderFind,
 } from './../Features/SaveOrderSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import Feather from 'react-native-vector-icons/Feather';
 import {FlatGrid} from 'react-native-super-grid';
 import {getAllPro} from '../Features/ProductsSlice';
+import ModalSelectCate from '../Modal/ModalSelectCate';
 
 type Props = {
   id: any;
@@ -34,39 +38,37 @@ const ListPro = (props: Props) => {
   const checkUserStorage = Object.values(X)[2];
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const floors = useAppSelect((data: any) => data.floors.value);
-  const tables = useAppSelect((data: any) => data.tables.value);
   const products = useAppSelect((data: any) => data.products.value);
   const saveorders = useAppSelect((data: any) => data.saveorders.value);
   useEffect(() => {
-    dispatch(getAll());
-    dispatch(getAllTable());
     dispatch(getAllSaveOrder());
     dispatch(getAllPro());
   }, []);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectModalCate, setSelectModalCate] = useState(false);
 
   const [productOrder, setProductOrder] = useState<any>([]); //lấy sản phẩm ko có kg
-  const [productOrderWeight, setProductOrderWeight] = useState<any>([]); //lấy sản phẩm có kg
   const [valueWeight, setValueWeight] = useState<any>(); //lấy số lượng kg
-  const [proSelect, setProSelect] = useState<any>([]);
-  const [selectWeight, setSelectWeight] = useState<boolean>(false);
-  const weightCancel = () => {
-    setSelectWeight(false);
-  };
-  const apply = () => {
-    if (Number(productOrderWeight.weight) == Number(valueWeight)) {
-      const newOrder = {
-        ...productOrderWeight,
-        id_user: checkUserStorage.data._id,
-        amount: productOrderWeight.amount + 1,
-        id_table: props.id.id_table,
-        floor_id: props.id.floor_id,
+
+  const apply = async () => {
+    const newSaveOrder = saveorders.find(
+      (item: any) =>
+        item.id_pro == productOrder._id &&
+        item.id_table == props.id.id_table &&
+        item.weight == valueWeight,
+    );
+    if (newSaveOrder !== undefined) {
+      const upSaveOrder = {
+        amount: +newSaveOrder.amount + +1,
         weight: Number(valueWeight),
       };
       setValueWeight(undefined);
-      setSelectWeight(false);
-      dispatch(uploadSaveOrder(newOrder));
+      setModalVisible(false);
+      props.loading(true);
+      await dispatch(
+        uploadSaveOrderFind({id: newSaveOrder._id, data: upSaveOrder}),
+      );
+      props.loading(false);
     } else {
       const newOrder: any = {
         id_user: checkUserStorage.data._id,
@@ -78,10 +80,13 @@ const ListPro = (props: Props) => {
         name: productOrder.name,
         photo: productOrder.photo,
         price: productOrder.price,
+        dvt: productOrder.dvt,
       };
       setValueWeight(undefined);
-      setSelectWeight(false);
-      dispatch(addSaveOrder(newOrder));
+      setModalVisible(false);
+      props.loading(true);
+      await dispatch(addSaveOrder(newOrder));
+      props.loading(false);
     }
   };
 
@@ -95,14 +100,9 @@ const ListPro = (props: Props) => {
 
     // th1 nếu mà sp order mà cần có kg
     if (pro.check == true) {
-      if (newSaveOrder == undefined) {
-        // nếu sp là sp theo cân thì hiện input nhập cân nặng
-        setSelectWeight(true);
-        setProductOrder(pro);
-      } else {
-        setSelectWeight(true);
-        setProductOrderWeight(newSaveOrder);
-      }
+      // nếu sp là sp theo cân thì hiện input nhập cân nặng
+      setModalVisible(true);
+      setProductOrder(pro);
     } else {
       if (newSaveOrder == undefined) {
         const newOrder = {
@@ -114,97 +114,207 @@ const ListPro = (props: Props) => {
           photo: pro.photo,
           price: pro.price,
           floor_id: props.id.floor_id,
+          dvt: pro.dvt,
         };
         props.loading(true);
         await dispatch(addSaveOrder(newOrder));
         props.loading(false);
       } else {
-        const upSaveOrder = {
+        const addSaveOrder = {
           amount: +newSaveOrder.amount + +1,
         };
-        dispatch(uploadSaveOrder(upSaveOrder));
+        props.loading(true);
+        await dispatch(
+          uploadSaveOrderFind({id: newSaveOrder._id, data: addSaveOrder}),
+        );
+        props.loading(false);
       }
     }
   };
+  const [valueCate, setValueCate] = useState<any>();
 
   return (
-    <View style={{width: '100%', flex: 1}}>
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: 'blue',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => props.navigation()}>
-            <AntDesign name="left" size={23} color={'#fff'} />
-          </TouchableOpacity>
-          <Text
-            style={{
-              fontSize: 23,
-              color: '#fff',
-              marginLeft: 10,
-              fontWeight: '500',
-            }}>
-            {floors?.map(
-              (item: any) => item._id == props.id.floor_id && item.name,
-            )}
-            /
-          </Text>
-          <Text style={{fontSize: 19, color: '#fff', marginLeft: 10}}>
-            {tables?.map(
-              (item: any) => item._id == props.id.id_table && item.name,
-            )}
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          style={{marginRight: 5}}>
-          <AntDesign name="bars" size={35} color={'#fff'} />
-        </TouchableOpacity>
-      </View>
-      <FlatGrid
-        itemDimension={200}
-        showsVerticalScrollIndicator={false}
-        data={products}
-        renderItem={({item}) => (
-          <TouchableOpacity
-            style={styles.listPro}
-            onPress={() => selectProduct(item)}>
-            <ImageBackground
-              source={{
-                uri: item.photo,
-              }}
-              resizeMode="cover"
-              style={styles.image}></ImageBackground>
-            <View style={styles.listtt}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.price}>
-                {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
-              </Text>
+    <>
+      <View style={{width: '100%', flex: 1}}>
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: 'blue',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => props.navigation()}>
+              <AntDesign name="left" size={23} color={'#fff'} />
+            </TouchableOpacity>
+            <Text
+              style={{
+                fontSize: 23,
+                color: '#fff',
+                marginLeft: 10,
+                fontWeight: '500',
+              }}>
+              {props?.id?.name_floor}/
+            </Text>
+            <Text style={{fontSize: 19, color: '#fff', marginLeft: 10}}>
+              {props?.id?.name_table}
+            </Text>
+          </View>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{position: 'relative'}}>
+              <TouchableOpacity onPress={() => setSelectModalCate(true)}>
+                <TextInput
+                  value={valueCate == undefined ? '' : valueCate.name}
+                  style={styles.inputSelect}
+                  placeholderTextColor="#fff"
+                  editable={false}
+                  selectTextOnFocus={false}
+                  placeholder="Lọc theo danh mục"
+                />
+              </TouchableOpacity>
+              <AntDesign
+                name="down"
+                size={18}
+                color={'#fff'}
+                style={{position: 'absolute', top: 10, right: 20}}
+              />
             </View>
-          </TouchableOpacity>
-        )}
-      />
-
-      <Modal transparent={true} visible={modalVisible}>
-        <View style={styles.centeredView}>
-          <TouchableWithoutFeedback
-            onPress={() => setModalVisible(!modalVisible)}>
-            <View style={{flex: 1, width: width < 720 ? '50%' : '70%'}}></View>
-          </TouchableWithoutFeedback>
-
-          <View
-            style={[
-              styles.navigationContainer,
-              {width: width < 720 ? '50%' : '30%'},
-            ]}>
-            <Text>đasda</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              {valueCate !== undefined && (
+                <TouchableOpacity
+                  style={{
+                    marginRight: 5,
+                    backgroundColor: 'red',
+                    paddingHorizontal: 10,
+                    paddingVertical: 7,
+                    borderRadius: 3,
+                  }}
+                  onPress={() => setValueCate(undefined)}>
+                  <Text style={{color: '#fff', fontSize: 17}}>Xóa</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={{marginRight: 5}}>
+                <Feather name="search" size={25} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </Modal>
-    </View>
+        {products.length <= 0 ? (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={'blue'} />
+          </View>
+        ) : (
+          <FlatGrid
+            itemDimension={200}
+            showsVerticalScrollIndicator={false}
+            data={valueCate == undefined ? products : valueCate.pro}
+            renderItem={({item, index}) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.listPro}
+                onPress={() => selectProduct(item)}>
+                <ImageBackground
+                  source={{
+                    uri: item.photo,
+                  }}
+                  resizeMode="cover"
+                  style={styles.image}></ImageBackground>
+                <View style={styles.listtt}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.price}>
+                    {item.price
+                      .toString()
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                    đ
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+
+        <Modal transparent={true} visible={modalVisible} animationType="slide">
+          <View style={styles.centeredView}>
+            <Pressable
+              onPress={() => (
+                setModalVisible(!modalVisible), setValueWeight(undefined)
+              )}
+              style={{
+                width: '100%',
+                height: '100%',
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+              }}></Pressable>
+
+            <View
+              style={[
+                styles.navigationContainer,
+                {width: width < 720 ? '50%' : '30%'},
+              ]}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <View style={{flexDirection: 'column'}}>
+                  <View
+                    style={{
+                      width: '100%',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}>
+                    <TextInput
+                      style={[
+                        String(valueWeight).length <= 0
+                          ? styles.inputActive
+                          : styles.input,
+                        {fontSize: width < 720 ? 18 : 20},
+                      ]}
+                      autoCapitalize="words"
+                      onChangeText={e => setValueWeight(e)}
+                      defaultValue={valueWeight}
+                      placeholder="Cân nặng"
+                      keyboardType="number-pad"
+                      placeholderTextColor={
+                        String(valueWeight).length <= 0 ? 'red' : ''
+                      }
+                    />
+                    <TouchableOpacity
+                      onPress={() => apply()}
+                      style={{
+                        backgroundColor: 'blue',
+                        paddingHorizontal: 10,
+                        paddingVertical: 13,
+                        marginLeft: 5,
+                        flex: 1,
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          fontWeight: '500',
+                          color: '#fff',
+                          textAlign: 'center',
+                        }}>
+                        Thêm
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {String(valueWeight).length <= 0 && (
+                    <Text style={styles.validate}>Chưa nhập cân nặng !</Text>
+                  )}
+                </View>
+              </KeyboardAvoidingView>
+            </View>
+          </View>
+        </Modal>
+
+        <ModalSelectCate
+          selectModalCate={selectModalCate}
+          selectCate={(e: any) => (setSelectModalCate(false), setValueCate(e))}
+        />
+      </View>
+    </>
   );
 };
 
@@ -219,14 +329,14 @@ const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    flexDirection: 'row',
-    width: '100%',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    position: 'relative',
   },
   navigationContainer: {
-    backgroundColor: '#fff',
-    flexDirection: 'column',
-    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 5,
     padding: 10,
   },
   image: {
@@ -234,7 +344,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listPro: {
-    height: 270,
+    height: 250,
     borderColor: '#FF6600',
     borderWidth: 0.8,
     elevation: 10,
@@ -250,7 +360,7 @@ const styles = StyleSheet.create({
   },
   name: {
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '500',
     color: 'black',
     textTransform: 'capitalize',
@@ -262,5 +372,45 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'red',
     textTransform: 'capitalize',
+  },
+  input: {
+    borderColor: 'rgb(219, 219, 219)',
+    borderWidth: 1,
+    paddingLeft: 10,
+    marginVertical: 10,
+    borderRadius: 2,
+    width: '80%',
+  },
+  inputActive: {
+    borderColor: 'red',
+    borderWidth: 1,
+    paddingLeft: 10,
+    borderRadius: 3,
+    marginTop: 10,
+    marginBottom: 5,
+    width: '80%',
+  },
+  validate: {
+    color: 'red',
+    fontWeight: '400',
+    marginBottom: 10,
+  },
+  inputSelect: {
+    borderColor: '#fff',
+    borderWidth: 0.5,
+    paddingLeft: 10,
+    paddingVertical: 3,
+    marginRight: 10,
+    borderRadius: 3,
+    width: 260,
+    color: '#fff',
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  loading: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
   },
 });

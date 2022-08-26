@@ -17,7 +17,6 @@ import React, {useEffect, useState} from 'react';
 import {Avatar} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import IconMaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
@@ -89,7 +88,7 @@ const Setting = ({navigation}: any) => {
           </Modal>
         </View>
       ) : (
-        <View style={{flex: 1, backgroundColor: 'black'}}>
+        <View style={{flex: 1, backgroundColor: '#fff'}}>
           <View
             style={{
               flexDirection: 'column',
@@ -120,10 +119,10 @@ const Setting = ({navigation}: any) => {
                   <Icon
                     name="chart"
                     size={40}
-                    style={{marginRight: 4, color: '#EEEEEE'}}
+                    style={{marginRight: 4, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Thống kê
                   </Text>
                 </View>
@@ -139,10 +138,10 @@ const Setting = ({navigation}: any) => {
                   <MaterialCommunityIcons
                     name="home-city-outline"
                     size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
+                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Tầng
                   </Text>
                 </View>
@@ -157,10 +156,10 @@ const Setting = ({navigation}: any) => {
                   <MaterialCommunityIcons
                     name="table-furniture"
                     size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
+                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Bàn
                   </Text>
                 </View>
@@ -177,10 +176,10 @@ const Setting = ({navigation}: any) => {
                   <MaterialIcons
                     name="category"
                     size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
+                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Danh mục
                   </Text>
                 </View>
@@ -197,10 +196,10 @@ const Setting = ({navigation}: any) => {
                   <FontAwesome
                     name="product-hunt"
                     size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
+                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Sản phẩm
                   </Text>
                 </View>
@@ -215,10 +214,10 @@ const Setting = ({navigation}: any) => {
                   <Feather
                     name="shopping-cart"
                     size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
+                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Đơn hàng
                   </Text>
                 </View>
@@ -233,10 +232,10 @@ const Setting = ({navigation}: any) => {
                   <AntDesign
                     name="user"
                     size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
+                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Tài khoản
                   </Text>
                 </View>
@@ -253,10 +252,10 @@ const Setting = ({navigation}: any) => {
                   <MaterialCommunityIcons
                     name="logout"
                     size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: '#EEEEEE'}}
+                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
                   />
                   <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: '#EEEEEE'}}>
+                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
                     Đăng xuất
                   </Text>
                 </View>

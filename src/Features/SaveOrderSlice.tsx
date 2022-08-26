@@ -1,6 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import SaveorderAPI, {add, upload, remove, updateFind} from './../API/SaveOrder';
+import SaveorderAPI, {
+  add,
+  upload,
+  remove,
+  updateFind,
+  removes,
+} from './../API/SaveOrder';
 export const getAllSaveOrder = createAsyncThunk(
   'saveOrder/getAll',
   async () => {
@@ -45,6 +51,13 @@ export const uploadSaveOrderFind = createAsyncThunk(
     return saveorders;
   },
 );
+export const removeSaveOrderAll = createAsyncThunk(
+  'saveorder/removeSaveOrderAll',
+  async (data: any) => {
+    const {data: saveorders} = await removes(data);
+    return saveorders;
+  },
+);
 const saveOrderSlice = createSlice({
   name: 'table',
   initialState: {
@@ -62,6 +75,9 @@ const saveOrderSlice = createSlice({
       state.value = action.payload;
     });
     builder.addCase(removeSaveOrder.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(removeSaveOrderAll.fulfilled, (state: any, action: any) => {
       state.value = action.payload;
     });
     builder.addCase(

@@ -14,14 +14,15 @@ import React, {useEffect, useState} from 'react';
 import {Avatar, Button} from 'react-native-elements';
 import {Controller, useForm} from 'react-hook-form';
 import UserAPI from '../API/Users';
-import ProAPI from '../API/ProAPI';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {checkUserAsyncStorage} from '../checkUser';
+import {Size} from './../size';
 type FormData = {
   email: string;
   password: string;
 };
 const Signin = ({navigation}: any) => {
+  const width = Size().width;
   const [check, setCheck] = useState<Boolean>(false);
   const X: any = checkUserAsyncStorage();
   const checkUserStorage: any = Object.values(X)[2];
@@ -37,32 +38,42 @@ const Signin = ({navigation}: any) => {
   });
 
   const onSubmit = async (values: any) => {
-    try {
-      const user = {
-        email: values.email,
-        password: values.password,
-      };
-      setCheck(true);
-      const {data} = await UserAPI.signin(user);
-
+    // try {
+    const user = {
+      email: values.email,
+      password: values.password,
+    };
+    setCheck(true);
+    const {data} = await UserAPI.signin(user);
+    console.log(data);
+    if (data.error) {
+      console.log(data, '3ws');
+      setCheck(false);
+      Alert.alert(data.error);
+    } else {
       await AsyncStorage.setItem(
         'user',
         JSON.stringify({data: data.user, token: data.token}),
       );
       setCheck(false);
       navigation?.navigate('Home');
-    } catch (error: any) {
-      setCheck(false);
-      Alert.alert(error.response.data.error);
     }
+    // } catch (error: any) {
+    //   setCheck(false);
+    //   Alert.alert(error.response.data.error);
+    // }
   };
   return (
     <>
-      {checkUserStorage !== undefined  ? (
+      {checkUserStorage !== undefined ? (
         navigation?.navigate('Home')
       ) : (
         <View style={{flex: 1, backgroundColor: '#fff'}}>
-          <View style={{padding: 20}}>
+          <View
+            style={{
+              paddingVertical: 20,
+              paddingHorizontal: width < 960 ? 20 : 300,
+            }}>
             <View
               style={{
                 width: '100%',

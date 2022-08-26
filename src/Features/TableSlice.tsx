@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import TableAPI from '../API/TableAPI';
-import {checkUserAsyncStorage} from '../checkUser';
 export const getAllTable = createAsyncThunk('table/getAll', async () => {
   const {data: tables} = await TableAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
