@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import FloorAPI from './../API/FloorAPI';
-export const getAllFloor = createAsyncThunk('floor/getAllFloor', async () => {
+import FloorAPI, {add, remove, upload} from './../API/FloorAPI';
+async function floorAll() {
   const {data: floors} = await FloorAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
@@ -23,7 +23,33 @@ export const getAllFloor = createAsyncThunk('floor/getAllFloor', async () => {
     newData.push(dataFloor[i]);
   }
   return newData;
+}
+export const getAllFloor = createAsyncThunk('floor/getAllFloor', async () => {
+  return floorAll();
 });
+
+export const addFloor = createAsyncThunk(
+  'floor/addFloor',
+  async (data: any) => {
+    await add(data);
+    return floorAll();
+  },
+);
+export const removeFloor = createAsyncThunk(
+  'floor/removeFloor',
+  async (id: String) => {
+    await remove(id);
+    return floorAll();
+  },
+);
+export const editFloor = createAsyncThunk(
+  'floor/editFloor',
+  async (data: any) => {
+    console.log(data);
+    await upload(data.id, data.data);
+    return floorAll();
+  },
+);
 const floorSlice = createSlice({
   name: 'floor',
   initialState: {
@@ -32,6 +58,15 @@ const floorSlice = createSlice({
   reducers: {},
   extraReducers: (builder: any) => {
     builder.addCase(getAllFloor.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(addFloor.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(removeFloor.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(editFloor.fulfilled, (state: any, action: any) => {
       state.value = action.payload;
     });
   },

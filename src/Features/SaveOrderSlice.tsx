@@ -7,20 +7,23 @@ import SaveorderAPI, {
   updateFind,
   removes,
 } from './../API/SaveOrder';
+async function getAll() {
+  const {data: saveorders} = await SaveorderAPI.getAll();
+  const logStorage: any = await AsyncStorage.getItem('user');
+  const user = JSON.parse(logStorage);
+  const dataSaveOrder: any = [];
+  saveorders?.filter((item: any) => {
+    if (item.id_user == user.data._id) {
+      dataSaveOrder.push(item);
+    }
+  });
+
+  return dataSaveOrder;
+}
 export const getAllSaveOrder = createAsyncThunk(
   'saveOrder/getAll',
   async () => {
-    const {data: saveorders} = await SaveorderAPI.getAll();
-    const logStorage: any = await AsyncStorage.getItem('user');
-    const user = JSON.parse(logStorage);
-    const dataSaveOrder: any = [];
-    saveorders?.filter((item: any) => {
-      if (item.id_user == user.data._id) {
-        dataSaveOrder.push(item);
-      }
-    });
-
-    return dataSaveOrder;
+    return getAll();
   },
 );
 export const addSaveOrder = createAsyncThunk(
@@ -54,8 +57,10 @@ export const uploadSaveOrderFind = createAsyncThunk(
 export const removeSaveOrderAll = createAsyncThunk(
   'saveorder/removeSaveOrderAll',
   async (data: any) => {
-    const {data: saveorders} = await removes(data);
-    return saveorders;
+    for (let i = 0; i < data.length; i++) {
+      await remove(data[i]);
+    }
+    return getAll();
   },
 );
 const saveOrderSlice = createSlice({

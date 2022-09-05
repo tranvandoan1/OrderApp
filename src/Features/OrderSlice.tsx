@@ -6,11 +6,11 @@ export const getAllOrder = createAsyncThunk('order/getAllOrder', async () => {
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
   const dataOrder: any = [];
-  orders?.filter((item: any) => {
-    if (item.id_user == user.data._id) {
-      dataOrder.push(item);
+  for (let i = 0; i < orders.length; i++) {
+    if (orders[i].user_id == user.data._id) {
+      await dataOrder.push(orders[i]);
     }
-  });
+  }
 
   return dataOrder;
 });

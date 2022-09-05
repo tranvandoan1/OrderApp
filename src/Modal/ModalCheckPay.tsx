@@ -72,19 +72,47 @@ const ModalCheckPay = (props: Props) => {
   }, []);
   const date = new Date(props?.saveorders[0]?.createdAt);
   const pay = async () => {
-    const id: any = [];
-    props.saveorders.map((item: any) => id.push(item._id));
+    const order: any = [];
+    props.saveorders.map((item: any) =>
+      order.push({
+        _id: item._id,
+        name_pro: item.name,
+        amount: item.amount,
+        weight: item.weight == undefined ? 0 : item.weight,
+        dvt: item.dvt,
+      }),
+    );
     const data = {
-      seller_name: valueName,
+      seller_name: valueName == undefined ? 'Admin' : valueName,
       user_id: props.saveorders[0].id_user,
-      saveorder_id: id,
-      sale: props.valueSale,
+      orders: order,
+      sale: props.valueSale == undefined ? 0 : props.valueSale,
       price: props.sum,
       table_id: props.idTableFloor.id_table,
       floor_id: props.idTableFloor.floor_id,
+      start_time: `${
+        String(date.getHours()).length == 1
+          ? `0${date.getHours()}`
+          : date.getHours()
+      }:${
+        String(date.getMinutes()).length == 1
+          ? `0${date.getMinutes()}`
+          : date.getMinutes()
+      }`,
+      end_time: `${
+        String(moment().hours()).length == 1
+          ? `0${moment().hours()}`
+          : moment().hours()
+      }:${
+        String(moment().minutes()).length == 1
+          ? `0${moment().minutes()}`
+          : moment().minutes()
+      }`,
     };
+    const id: any = [];
+    order.map((item: any) => id.push(item._id));
     await dispatch(addOrder(data));
-    await dispatch(removeSaveOrderAll(data));
+    await dispatch(removeSaveOrderAll(id));
     props?.hiidenCheckPay({name: valueName, check: true});
   };
   return (

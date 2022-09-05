@@ -18,6 +18,12 @@ import ListCate from './Manage/Categoris/ListCate';
 import {Size} from './size';
 import Floor from './Order/Floors';
 import Order from './Order/Order';
+import ListFloor from './Manage/Floors/ListFloor';
+import ListTable from './Manage/Table/ListTable';
+import ListBill from './Manage/Bill/ListBill';
+import ListStatistical from './Manage/Statistical/ListStatistical';
+import Account from './Manage/Account/Account';
+import {checkUserAsyncStorage} from './checkUser';
 const Tab = createBottomTabNavigator();
 
 function Router() {
@@ -25,7 +31,6 @@ function Router() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: 'tomato',
         tabBarStyle: {height: 60},
       }}>
       <Tab.Screen
@@ -104,45 +109,75 @@ function Router() {
 }
 const Stack = createNativeStackNavigator();
 function App() {
+  const X = checkUserAsyncStorage();
+  const checkUserStorage = Object.values(X)[2];
+
   return (
-    <>
-      <Provider store={store}>
-        <NavigationContainer>
-          <Stack.Navigator>
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator>
+          {checkUserStorage?.data == undefined && (
             <Stack.Screen
               name="Signin"
               component={Signin}
               options={{headerShown: false}}
             />
+          )}
+          {checkUserStorage?.data == undefined && (
             <Stack.Screen
               name="Signup"
               component={SignUp}
               options={{headerShown: false}}
             />
-            <Stack.Screen
-              name="Home"
-              component={Router}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="orders"
-              component={Order}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="list-product"
-              component={ListProducts}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="categoris"
-              component={ListCate}
-              options={{headerShown: false}}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>
-    </>
+          )}
+          <Stack.Screen
+            name="Home"
+            component={Router}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="orders"
+            component={Order}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="list-product"
+            component={ListProducts}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="categoris"
+            component={ListCate}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="floor"
+            component={ListFloor}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="table"
+            component={ListTable}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="bill"
+            component={ListBill}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="statistical"
+            component={ListStatistical}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="account"
+            component={Account}
+            options={{headerShown: false}}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 }
 const styles = StyleSheet.create({

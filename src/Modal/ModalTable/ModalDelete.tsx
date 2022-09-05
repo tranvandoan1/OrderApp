@@ -11,13 +11,15 @@ import {
 } from 'react-native';
 import {useDispatch} from 'react-redux';
 import {AppDispatch} from '../../App/Store';
-import { removeFloor } from './../../Features/FloorSlice';
+import {removeCate} from '../../Features/CateSlice';
+import { removeFloor } from '../../Features/FloorSlice';
+import { removeTable } from './../../Features/TableSlice';
 type Props = {
   onCloseModal: () => void;
   modalVisible: any;
   id: any;
 };
-const ModalDeleteFloor = (props: Props) => {
+const ModalDeleteTable = (props: Props) => {
   const dispatch = useDispatch<AppDispatch>();
   const [check, setCheck] = useState<Boolean>(false);
 
@@ -28,7 +30,7 @@ const ModalDeleteFloor = (props: Props) => {
   );
   const deletee = async () => {
     setCheck(true);
-    await dispatch(removeFloor(props.id));
+    await dispatch(removeTable(props.id));
     setCheck(false);
     props.onCloseModal();
     ToastAndroid.show('Xóa thành công', ToastAndroid.SHORT);
@@ -73,7 +75,7 @@ const ModalDeleteFloor = (props: Props) => {
   );
 };
 
-export default ModalDeleteFloor;
+export default ModalDeleteTable;
 
 const styles = StyleSheet.create({
   centeredView: {

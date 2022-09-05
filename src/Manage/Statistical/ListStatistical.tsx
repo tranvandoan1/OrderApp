@@ -1,5 +1,8 @@
 import {
+  Dimensions,
   Platform,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -8,17 +11,15 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import ListTableCate from './ListTableCate';
-import ModalAddCategoris from '../../Modal/ModalCategoris/ModalAddCategoris';
 import {Size} from '../../size';
-const ListCate = ({navigation}: any) => {
+// import VerticalBarGraph from '@chartiful/react-native-vertical-bar-graph';
+// import { ECharts } from 'react-native-echarts-wrapper';
+const ListStatistical = ({navigation}: any) => {
   const width = Size()?.width;
   const [checkSearch, setCheckSearch] = useState<any>(false);
-  const [modalAddVisible, setModalAddVisible] = useState(false);
-  const [dataEdit, setDataEdit] = useState();
-
+  const data = [{value: 50}, {value: 80}, {value: 90}, {value: 70}];
   return (
-    <View style={{flex: 1 ,width:'100%'}}>
+    <View style={{flex: 1, width: '100%'}}>
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <TouchableOpacity onPress={() => navigation.navigate('manage')}>
@@ -31,40 +32,52 @@ const ListCate = ({navigation}: any) => {
                 fontSize: width < 720 ? 20 : 23,
               },
             ]}>
-            Danh mục
+            Thống kê
           </Text>
         </View>
-        <View style={styles.iconRight}>
-          <TouchableOpacity onPress={() => setCheckSearch(!checkSearch)}>
-            <AntDesign
-              name="search1"
-              style={[styles.iconBack, {marginRight: 20}]}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalAddVisible(true)}>
-            <AntDesign name="plus" style={styles.iconBack} />
-          </TouchableOpacity>
-        </View>
+      </View>
+      <View style={{backgroundColor: '#fff', flex: 1}}>
+        <SafeAreaView>
+          <ScrollView>
+            <View style={styles.chart}>
+              {/* <VerticalBarGraph
+                data={[50000]}
+                labels={['Hôm nay']}
+                width={200}
+                height={600}
+                barRadius={5}
+                barWidthPercentage={0.65}
+                barColor="#53ae31"
+                baseConfig={{
+                  hasXAxisBackgroundLines: false,
+                  xAxisLabelStyle: {
+                    prefix: 'đ',
+                    position: 'left',
+                  },
+                  yAxisLabelStyle: {
+                    position: '',
+                  },
+                }}
+                style={{
+                  paddingTop: 20,
+                  borderRadius: 20,
+                  
+                }}
+              /> */}
+              <Text>đâsd</Text>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
       </View>
 
       {checkSearch == true && (
         <TextInput style={styles.inputSearch} placeholder="Tìm kiếm sản phẩm" />
       )}
-
-      <ListTableCate
-        onClickAddDataEdit={(e: any) => setDataEdit(e)}
-        onClickOpenModal={() => setModalAddVisible(true)}
-      />
-      <ModalAddCategoris
-        modalVisible={modalAddVisible}
-        onCloseModal={() => (setModalAddVisible(false), setDataEdit(undefined))}
-        dataEdit={dataEdit}
-      />
     </View>
   );
 };
 
-export default ListCate;
+export default ListStatistical;
 
 const styles = StyleSheet.create({
   header: {
@@ -74,7 +87,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'blue',
+    backgroundColor: 'tomato',
   },
   titlePro: {
     fontSize: 18,
@@ -100,4 +113,11 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingVertical: 5,
   },
+  chart:{
+    // transform: [{ rotate: "90deg" }],
+    // marginTop:100
+    flexDirection:'row',
+    backgroundColor: `#dff4d7`,
+
+  }
 });

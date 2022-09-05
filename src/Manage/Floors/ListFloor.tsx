@@ -8,9 +8,9 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import ListTableCate from './ListTableFloor';
-import ModalAddCategoris from '../../Modal/ModalCategoris/ModalAddCategoris';
 import {Size} from '../../size';
+import ListTableFloor from './ListTableFloor';
+import ModalAddFloor from './../../Modal/ModalFloors/ModalAddFloor';
 const ListFloor = ({navigation}: any) => {
   const width = Size()?.width;
   const [checkSearch, setCheckSearch] = useState<any>(false);
@@ -31,7 +31,7 @@ const ListFloor = ({navigation}: any) => {
                 fontSize: width < 720 ? 20 : 23,
               },
             ]}>
-            Danh mục
+            Tầng
           </Text>
         </View>
         <View style={styles.iconRight}>
@@ -51,11 +51,11 @@ const ListFloor = ({navigation}: any) => {
         <TextInput style={styles.inputSearch} placeholder="Tìm kiếm sản phẩm" />
       )}
 
-      <ListTableCate
+      <ListTableFloor
         onClickAddDataEdit={(e: any) => setDataEdit(e)}
         onClickOpenModal={() => setModalAddVisible(true)}
       />
-      <ModalAddCategoris
+      <ModalAddFloor
         modalVisible={modalAddVisible}
         onCloseModal={() => (setModalAddVisible(false), setDataEdit(undefined))}
         dataEdit={dataEdit}
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'tomato',
+    backgroundColor: 'blue',
   },
   titlePro: {
     fontSize: 18,
