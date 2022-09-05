@@ -25,209 +25,152 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {checkUserAsyncStorage} from '../checkUser';
 import {Size} from '../size';
 const Setting = ({navigation}: any) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [checkLognout, setCheckLognout] = useState(false);
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
   const width = Size().width;
-  const logout = async () => {
-    setCheckLognout(true);
-    setModalVisible(false);
-    await AsyncStorage.removeItem('user');
-    setCheckLognout(false);
-    navigation?.navigate('Signin');
-  };
+
   return (
     <>
-      {checkLognout == true ? (
-        <View style={styles.loading1}>
-          <ActivityIndicator size="large" color={'#fff'} />
-        </View>
-      ) : checkUserStorage == undefined ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={'#fff'} />
-        </View>
-      ) : modalVisible == true ? (
-        <View style={styles.centeredView}>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}>
-            <View style={styles.centeredView}>
-              <TouchableWithoutFeedback
-                onPress={() => setModalVisible(!modalVisible)}>
-                <View style={{flex: 1, width: '100%'}}></View>
-              </TouchableWithoutFeedback>
-              <View style={styles.modalView}>
-                <Text style={styles.modalText}>
-                  Bạn có muốn đăng xuất không ?
-                </Text>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    width: '100%',
-                    justifyContent: 'center',
-                  }}>
-                  <Pressable
-                    style={[
-                      styles.button,
-                      styles.buttonClose,
-                      {marginRight: 30},
-                    ]}
-                    onPress={() => setModalVisible(!modalVisible)}>
-                    <Text style={styles.textStyle}>Hủy</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.button, styles.buttonLognout]}
-                    onPress={() => logout()}>
-                    <Text style={styles.textStyle}>Đăng xuất</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        </View>
-      ) : (
-        <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            backgroundColor: 'black',
+            alignItems: 'center',
+            paddingVertical: 30,
+            paddingHorizontal: 10,
+          }}>
           <View
             style={{
-              flexDirection: 'column',
+              flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: '#EEEEEE',
-              padding: 10,
             }}>
             <Avatar
               rounded
               source={{
-                uri: `${checkUserStorage.data?.avatar}`,
+                uri: `${checkUserStorage?.data?.avatar}`,
               }}
-              size={150}
+              size={70}
             />
             <Text
               style={{
-                color: 'black',
-                fontSize: width < 720 ? 18 : 25,
+                color: '#E8E8E8',
+                fontSize: width < 720 ? 18 : 23,
                 margin: 10,
+                fontWeight: '400',
               }}>
-              {checkUserStorage.data?.name}
+              {checkUserStorage?.data?.name}
             </Text>
           </View>
-          <SafeAreaView style={{flex: 1}}>
-            <ScrollView>
-              <TouchableOpacity style={[styles.item, {marginTop: 0}]}>
-                <View style={styles.li}>
-                  <Icon
-                    name="chart"
-                    size={40}
-                    style={{marginRight: 4, color: 'black'}}
-                  />
-                  <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
-                    Thống kê
-                  </Text>
-                </View>
-                {/* <IconMaterialIcons
-                  name="navigate-next"
-                  size={30}
-                  color={'#EEEEEE'}
-                /> */}
-              </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('account')}
+            style={{
+              borderWidth: 1.5,
+              borderColor: '#CFCFCF',
+              borderRadius: 100,
+              padding: 3,
+              marginRight: 5,
+            }}>
+            <Feather
+              name="user"
+              style={{
+                color: '#CFCFCF',
+                fontSize: 25,
+              }}
+            />
+          </TouchableOpacity>
+        </View>
+        <SafeAreaView style={{flex: 1}}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <TouchableOpacity
+              style={[styles.item, {marginTop: 0}]}
+              onPress={() => navigation.navigate('statistical')}>
+              <View style={styles.li}>
+                <Icon
+                  name="chart"
+                  size={40}
+                  style={{marginRight: 4, color: 'black'}}
+                />
+                <Text style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
+                  Thống kê
+                </Text>
+              </View>
+            </TouchableOpacity>
 
-              <TouchableOpacity style={styles.item}>
-                <View style={styles.li}>
-                  <MaterialCommunityIcons
-                    name="home-city-outline"
-                    size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
-                  />
-                  <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
-                    Tầng
-                  </Text>
-                </View>
-                {/* <IconMaterialIcons
-                  name="navigate-next"
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate('floor')}>
+              <View style={styles.li}>
+                <MaterialCommunityIcons
+                  name="home-city-outline"
                   size={30}
-                  color={'#EEEEEE'}
-                /> */}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.item}>
-                <View style={styles.li}>
-                  <MaterialCommunityIcons
-                    name="table-furniture"
-                    size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
-                  />
-                  <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
-                    Bàn
-                  </Text>
-                </View>
-                {/* <IconMaterialIcons
-                  name="navigate-next"
+                  style={{marginRight: 10, marginLeft: 5, color: 'black'}}
+                />
+                <Text style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
+                  Tầng
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate('table')}>
+              <View style={styles.li}>
+                <MaterialCommunityIcons
+                  name="table-furniture"
                   size={30}
-                  color={'#EEEEEE'}
-                /> */}
-              </TouchableOpacity>
-              <TouchableOpacity
+                  style={{marginRight: 10, marginLeft: 5, color: 'black'}}
+                />
+                <Text style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
+                  Bàn
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate('categoris')}>
+              <View style={styles.li}>
+                <MaterialIcons
+                  name="category"
+                  size={30}
+                  style={{marginRight: 10, marginLeft: 5, color: 'black'}}
+                />
+                <Text style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
+                  Danh mục
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate('list-product')}>
+              <View style={styles.li}>
+                <FontAwesome
+                  name="product-hunt"
+                  size={30}
+                  style={{marginRight: 10, marginLeft: 5, color: 'black'}}
+                />
+                <Text style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
+                  Sản phẩm
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate('bill')}>
+              <View style={styles.li}>
+                <Feather
+                  name="shopping-cart"
+                  size={30}
+                  style={{marginRight: 10, marginLeft: 5, color: 'black'}}
+                />
+                <Text style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
+                  Đơn hàng
+                </Text>
+              </View>
+            </TouchableOpacity>
+            {/* <TouchableOpacity
                 style={styles.item}
-                onPress={() => navigation.navigate('categoris')}>
-                <View style={styles.li}>
-                  <MaterialIcons
-                    name="category"
-                    size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
-                  />
-                  <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
-                    Danh mục
-                  </Text>
-                </View>
-                {/* <IconMaterialIcons
-                  name="navigate-next"
-                  size={30}
-                  color={'#EEEEEE'}
-                /> */}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.item}
-                onPress={() => navigation.navigate('list-product')}>
-                <View style={styles.li}>
-                  <FontAwesome
-                    name="product-hunt"
-                    size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
-                  />
-                  <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
-                    Sản phẩm
-                  </Text>
-                </View>
-                {/* <IconMaterialIcons
-                  name="navigate-next"
-                  size={30}
-                  color={'#EEEEEE'}
-                /> */}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.item}>
-                <View style={styles.li}>
-                  <Feather
-                    name="shopping-cart"
-                    size={30}
-                    style={{marginRight: 10, marginLeft: 5, color: 'black'}}
-                  />
-                  <Text
-                    style={{fontSize: width < 720 ? 17 : 23, color: 'black'}}>
-                    Đơn hàng
-                  </Text>
-                </View>
-                {/* <IconMaterialIcons
-                  name="navigate-next"
-                  size={30}
-                  color={'#EEEEEE'}
-                /> */}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.item}>
+                onPress={() => navigation.navigate('account')}>
                 <View style={styles.li}>
                   <AntDesign
                     name="user"
@@ -239,11 +182,6 @@ const Setting = ({navigation}: any) => {
                     Tài khoản
                   </Text>
                 </View>
-                {/* <IconMaterialIcons
-                  name="navigate-next"
-                  size={30}
-                  color={'#EEEEEE'}
-                /> */}
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.item, {borderBottomWidth: 0}]}
@@ -259,12 +197,11 @@ const Setting = ({navigation}: any) => {
                     Đăng xuất
                   </Text>
                 </View>
-                {/* <IconMaterialIcons name="navigate-next" size={30} /> */}
-              </TouchableOpacity>
-            </ScrollView>
-          </SafeAreaView>
-        </View>
-      )}
+                {/* <IconMaterialIcons name="navigate-next" size={30} /> *
+              </TouchableOpacity> */}
+          </ScrollView>
+        </SafeAreaView>
+      </View>
     </>
   );
 };
@@ -330,12 +267,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'red',
     fontWeight: '500',
+    fontSize: 20,
   },
-  loading1: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
+  
 });

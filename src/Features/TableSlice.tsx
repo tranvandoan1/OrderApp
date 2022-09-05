@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import TableAPI from '../API/TableAPI';
-export const getAllTable = createAsyncThunk('table/getAll', async () => {
+import TableAPI, {add, remove, upload} from '../API/TableAPI';
+async function tableAll() {
   const {data: tables} = await TableAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
@@ -23,7 +23,33 @@ export const getAllTable = createAsyncThunk('table/getAll', async () => {
     newData.push(dataTable[i]);
   }
   return newData;
+}
+export const getAllTable = createAsyncThunk('table/getAllTable', async () => {
+  return tableAll();
 });
+
+export const addTable = createAsyncThunk(
+  'table/addTable',
+  async (data: any) => {
+    await add(data);
+    return tableAll();
+  },
+);
+export const removeTable = createAsyncThunk(
+  'table/removeTable',
+  async (id: String) => {
+    await remove(id);
+    return tableAll();
+  },
+);
+export const editTable = createAsyncThunk(
+  'table/editTable',
+  async (data: any) => {
+    console.log(data);
+    await upload(data.id, data.data);
+    return tableAll();
+  },
+);
 const tableSlice = createSlice({
   name: 'table',
   initialState: {
@@ -32,6 +58,15 @@ const tableSlice = createSlice({
   reducers: {},
   extraReducers: (builder: any) => {
     builder.addCase(getAllTable.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(addTable.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(removeTable.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(editTable.fulfilled, (state: any, action: any) => {
       state.value = action.payload;
     });
   },

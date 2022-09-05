@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -107,7 +108,6 @@ const Order = (props: Props) => {
     await dispatch(removeSaveOrder(id));
     setLoading(false);
   };
-  console.log(checkSaveOrder,'eqwdas')
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -119,11 +119,11 @@ const Order = (props: Props) => {
         width: '100%',
         alignItems: 'center',
       }}>
-      {loading == true && (
+      {/* {loading == true && (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'#fff'} />
         </View>
-      )}
+      )} */}
       <View style={{width: '65%'}}>
         <ListPro
           loading={(e: any) => setLoading(e)}

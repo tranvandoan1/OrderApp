@@ -211,7 +211,7 @@ const ListPro = (props: Props) => {
             renderItem={({item, index}) => (
               <TouchableOpacity
                 key={index}
-                style={styles.listPro}
+                style={[styles.listPro, {height: width < 960 ? 250 : 230}]}
                 onPress={() => selectProduct(item)}>
                 <ImageBackground
                   source={{
@@ -252,7 +252,7 @@ const ListPro = (props: Props) => {
             <View
               style={[
                 styles.navigationContainer,
-                {width: width < 720 ? '50%' : '30%'},
+                {width: width < 720 ? '100%' : '50%'},
               ]}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -344,7 +344,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listPro: {
-    height: 250,
     borderColor: '#FF6600',
     borderWidth: 0.8,
     elevation: 10,

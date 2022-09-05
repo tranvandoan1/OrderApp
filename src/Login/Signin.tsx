@@ -45,9 +45,7 @@ const Signin = ({navigation}: any) => {
     };
     setCheck(true);
     const {data} = await UserAPI.signin(user);
-    console.log(data);
     if (data.error) {
-      console.log(data, '3ws');
       setCheck(false);
       Alert.alert(data.error);
     } else {
@@ -65,7 +63,7 @@ const Signin = ({navigation}: any) => {
   };
   return (
     <>
-      {checkUserStorage !== undefined ? (
+      {checkUserStorage?.data !== undefined ? (
         navigation?.navigate('Home')
       ) : (
         <View style={{flex: 1, backgroundColor: '#fff'}}>

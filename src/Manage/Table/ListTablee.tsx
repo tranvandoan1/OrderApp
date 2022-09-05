@@ -9,29 +9,33 @@ import {
 import React, {useEffect, useState} from 'react';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
+import {getAll} from '../../Features/CateSlice';
+import ModalDelete from '../../Modal/ModalCategoris/ModalDelete';
 import {Size} from '../../size';
 import {FlatGrid} from 'react-native-super-grid';
 import Fontisto from 'react-native-vector-icons/Fontisto';
-import {getAllFloor} from './../../Features/FloorSlice';
-import ModalDeleteFloor from './../../Modal/ModalFloors/ModalDelete';
+import {getAllFloor} from '../../Features/FloorSlice';
+import ModalDeleteFloor from '../../Modal/ModalFloors/ModalDelete';
+import { getAllTable } from '../../Features/TableSlice';
+import ModalDeleteTable from '../../Modal/ModalTable/ModalDelete';
 type Props = {
   onClickAddDataEdit: (e: any) => void;
   onClickOpenModal: () => void;
 };
-const ListTableFloor = (props: Props) => {
+const ListTablee = (props: Props) => {
   const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const floors = useAppSelect((data: any) => data.floors.value);
+  const tables = useAppSelect((data: any) => data.tables.value);
   const [modalVisible, setModalVisible] = useState(false);
   const [id, setId] = useState();
   useEffect(() => {
-    dispatch(getAllFloor());
+    dispatch(getAllTable());
   }, []);
 
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
-      {floors.length <= 0 ? (
+      {tables.length <= 0 ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'blue'} />
         </View>
@@ -39,7 +43,7 @@ const ListTableFloor = (props: Props) => {
         <View style={{paddingTop: 10}}>
           <FlatGrid
             itemDimension={400}
-            data={floors}
+            data={tables}
             renderItem={({item, index}) => (
               <TouchableOpacity
                 key={index}
@@ -69,7 +73,7 @@ const ListTableFloor = (props: Props) => {
           />
         </View>
       )}
-      <ModalDeleteFloor
+      <ModalDeleteTable
         modalVisible={modalVisible}
         onCloseModal={() => setModalVisible(false)}
         id={id}
@@ -78,10 +82,12 @@ const ListTableFloor = (props: Props) => {
   );
 };
 
-export default ListTableFloor;
+export default ListTablee;
 
 const styles = StyleSheet.create({
   logo: {
+
+    
     width: 66,
     height: 200,
     backgroundColor: 'blue',

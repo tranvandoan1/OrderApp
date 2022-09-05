@@ -18,13 +18,11 @@ import {checkUserAsyncStorage} from '../checkUser';
 import {FlatGrid} from 'react-native-super-grid';
 import {getAllSaveOrder} from '../Features/SaveOrderSlice';
 import {Size} from '../size';
-import {getCheckSaveOrder} from './../Features/CheckSaveOrder';
 type Props = {
   route: any;
   navigation: any;
 };
 const Floor = ({navigation}: any, props: Props) => {
-  console.log(props.route, 'qưedasas');
   const [dataFloors, setDataFloors] = useState<any>();
   const width = Size().width;
   const X = checkUserAsyncStorage();
@@ -33,13 +31,12 @@ const Floor = ({navigation}: any, props: Props) => {
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const floors = useAppSelect((data: any) => data.floors.value);
   const tables = useAppSelect((data: any) => data.tables.value);
-  const checkSaveOrder = useAppSelect((data: any) => data.checkSaveOrder.value);
+  const saveorders = useAppSelect((data: any) => data.saveorders.value);
 
   useEffect(() => {
     dispatch(getAllFloor());
     dispatch(getAllTable());
     dispatch(getAllSaveOrder());
-    dispatch(getCheckSaveOrder());
   }, []);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -47,6 +44,14 @@ const Floor = ({navigation}: any, props: Props) => {
   const table2 = tables?.filter(
     (item: any) => item.floor_id == dataFloors?._id,
   );
+  let checkSaveOrder: any = [];
+  tables?.map((element: any) => {
+    let arrFilter = saveorders?.filter((e: any) => {
+      return e.id_table === element._id;
+    });
+    checkSaveOrder.push({_id: element._id, data: arrFilter, sum: 0});
+  });
+
   const order = (item: any) => {
     navigation?.navigate('orders', {
       id_table: item._id,
@@ -57,7 +62,7 @@ const Floor = ({navigation}: any, props: Props) => {
   };
   return (
     <>
-      {floors == undefined ? (
+      {table1.length <= 0 ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'blue'} />
         </View>
@@ -87,11 +92,12 @@ const Floor = ({navigation}: any, props: Props) => {
                     style={styles.table}
                     onPress={() => order(item)}
                     key={item._id}>
-                    {checkSaveOrder.map((check: any, index: any) => {
+                    {checkSaveOrder?.map((check: any, index: any) => {
                       if (check._id == item._id) {
                         if (check.data.length > 0) {
                           return (
                             <View
+                              key={index}
                               style={{
                                 position: 'absolute',
                                 top: 10,
@@ -114,11 +120,12 @@ const Floor = ({navigation}: any, props: Props) => {
                             </View>
                           );
                         }
-                        check.data.map((price: any) => {
+                        check.data.map((price: any, indexx: any) => {
                           const tien = price.price * price.amount;
-                          console.log(tien, 'ewdasxz');
                           return (
-                            <Text style={{fontSize: 20, color: 'black'}}>
+                            <Text
+                              style={{fontSize: 20, color: 'black'}}
+                              key={indexx}>
                               {tien}
                             </Text>
                           );
@@ -174,6 +181,7 @@ const Floor = ({navigation}: any, props: Props) => {
                             textAlign: 'center',
                             fontWeight: '500',
                             fontSize: width < 720 ? 20 : 25,
+                            color: 'black',
                           }}>
                           {item.name}
                         </Text>
@@ -198,7 +206,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'tomato',
+    backgroundColor: 'blue',
     paddingHorizontal: 10,
   },
   titlePro: {
@@ -247,8 +255,7 @@ const styles = StyleSheet.create({
   table: {
     borderColor: 'rgb(219, 219, 219)',
     borderWidth: 1,
-    paddingVertical: 30,
-    paddingHorizontal: 10,
+    paddingVertical: 10,
     flexDirection: 'column',
     borderRadius: 10,
     alignItems: 'center',

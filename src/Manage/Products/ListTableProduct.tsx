@@ -12,6 +12,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import {getAllPro} from '../../Features/ProductsSlice';
 import Feather from 'react-native-vector-icons/Feather';
@@ -28,77 +29,86 @@ const MyComponent = () => {
     dispatch(getAllPro());
   }, []);
   return (
-    <View style={{paddingHorizontal: 5,flex:1}}>
-      <SafeAreaView>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {products.map((item: any, index: any) => {
-            return (
-              <TouchableOpacity
-                key={index}
-                style={{
-                  flexDirection: 'row',
-                  paddingVertical: 10,
-                  borderColor: 'rgb(219,219,219)',
-                  borderBottomWidth: 0.5,
-                  alignItems: 'center',
-                }}>
-                <View style={{width: '40%'}}>
-                  <Text
-                    style={[styles.listTxt, {fontSize: width < 720 ? 18 : 21}]}>
-                    {item.name}
-                  </Text>
-                </View>
-                <View
+    <View style={{paddingHorizontal: 5, flex: 1}}>
+      {products.length <= 0 ? (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={'blue'} />
+        </View>
+      ) : (
+        <SafeAreaView>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {products.map((item: any, index: any) => {
+              return (
+                <TouchableOpacity
+                  key={index}
                   style={{
-                    width: '30%',
                     flexDirection: 'row',
-                    justifyContent: 'center',
+                    paddingVertical: 10,
+                    borderColor: 'rgb(219,219,219)',
+                    borderBottomWidth: 0.5,
+                    alignItems: 'center',
                   }}>
-                  <Image
-                    source={{uri: `${item.photo}`}}
-                    style={{width: 100, height: 100}}
-                  />
-                </View>
-                <View style={{width: width < 720 ? '30%' : '20%'}}>
-                  <Text
-                    style={[
-                      styles.listTxt,
-                      {textAlign: 'center', fontSize: width < 720 ? 18 : 20},
-                    ]}>{`${item.price
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${
-                    item.check == true ? '/KG' : 'đ'
-                  }`}</Text>
-                </View>
-                {width > 720 && (
+                  <View style={{width: '40%'}}>
+                    <Text
+                      style={[
+                        styles.listTxt,
+                        {fontSize: width < 720 ? 18 : 21},
+                      ]}>
+                      {item.name}
+                    </Text>
+                  </View>
                   <View
                     style={{
-                      width: '10%',
+                      width: '30%',
                       flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}>
-                    <TouchableOpacity
-                      onPress={() => console.log(item._id, 'edit')}>
-                      <Feather
-                        name="edit"
-                        style={{fontSize: 27, marginRight: 10, color: 'blue'}}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => console.log(item._id, 'xóa')}>
-                      <MaterialIcons
-                        name="delete-outline"
-                        style={{fontSize: 30, color: 'red'}}
-                      />
-                    </TouchableOpacity>
+                    <Image
+                      source={{uri: `${item.photo}`}}
+                      style={{width: 100, height: 100}}
+                    />
                   </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </SafeAreaView>
+                  <View style={{width: width < 720 ? '30%' : '20%'}}>
+                    <Text
+                      style={[
+                        styles.listTxt,
+                        {textAlign: 'center', fontSize: width < 720 ? 18 : 20},
+                      ]}>{`${item.price
+                      .toString()
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${
+                      item.check == true ? '/KG' : 'đ'
+                    }`}</Text>
+                  </View>
+                  {width > 720 && (
+                    <View
+                      style={{
+                        width: '10%',
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                      }}>
+                      <TouchableOpacity
+                        onPress={() => console.log(item._id, 'edit')}>
+                        <Feather
+                          name="edit"
+                          style={{fontSize: 27, marginRight: 10, color: 'blue'}}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => console.log(item._id, 'xóa')}>
+                        <MaterialIcons
+                          name="delete-outline"
+                          style={{fontSize: 30, color: 'red'}}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </SafeAreaView>
+      )}
     </View>
   );
 };
@@ -116,5 +126,11 @@ const styles = StyleSheet.create({
     fontStyle: 'normal',
     fontWeight: '400',
     color: 'black',
+  },
+  loading: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
   },
 });

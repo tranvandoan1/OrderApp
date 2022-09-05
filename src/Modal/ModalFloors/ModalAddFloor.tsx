@@ -6,7 +6,6 @@ import {
   Modal,
   StyleSheet,
   Text,
-  Pressable,
   View,
   TouchableWithoutFeedback,
   TouchableOpacity,
@@ -18,14 +17,14 @@ import {
 } from 'react-native';
 import {useDispatch} from 'react-redux';
 import {AppDispatch} from '../../App/Store';
-import {addCate, editCatee} from '../../Features/CateSlice';
+import {addFloor, editFloor} from '../../Features/FloorSlice';
 import {Size} from '../../size';
 type Props = {
   dataEdit: any;
   onCloseModal: () => void;
   modalVisible: any;
 };
-const ModalAddCategoris = (props: Props) => {
+const ModalAddFloor = (props: Props) => {
   const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const [check, setCheck] = useState<Boolean>(false);
@@ -43,7 +42,7 @@ const ModalAddCategoris = (props: Props) => {
       const user_id = JSON.parse(user).data._id;
       try {
         setCheck(true);
-        await dispatch(addCate({name: value, user_id: user_id}));
+        await dispatch(addFloor({name: value, user_id: user_id}));
         setCheck(false);
         setValue(undefined);
         props.onCloseModal();
@@ -54,12 +53,12 @@ const ModalAddCategoris = (props: Props) => {
     } else {
       try {
         setCheck(true);
-        let formData = new FormData();
-        formData.append(
-          'name',
-          value == undefined ? props.dataEdit.name : value,
+        await dispatch(
+          editFloor({
+            id: props.dataEdit._id,
+            data: {name: value == undefined ? props.dataEdit.name : value},
+          }),
         );
-        await dispatch(editCatee({id: props.dataEdit._id, data: formData}));
 
         setCheck(false);
         setValue(undefined);
@@ -83,7 +82,7 @@ const ModalAddCategoris = (props: Props) => {
             width < 720 ? {width: '100%'} : {width: 600},
           ]}>
           <Text style={[styles.title, {fontSize: width < 720 ? 20 : 25}]}>
-            {props.dataEdit == undefined ? 'Thêm danh mục' : 'Sửa danh mục'}
+            {props.dataEdit == undefined ? 'Thêm tầng' : 'Sửa tầng'}
           </Text>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -97,7 +96,7 @@ const ModalAddCategoris = (props: Props) => {
               defaultValue={
                 props.dataEdit == undefined ? value : props.dataEdit.name
               }
-              placeholder="Tên danh mục"
+              placeholder="Tên tầng"
               placeholderTextColor={String(value).length <= 0 ? 'red' : ''}
             />
             {String(value).length <= 0 && (
@@ -123,7 +122,7 @@ const ModalAddCategoris = (props: Props) => {
   );
 };
 
-export default ModalAddCategoris;
+export default ModalAddFloor;
 
 const styles = StyleSheet.create({
   centeredView: {
