@@ -47,7 +47,7 @@ const Account = ({navigation}: any) => {
         <TextInput style={styles.inputSearch} placeholder="Tìm kiếm sản phẩm" />
       )}
 
-      <AccountInfo />
+      <AccountInfo logout={()=>navigation?.navigate('signin')}/>
     </View>
   );
 };

@@ -1,5 +1,5 @@
 // In App.js in a new project
-import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
+import {ActivityIndicator, LogBox, StyleSheet, Text, View} from 'react-native';
 import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -19,19 +19,20 @@ import {Size} from './size';
 import Floor from './Order/Floors';
 import Order from './Order/Order';
 import ListFloor from './Manage/Floors/ListFloor';
+import {checkUserAsyncStorage} from './checkUser';
 import ListTable from './Manage/Table/ListTable';
 import ListBill from './Manage/Bill/ListBill';
 import ListStatistical from './Manage/Statistical/ListStatistical';
 import Account from './Manage/Account/Account';
-import {checkUserAsyncStorage} from './checkUser';
 const Tab = createBottomTabNavigator();
-
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 function Router() {
   const width = Size().width;
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarStyle: {height: 60},
+        tabBarStyle: {height: 50, zIndex: 0},
       }}>
       <Tab.Screen
         name="Order"
@@ -39,7 +40,7 @@ function Router() {
         options={{
           headerShown: false,
           tabBarIcon: () => <View></View>,
-          tabBarActiveBackgroundColor: 'tomato',
+          tabBarActiveBackgroundColor: 'blue',
           tabBarLabel: ({focused, color}) => (
             <View
               style={{
@@ -51,17 +52,17 @@ function Router() {
               }}>
               <Icon
                 name="cart"
-                size={width < 720 ? 26 : 40}
+                size={width < 960 ? 24 : 30}
                 style={{
-                  color: focused ? '#fff' : 'tomato',
+                  color: focused ? '#fff' : 'black',
                   fontWeight: '600',
                 }}
               />
               <Text
                 style={{
-                  fontSize: width < 720 ? 12 : 18,
+                  fontSize: width < 960 ? 12 : 15,
                   fontWeight: '600',
-                  color: focused ? '#fff' : 'tomato',
+                  color: focused ? '#fff' : 'black',
                 }}>
                 Gọi món
               </Text>
@@ -75,7 +76,7 @@ function Router() {
         options={{
           headerShown: false,
           tabBarIcon: () => <View></View>,
-          tabBarActiveBackgroundColor: 'tomato',
+          tabBarActiveBackgroundColor: 'blue',
           tabBarLabel: ({focused, color}) => (
             <View
               style={{
@@ -86,16 +87,16 @@ function Router() {
               }}>
               <Icons
                 name="user"
-                size={width < 720 ? 26 : 30}
+                size={width < 960 ? 24 : 25}
                 style={{
-                  color: focused ? '#fff' : 'tomato',
+                  color: focused ? '#fff' : '#003399',
                   fontWeight: '600',
                 }}
               />
               <Text
                 style={{
-                  fontSize: width < 720 ? 12 : 18,
-                  color: focused ? '#fff' : 'tomato',
+                  fontSize: width < 960 ? 12 : 15,
+                  color: focused ? '#fff' : '#003399',
                   fontWeight: '600',
                 }}>
                 Quản lý
@@ -118,21 +119,21 @@ function App() {
         <Stack.Navigator>
           {checkUserStorage?.data == undefined && (
             <Stack.Screen
-              name="Signin"
+              name="signin"
               component={Signin}
               options={{headerShown: false}}
             />
           )}
           {checkUserStorage?.data == undefined && (
             <Stack.Screen
-              name="Signup"
+              name="signup"
               component={SignUp}
               options={{headerShown: false}}
             />
           )}
           <Stack.Screen
-            name="Home"
-            component={Router}
+            name="home"
+            component={Floor}
             options={{headerShown: false}}
           />
           <Stack.Screen
@@ -141,7 +142,7 @@ function App() {
             options={{headerShown: false}}
           />
           <Stack.Screen
-            name="list-product"
+            name="products"
             component={ListProducts}
             options={{headerShown: false}}
           />
@@ -173,6 +174,11 @@ function App() {
           <Stack.Screen
             name="account"
             component={Account}
+            options={{headerShown: false}}
+          />
+              <Stack.Screen
+            name="manage"
+            component={Manage}
             options={{headerShown: false}}
           />
         </Stack.Navigator>

@@ -30,23 +30,6 @@ export const getCheckSaveOrder = createAsyncThunk(
       });
       arr.push({_id: element._id, data: arrFilter, sum: 0});
     });
-    // let arr1: any = [];
-    // dataTable.map((element: any) => {
-    //   dataSaveOrder.map((e: any) => {
-    //     let arrFilter: any = [];
-    //     if (e.id_table === element._id) {
-    //       if (e.weight !== undefined) {
-    //         const tien = e.price * e.weight;
-    //         arrFilter.push(tien * e.amount);
-    //       } else {
-    //         console.log(e.price * e.amount, 'chào nhé');
-    //         arrFilter.push(e.price * e.amount);
-    //       }
-    //     }
-    //     arr1.push({_id: element._id, data: arrFilter, sum: arrFilter});
-    //   });
-    // });
-    // console.log(arr1, '2343rewds');
 
     return arr;
   },

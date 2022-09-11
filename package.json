@@ -27,6 +27,7 @@
     "react": "18.0.0",
     "react-hook-form": "^7.33.1",
     "react-native": "0.69.2",
+    "react-native-a-beep": "^1.2.0",
     "react-native-blink-view": "^0.0.6",
     "react-native-collapsible": "^1.6.0",
     "react-native-easy-grid": "^0.2.2",

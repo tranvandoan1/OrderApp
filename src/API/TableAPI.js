@@ -22,3 +22,7 @@ export const upload = (id, data) => {
   const url = `/table/${id}`;
   return axiosClient.put(url, data);
 };
+export const uploadBookTable = (table) => {
+  const url = `/table/book-table`;
+  return axiosClient.post(url, table);
+};

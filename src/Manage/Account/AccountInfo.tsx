@@ -1,10 +1,13 @@
 import {
   ActivityIndicator,
+  Modal,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -17,11 +20,11 @@ import {Avatar} from 'react-native-elements';
 import {checkUserAsyncStorage} from '../../checkUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type Props = {};
-const AccountInfo = (props: Props, navigation: any) => {
+type Props = {
+  logout:()=>void
+};
+const AccountInfo = (props: Props) => {
   const width = Size()?.width;
-  const dispatch = useDispatch<AppDispatch>();
-  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
   const [modalVisible, setModalVisible] = useState(false);
@@ -31,7 +34,7 @@ const AccountInfo = (props: Props, navigation: any) => {
     setModalVisible(false);
     await AsyncStorage.removeItem('user');
     setCheckLognout(false);
-    navigation?.navigate('Signin');
+    props?.logout()
   };
   return (
     <View
@@ -47,6 +50,46 @@ const AccountInfo = (props: Props, navigation: any) => {
       ) : checkLognout == true ? (
         <View style={styles.loading1}>
           <ActivityIndicator size="large" color={'#fff'} />
+        </View>
+      ) : modalVisible == true ? (
+        <View style={styles.centeredView}>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}>
+            <View style={styles.centeredView}>
+              <TouchableWithoutFeedback
+                onPress={() => setModalVisible(!modalVisible)}>
+                <View style={{flex: 1, width: '100%'}}></View>
+              </TouchableWithoutFeedback>
+              <View style={styles.modalView}>
+                <Text style={styles.modalText}>
+                  Bạn có muốn đăng xuất không ?
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    width: '100%',
+                    justifyContent: 'center',
+                  }}>
+                  <Pressable
+                    style={[
+                      styles.button,
+                      styles.buttonClose,
+                      {marginRight: 30},
+                    ]}
+                    onPress={() => setModalVisible(!modalVisible)}>
+                    <Text style={styles.textStyle}>Hủy</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.button, styles.buttonLognout]}
+                    onPress={() => logout()}>
+                    <Text style={styles.textStyle}>Đăng xuất</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
         </View>
       ) : (
         <SafeAreaView>
@@ -238,5 +281,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, .5)',
+  },
+  modalView: {
+    borderTopRightRadius: 20,
+    borderTopLeftRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    width: '100%',
+    backgroundColor: '#fff',
+  },
+  button: {
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonLognout: {
+    backgroundColor: 'red',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 30,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    color: 'red',
+    fontWeight: '500',
+    fontSize: 20,
   },
 });
