@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   SafeAreaView,
@@ -13,7 +14,7 @@ import React, {useEffect, useState} from 'react';
 import {Size} from '../size';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../App/Store';
-import {getAllTable} from '../Features/TableSlice';
+import {editBookTable, getAllTable} from '../Features/TableSlice';
 import {getAllFloor} from '../Features/FloorSlice';
 import moment from 'moment';
 import {
@@ -29,7 +30,7 @@ type Props = {
   hiidenCheckPay: (e: any) => void;
   checkPay: any;
   valueSale: any;
-  idTableFloor: any;
+  params: any;
   saveorders: any;
   sum: any;
 };
@@ -48,6 +49,7 @@ const ModalCheckPay = (props: Props) => {
   ]);
   const [tableData, setTableData] = useState<any>([]);
   const [valueName, setValueName] = useState<any>();
+  const [loading, setLoading] = useState<boolean>(false);
   useEffect(() => {
     dispatch(getAllTable());
     dispatch(getAllFloor());
@@ -88,8 +90,8 @@ const ModalCheckPay = (props: Props) => {
       orders: order,
       sale: props.valueSale == undefined ? 0 : props.valueSale,
       price: props.sum,
-      table_id: props.idTableFloor.id_table,
-      floor_id: props.idTableFloor.floor_id,
+      table_id: props.params.table._id,
+      floor_id: props.params.floor._id,
       start_time: `${
         String(date.getHours()).length == 1
           ? `0${date.getHours()}`
@@ -111,8 +113,22 @@ const ModalCheckPay = (props: Props) => {
     };
     const id: any = [];
     order.map((item: any) => id.push(item._id));
+    setLoading(true);
     await dispatch(addOrder(data));
     await dispatch(removeSaveOrderAll(id));
+    if (props?.params.table.timeBookTable !== 'null') {
+      console.log('first')
+      await dispatch(
+        editBookTable({
+          id: props?.params.table._id,
+          nameUser: '',
+          timeBookTable: 'null',
+          amount: 0,
+        }),
+      );
+    }
+
+    setLoading(true);
     props?.hiidenCheckPay({name: valueName, check: true});
   };
   return (
@@ -144,12 +160,12 @@ const ModalCheckPay = (props: Props) => {
                     {' '}
                     {floors?.map(
                       (item: any) =>
-                        item._id == props?.idTableFloor.floor_id && item.name,
+                        item._id == props?.params.floor._id && item.name,
                     )}
                     /{' '}
                     {tables?.map(
                       (item: any) =>
-                        item._id == props?.idTableFloor.id_table && item.name,
+                        item._id == props?.params.table._id && item.name,
                     )}
                   </Text>
                 </View>
@@ -276,15 +292,19 @@ const ModalCheckPay = (props: Props) => {
                   paddingHorizontal: 10,
                   marginTop: 30,
                 }}>
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    color: '#fff',
-                    fontSize: 20,
-                    fontWeight: '500',
-                  }}>
-                  Thanh toán
-                </Text>
+                {loading == true ? (
+                  <ActivityIndicator size="large" color={'#fff'} />
+                ) : (
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      color: '#fff',
+                      fontSize: 20,
+                      fontWeight: '500',
+                    }}>
+                    Thanh toán
+                  </Text>
+                )}
               </TouchableOpacity>
             </ScrollView>
           </SafeAreaView>

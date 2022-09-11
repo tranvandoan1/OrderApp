@@ -32,10 +32,11 @@ const Order = (props: Props) => {
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const saveorders = useAppSelect((data: any) => data.saveorders.value);
   const products = useAppSelect((data: any) => data.products.value);
+  const propParams = props.route.params;
   const newOrder = saveorders?.filter(
     (item: any) =>
-      item.floor_id == props.route.params.floor_id &&
-      item.id_table == props.route.params.id_table,
+      item.floor_id == propParams.floor._id &&
+      item.id_table == propParams.table._id,
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [value, setValue] = useState<any>();
@@ -119,17 +120,12 @@ const Order = (props: Props) => {
         width: '100%',
         alignItems: 'center',
       }}>
-      {/* {loading == true && (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={'#fff'} />
-        </View>
-      )} */}
       <View style={{width: '65%'}}>
         <ListPro
           loading={(e: any) => setLoading(e)}
-          id={props.route.params}
+          params={propParams}
           navigation={() =>
-            props.navigation?.navigate('Home', {data: checkSaveOrder})
+            props.navigation?.navigate('home', {data: checkSaveOrder})
           }
         />
       </View>
@@ -137,212 +133,178 @@ const Order = (props: Props) => {
       <View style={styles.right}>
         <Text style={styles.proOrder}>Sản phẩm đã chọn</Text>
 
-        <View style={{padding: 5, height: 450}}>
-          <SafeAreaView>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {newOrder.length <= 0 ? (
-                <View
-                  style={{
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100%',
-                    flex: 1,
-                  }}>
-                  <Text
+        <View style={{flex: 1}}>
+          <View style={{padding: 5, height: '70%'}}>
+            <SafeAreaView>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {newOrder.length <= 0 ? (
+                  <View
                     style={{
-                      textAlign: 'center',
-                      fontSize: 25,
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '100%',
+                      flex: 1,
                     }}>
-                    Chưa có sản phẩm
-                  </Text>
-                </View>
-              ) : products.length <= 0 ? (
-                <View style={styles.loading1}>
-                  <ActivityIndicator size="large" color={'blue'} />
-                </View>
-              ) : (
-                newOrder?.map((item: any, index: any) => {
-                  return (
-                    <View
-                      style={[
-                        styles.listOrder,
-                        newOrder.length - 1 !== index && {borderBottomWidth: 1},
-                      ]}
-                      key={index}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          width: '70%',
-                          overflow: 'hidden',
-                        }}>
-                        <TouchableOpacity onPress={() => deleteOrder(item._id)}>
-                          <AntDesign
-                            name="closecircle"
-                            color={'tomato'}
-                            size={22}
-                            style={{marginRight: 5}}
-                          />
-                        </TouchableOpacity>
+                    <Text
+                      style={{
+                        textAlign: 'center',
+                        fontSize: 25,
+                      }}>
+                      Chưa có sản phẩm
+                    </Text>
+                  </View>
+                ) : products.length <= 0 ? (
+                  <View style={styles.loading1}>
+                    <ActivityIndicator size="large" color={'blue'} />
+                  </View>
+                ) : (
+                  <>
+                    {loading == true && (
+                      <ActivityIndicator size="large" color={'blue'} />
+                    )}
+                    {newOrder
+                      ?.slice()
+                      .reverse()
+                      ?.map((item: any, index: any) => {
+                        return (
+                          <View
+                            style={[
+                              styles.listOrder,
+                              newOrder.length - 1 !== index && {
+                                borderBottomWidth: 0.5,
+                              },
+                            ]}
+                            key={index}>
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                width: '70%',
+                                overflow: 'hidden',
+                              }}>
+                              <TouchableOpacity
+                                onPress={() => deleteOrder(item._id)}>
+                                <AntDesign
+                                  name="closecircle"
+                                  color={'tomato'}
+                                  size={22}
+                                  style={{marginRight: 15}}
+                                />
+                              </TouchableOpacity>
 
-                        <Text style={styles.stt}>{index + 1}</Text>
-                        <View style={{flexDirection: 'column'}}>
-                          <Text style={styles.proname} numberOfLines={2}>
-                            {item.name}
-                          </Text>
-                          {item.weight && <Text>{item.weight}kg</Text>}
-                        </View>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          width: '30%',
-                          justifyContent: 'flex-end',
-                        }}>
-                        <TouchableOpacity
-                          onPress={() =>
-                            onSubmit({data: item, check: 'decrease'})
-                          }>
-                          <Entypo
-                            name="circle-with-minus"
-                            color={'#FF6633'}
-                            size={30}
-                          />
-                        </TouchableOpacity>
-                        <TextInput
-                          value={`${
-                            valueAmount == undefined
-                              ? item.amount
-                              : item._id == id
-                              ? valueAmount
-                              : item.amount
-                          }`}
-                          style={styles.text}
-                          keyboardType="numeric"
-                          onChangeText={e => setValueMount(e)}
-                          onBlur={() => uploadAmount(item)}
-                          onPressIn={() => setId(item._id)}
-                        />
-                        <TouchableOpacity
-                          onPress={() => onSubmit({data: item, check: 'add'})}>
-                          <AntDesign
-                            name="pluscircle"
-                            color={'#FF6633'}
-                            size={25}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  );
-                })
-              )}
-            </ScrollView>
-          </SafeAreaView>
-        </View>
-        <View style={styles.bott}>
-          <View
-            style={{
-              flexDirection: 'row',
-              marginTop: 5,
-              paddingHorizontal: 5,
-              justifyContent: 'space-between',
-            }}>
-            <TextInput
-              value={value}
-              onChangeText={e => setValue(e)}
-              placeholder="Nhập mã giảm giá"
-              keyboardType="number-pad"
-              style={{
-                borderWidth: 1,
-                borderColor: '#EEEEEE',
-                fontSize: 15,
-                flex: 1,
-                paddingLeft: 5,
-                paddingVertical: 0,
-              }}
-            />
-            <TouchableOpacity
-              onPress={() => (setValueSale(value), setValue(undefined))}>
-              <Text style={styles.xn}>Áp dụng</Text>
-            </TouchableOpacity>
+                              {/* <Text style={styles.stt}>{index + 1}</Text> */}
+                              <View style={{flexDirection: 'column'}}>
+                                <Text style={styles.proname} numberOfLines={2}>
+                                  {item.name}
+                                </Text>
+                                {item.weight && <Text>{item.weight}kg</Text>}
+                              </View>
+                            </View>
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                width: '30%',
+                                justifyContent: 'flex-end',
+                              }}>
+                              <TouchableOpacity
+                                onPress={() =>
+                                  onSubmit({data: item, check: 'decrease'})
+                                }>
+                                <Entypo
+                                  name="circle-with-minus"
+                                  color={'#FF6633'}
+                                  size={30}
+                                />
+                              </TouchableOpacity>
+                              <TextInput
+                                value={`${
+                                  valueAmount == undefined
+                                    ? item.amount
+                                    : item._id == id
+                                    ? valueAmount
+                                    : item.amount
+                                }`}
+                                style={styles.text}
+                                keyboardType="numeric"
+                                onChangeText={e => setValueMount(e)}
+                                onBlur={() => uploadAmount(item)}
+                                onPressIn={() => setId(item._id)}
+                              />
+                              <TouchableOpacity
+                                onPress={() =>
+                                  onSubmit({data: item, check: 'add'})
+                                }>
+                                <AntDesign
+                                  name="pluscircle"
+                                  color={'#FF6633'}
+                                  size={25}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        );
+                      })}
+                  </>
+                )}
+              </ScrollView>
+            </SafeAreaView>
           </View>
-
-          <View>
+          <View style={[styles.bott, {height: '30%'}]}>
             <View
-              style={
-                valueSale !== undefined &&
-                valueSale !== 0 &&
-                String(valueSale).length > 1 && {
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  width: '100%',
-                }
-              }>
+              style={{
+                flexDirection: 'row',
+                marginTop: 5,
+                paddingHorizontal: 5,
+                justifyContent: 'space-between',
+              }}>
+              <TextInput
+                value={value}
+                onChangeText={e => setValue(e)}
+                placeholder="Nhập mã giảm giá"
+                keyboardType="number-pad"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#EEEEEE',
+                  fontSize: 15,
+                  flex: 1,
+                  paddingLeft: 5,
+                  paddingVertical: 0,
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => (setValueSale(value), setValue(undefined))}>
+                <Text style={styles.xn}>Áp dụng</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View>
               <View
-                style={[
-                  {
+                style={
+                  valueSale !== undefined &&
+                  valueSale !== 0 &&
+                  String(valueSale).length > 1 && {
                     flexDirection: 'row',
                     alignItems: 'center',
-                    justifyContent: 'flex-end',
-                  },
-                  valueSale !== undefined &&
-                    valueSale !== 0 &&
-                    String(valueSale).length > 1 && {
-                      paddingRight: 10,
-                      borderColor: 'rgb(219,219,219)',
-                      borderRightWidth: 0.5,
-                    },
-                ]}>
-                <View style={styles.flex}>
-                  <Text
-                    style={[
-                      styles.price,
-                      valueSale == undefined && {fontSize: 18},
-                    ]}>
-                    Tổng tiền :{' '}
-                  </Text>
-                  {valueSale !== undefined &&
-                    valueSale !== 0 &&
-                    String(valueSale).length > 1 && (
-                      <Text style={[styles.price, {marginVertical: 10}]}>
-                        Giảm giá :{' '}
-                      </Text>
-                    )}
-                </View>
-                <View>
-                  <Text
-                    style={[
-                      styles.priceRed,
-                      valueSale == undefined && {fontSize: 25},
-                    ]}>
-                    {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
-                  </Text>
-                  {valueSale !== undefined &&
-                    valueSale !== 0 &&
-                    String(valueSale).length > 1 && (
-                      <Text style={[styles.priceRed, {marginVertical: 10}]}>
-                        -{valueSale}%
-                      </Text>
-                    )}
-                </View>
-              </View>
-              {valueSale !== undefined &&
+                    width: '100%',
+                  }
+                }>
+                {valueSale !== undefined &&
                 valueSale !== 0 &&
-                String(valueSale).length > 1 && (
+                String(valueSale).length > 1 ? (
                   <View
                     style={[
                       {
-                        flexDirection: 'column',
+                        flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'center',
                         paddingLeft: 10,
                         flex: 1,
                       },
                     ]}>
-                    <Text style={[styles.price, {fontSize: 18}]}>
-                      Tổng tiền thanh toán
+                    <Text style={[styles.price, {fontSize: 23}]}>
+                      Tổng tiền thanh toán : {' '}
                     </Text>
                     <Text style={[styles.priceRed, {fontSize: 25}]}>
                       {Math.ceil(sum * ((100 - valueSale) / 100))
@@ -351,12 +313,82 @@ const Order = (props: Props) => {
                       đ
                     </Text>
                   </View>
+                ) : (
+                  <View
+                    style={[
+                      {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        paddingHorizontal: 5,
+                      },
+                      valueSale !== undefined &&
+                        valueSale !== 0 &&
+                        String(valueSale).length > 1 && {
+                          paddingRight: 10,
+                          borderColor: 'rgb(219,219,219)',
+                          borderRightWidth: 0.5,
+                        },
+                    ]}>
+                    <View style={styles.flex}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent:
+                            valueSale !== undefined && valueSale !== 0
+                              ? 'space-between'
+                              : 'flex-end',
+                          alignItems: 'center',
+                        }}>
+                        <Text
+                          style={[
+                            styles.price,
+                            valueSale !== undefined && valueSale !== 0
+                              ? {fontSize: 19}
+                              : {fontSize: 25},
+                          ]}>
+                          Tổng tiền :{' '}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.priceRed,
+                            valueSale !== undefined && valueSale !== 0
+                              ? {fontSize: 21}
+                              : {fontSize: 27},
+                          ]}>
+                          {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                          đ
+                        </Text>
+                      </View>
+                      {/* 
+                    {valueSale !== undefined && valueSale !== 0 && (
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}>
+                        <Text style={[styles.price, {marginVertical: 10}]}>
+                          Giảm giá :{' '}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.priceRed,
+                            {marginVertical: 10, fontSize: 20},
+                          ]}>
+                          -{valueSale}%
+                        </Text>
+                      </View>
+                    )} */}
+                    </View>
+                  </View>
                 )}
-            </View>
+              </View>
 
-            <TouchableOpacity onPress={() => setCheckPayy(true)}>
-              <Text style={styles.tt}>Thanh toán</Text>
-            </TouchableOpacity>
+              <TouchableOpacity onPress={() => setCheckPayy(true)}>
+                <Text style={styles.tt}>Thanh toán</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -367,22 +399,22 @@ const Order = (props: Props) => {
             setCheckPayy(false), setPayy(e.check), setValueName(e.name)
           )}
           valueSale={valueSale}
-          idTableFloor={props.route.params}
+          params={propParams}
           saveorders={newOrder}
           sum={sum}
         />
       ) : null}
-      {newOrder?.length > 0 && payy == true && (
+      {/* {newOrder?.length > 0 && payy == true && (
         <ModalPay
           payy={payy}
           hiidenPay={() => (setCheckPayy(false), setPayy(false))}
           valueSale={valueSale}
           valueName={valueName}
-          idTableFloor={props.route.params}
+          params={propParams}
           saveorders={newOrder}
           sum={sum}
         />
-      )}
+      )} */}
     </KeyboardAvoidingView>
   );
 };
@@ -391,9 +423,9 @@ export default Order;
 
 const styles = StyleSheet.create({
   flex: {
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    // flexDirection: 'column',
+    // justifyContent: 'flex-end',
+    // alignItems: 'center',
   },
   bott: {
     width: '100%',
@@ -406,10 +438,11 @@ const styles = StyleSheet.create({
   right: {
     width: '35%',
     backgroundColor: '#fff',
-    borderColor: '#EEEEEE',
+    borderColor: 'gray',
     borderLeftWidth: 1,
+    flexDirection: 'column',
     flex: 1,
-    height: '100%',
+    justifyContent: 'space-between',
   },
   proOrder: {
     color: '#fff',
@@ -441,7 +474,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   proname: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '500',
     color: 'black',
     textTransform: 'capitalize',

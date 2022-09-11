@@ -30,3 +30,7 @@ export const removes = saveorder => {
   const url = `/saveorders`;
   return axiosClient.post(url, saveorder);
 };
+export const changeTable = (saveorder) => {
+  const url = `/change-table`;
+  return axiosClient.post(url, saveorder);
+};

@@ -220,7 +220,7 @@ const SignUp = ({navigation}: any) => {
               <View style={{flexDirection: 'row', justifyContent: 'center'}}>
                 <Text>Bạn đã có tài khoản ?</Text>
                 <TouchableOpacity
-                  onPress={() => navigation?.navigate('Signin')}>
+                  onPress={() => navigation?.navigate('signin')}>
                   <Text style={{color: 'blue'}}> Đăng nhập</Text>
                 </TouchableOpacity>
               </View>

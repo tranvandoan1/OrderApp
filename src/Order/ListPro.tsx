@@ -22,13 +22,12 @@ import {
   uploadSaveOrderFind,
 } from './../Features/SaveOrderSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Feather from 'react-native-vector-icons/Feather';
 import {FlatGrid} from 'react-native-super-grid';
 import {getAllPro} from '../Features/ProductsSlice';
 import ModalSelectCate from '../Modal/ModalSelectCate';
 
 type Props = {
-  id: any;
+  params: any;
   navigation: () => void;
   loading: (e: any) => void;
 };
@@ -54,7 +53,7 @@ const ListPro = (props: Props) => {
     const newSaveOrder = saveorders.find(
       (item: any) =>
         item.id_pro == productOrder._id &&
-        item.id_table == props.id.id_table &&
+        item.id_table == props.params.table._id &&
         item.weight == valueWeight,
     );
     if (newSaveOrder !== undefined) {
@@ -73,8 +72,8 @@ const ListPro = (props: Props) => {
       const newOrder: any = {
         id_user: checkUserStorage.data._id,
         amount: 1,
-        id_table: props.id.id_table,
-        floor_id: props.id.floor_id,
+        id_table: props.params.table._id,
+        floor_id: props.params.floor._id,
         id_pro: productOrder._id,
         weight: Number(valueWeight),
         name: productOrder.name,
@@ -95,7 +94,7 @@ const ListPro = (props: Props) => {
     // kiểm tra xem sp lựa chọn đã tồn lại ở bàn này hay chưa
     const newSaveOrder = saveorders.find(
       (item: any) =>
-        item.id_pro == pro._id && item.id_table == props.id.id_table,
+        item.id_pro == pro._id && item.id_table == props.params.table._id,
     );
 
     // th1 nếu mà sp order mà cần có kg
@@ -108,12 +107,12 @@ const ListPro = (props: Props) => {
         const newOrder = {
           id_user: checkUserStorage.data._id,
           amount: 1,
-          id_table: props.id.id_table,
+          id_table: props.params.table._id,
           id_pro: pro._id,
           name: pro.name,
           photo: pro.photo,
           price: pro.price,
-          floor_id: props.id.floor_id,
+          floor_id: props.params.floor._id,
           dvt: pro.dvt,
         };
         props.loading(true);
@@ -131,8 +130,7 @@ const ListPro = (props: Props) => {
       }
     }
   };
-  const [valueCate, setValueCate] = useState<any>();
-
+  const [valueCate, setValueCate] = useState<any>()
   return (
     <>
       <View style={{width: '100%', flex: 1}}>
@@ -154,10 +152,10 @@ const ListPro = (props: Props) => {
                 marginLeft: 10,
                 fontWeight: '500',
               }}>
-              {props?.id?.name_floor}/
+              {props?.params?.floor.name}/
             </Text>
             <Text style={{fontSize: 19, color: '#fff', marginLeft: 10}}>
-              {props?.id?.name_table}
+              {props?.params?.table.name}
             </Text>
           </View>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -193,9 +191,9 @@ const ListPro = (props: Props) => {
                   <Text style={{color: '#fff', fontSize: 17}}>Xóa</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={{marginRight: 5}}>
+              {/* <TouchableOpacity style={{marginRight: 5}}>
                 <Feather name="search" size={25} color={'#fff'} />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
         </View>

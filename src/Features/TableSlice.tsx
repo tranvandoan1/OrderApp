@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import TableAPI, {add, remove, upload} from '../API/TableAPI';
+import TableAPI, {add, remove, upload, uploadBookTable} from '../API/TableAPI';
 async function tableAll() {
   const {data: tables} = await TableAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
@@ -35,6 +35,13 @@ export const addTable = createAsyncThunk(
     return tableAll();
   },
 );
+export const editBookTable = createAsyncThunk(
+  'table/uploadBookTable',
+  async (data: any) => {
+    await uploadBookTable(data);
+    return tableAll();
+  },
+);
 export const removeTable = createAsyncThunk(
   'table/removeTable',
   async (id: String) => {
@@ -45,7 +52,6 @@ export const removeTable = createAsyncThunk(
 export const editTable = createAsyncThunk(
   'table/editTable',
   async (data: any) => {
-    console.log(data);
     await upload(data.id, data.data);
     return tableAll();
   },
@@ -67,6 +73,9 @@ const tableSlice = createSlice({
       state.value = action.payload;
     });
     builder.addCase(editTable.fulfilled, (state: any, action: any) => {
+      state.value = action.payload;
+    });
+    builder.addCase(editBookTable.fulfilled, (state: any, action: any) => {
       state.value = action.payload;
     });
   },
