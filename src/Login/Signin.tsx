@@ -4,6 +4,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -66,19 +68,17 @@ const Signin = ({navigation}: any) => {
       {checkUserStorage?.data !== undefined ? (
         navigation?.navigate('home')
       ) : (
-        <View
+        <SafeAreaView
           style={{
-            flex: 1,
+            height: '100%',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
             backgroundColor: '#fff',
+            
           }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '100%',
-              height: '100%',
-            }}>
+          <ScrollView>
             <View
               style={{
                 paddingVertical: 20,
@@ -168,8 +168,8 @@ const Signin = ({navigation}: any) => {
                 </View>
               </View>
             </View>
-          </View>
-        </View>
+          </ScrollView>
+        </SafeAreaView>
       )}
     </>
   );

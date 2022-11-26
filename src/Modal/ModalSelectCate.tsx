@@ -10,11 +10,12 @@ import React, {useEffect, useState} from 'react';
 import {Size} from '../size';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../App/Store';
-import {getAll} from '../Features/CateSlice';
-import {getAllPro} from './../Features/ProductsSlice';
+import {getCategori} from '../Features/CateSlice';
+import {getProductAll} from './../Features/ProductsSlice';
 type Props = {
   selectCate: (e: any) => void;
   selectModalCate: any;
+  valueCate: any;
 };
 const ModalSelectCate = (props: Props) => {
   const width = Size().width;
@@ -24,14 +25,15 @@ const ModalSelectCate = (props: Props) => {
   const products = useAppSelect((data: any) => data.products.value);
   const [check, setCheck] = useState<any>();
   useEffect(() => {
-    dispatch(getAll());
-    dispatch(getAllPro());
+    dispatch(getCategori());
+    dispatch(getProductAll());
   }, []);
   const select = (cate: any) => {
     setCheck(cate._id);
     const pro = products?.filter((item: any) => item.cate_id == cate._id);
     props.selectCate({name: cate.name, pro: pro});
   };
+  console.log(props?.valueCate, 'valueCate');
   return (
     <Modal
       transparent={true}
@@ -69,7 +71,11 @@ const ModalSelectCate = (props: Props) => {
                     key={index}
                     style={[
                       styles.list,
-                      check == item._id && styles.listActive,
+                      // @ts-ignore
+                      check == item._id &&
+                        (props?.valueCate !== undefined ||
+                          String(props?.valueCate).length > 0) &&
+                        styles.listActive,
                       {
                         borderBottomWidth:
                           cateogoris.length == index + 1 ? 0 : 0.5,
@@ -79,7 +85,11 @@ const ModalSelectCate = (props: Props) => {
                     <Text
                       style={[
                         styles.textName,
-                        check == item._id && styles.textNameActive,
+                        // @ts-ignore
+                        check == item._id &&
+                          (props?.valueCate !== undefined ||
+                            String(props?.valueCate).length > 0) &&
+                          styles.textNameActive,
                       ]}>
                       {item.name}
                     </Text>
@@ -124,7 +134,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   listActive: {
-    backgroundColor: 'blue',
+    backgroundColor: '#0099FF',
   },
   textNameActive: {
     color: '#fff',

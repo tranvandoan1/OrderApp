@@ -13,7 +13,6 @@ import {
 import React, {useEffect, useState} from 'react';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
-import {getAll} from '../../Features/CateSlice';
 
 import {Size} from '../../size';
 import {Avatar} from 'react-native-elements';

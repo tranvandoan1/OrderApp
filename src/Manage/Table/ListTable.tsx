@@ -10,7 +10,6 @@ import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {Size} from '../../size';
 import ListTablee from './ListTablee';
-import ModalAddFloor from '../../Modal/ModalFloors/ModalAddFloor';
 import ModalAddTable from './../../Modal/ModalTable/ModalAddTable';
 const ListTable = ({navigation}: any) => {
   const width = Size()?.width;

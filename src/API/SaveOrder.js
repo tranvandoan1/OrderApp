@@ -19,7 +19,7 @@ export const upload = (id, saveorder) => {
   return axiosClient.put(url, saveorder);
 };
 export const updateFind = (id, saveorder) => {
-  const url = `/saveorders/${id}`;
+  const url = `/saveorder-amount/${id}`;
   return axiosClient.put(url, saveorder);
 };
 export const remove = id => {
@@ -27,7 +27,7 @@ export const remove = id => {
   return axiosClient.delete(url);
 };
 export const removes = saveorder => {
-  const url = `/saveorders`;
+  const url = `/delete-order`;
   return axiosClient.post(url, saveorder);
 };
 export const changeTable = (saveorder) => {

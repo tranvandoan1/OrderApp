@@ -19,8 +19,6 @@ import {
 } from 'react-native';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
-import {addCate, editCatee} from '../../Features/CateSlice';
-import {addFloor, editFloor, getAllFloor} from '../../Features/FloorSlice';
 import {addTable, editTable} from '../../Features/TableSlice';
 import {Size} from '../../size';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -37,10 +35,7 @@ const ModalAddTable = (props: Props) => {
   const [valueFloor, setValueFloor] = useState<any>();
   const [table, setTable] = useState<boolean>(false);
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const floors = useAppSelect((data: any) => data.floors.value);
-  useEffect(() => {
-    dispatch(getAllFloor());
-  }, []);
+
   const click = () => (
     <TouchableWithoutFeedback
       onPress={() => (props.onCloseModal(), setValue(undefined))}>
@@ -55,19 +50,30 @@ const ModalAddTable = (props: Props) => {
     </Pressable>
   );
   const onSubmit = async () => {
+    const set = (check: any) => {
+      setCheck(false);
+      setValue(undefined);
+      setValueFloor(undefined);
+      props.onCloseModal();
+      ToastAndroid.show(`${check} thành công`, ToastAndroid.SHORT);
+    };
     if (props.dataEdit == undefined) {
       const user: any = await AsyncStorage.getItem('user');
       const user_id = JSON.parse(user).data._id;
+
       try {
         setCheck(true);
         await dispatch(
-          addTable({name: value, user_id: user_id, floor_id: valueFloor?._id}),
+          addTable({
+            name: value,
+            user_id: user_id,
+            login: 0,
+            nameUser: '',
+            amount: 0,
+            timeBookTable: 'null',
+          }),
         );
-        setCheck(false);
-        setValue(undefined);
-        setValueFloor(undefined);
-        props.onCloseModal();
-        ToastAndroid.show('Thêm thành công', ToastAndroid.SHORT);
+        set('Thêm');
       } catch (error: any) {
         Alert.alert(error.response.data.error);
       }
@@ -83,15 +89,15 @@ const ModalAddTable = (props: Props) => {
                 valueFloor == undefined
                   ? props?.dataEdit.floor_id
                   : valueFloor._id,
+              login: props.dataEdit.login,
+              nameUser: props.dataEdit.nameUser,
+              amount: props.dataEdit.amount,
+              timeBookTable: props.dataEdit.amount,
             },
           }),
         );
 
-        setCheck(false);
-        setValue(undefined);
-        setValueFloor(undefined);
-        props.onCloseModal();
-        ToastAndroid.show('Sửa thành công', ToastAndroid.SHORT);
+        set('Sửa');
       } catch (error: any) {
         Alert.alert(error.response.data.error);
       }
@@ -141,41 +147,6 @@ const ModalAddTable = (props: Props) => {
             {String(value).length <= 0 && (
               <Text style={styles.validate}>Tên không để trống !</Text>
             )}
-            <TouchableOpacity
-              style={{position: 'relative'}}
-              onPress={() => setTable(true)}>
-              <TextInput
-                style={[
-                  String(value).length <= 0 ? styles.inputActive : styles.input,
-                  {fontSize: width < 720 ? 18 : 20},
-                ]}
-                autoCapitalize="words"
-                defaultValue={
-                  props.dataEdit == undefined
-                    ? valueFloor?.name
-                    : valueFloor == undefined
-                    ? floors?.map((item: any) => {
-                        if (item._id == props.dataEdit.floor_id) {
-                          return item.name;
-                        }
-                      })
-                    : valueFloor?.name
-                }
-                editable={false}
-                selectTextOnFocus={false}
-                placeholder="Chọn tầng"
-                placeholderTextColor={String(value).length <= 0 ? 'red' : ''}
-              />
-              <AntDesign
-                name="caretdown"
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: 27,
-                  fontSize: 16,
-                }}
-              />
-            </TouchableOpacity>
           </KeyboardAvoidingView>
 
           <TouchableOpacity onPress={() => onSubmit()}>
@@ -192,28 +163,6 @@ const ModalAddTable = (props: Props) => {
         </View>
         {click()}
       </View>
-      <Modal animationType="slide" transparent={true} visible={table}>
-        <View style={styles.centeredViewTable}>
-          {click1()}
-          <View
-            style={[
-              styles.modalViewTable,
-              width < 720 ? {width: '100%'} : {width: 450},
-            ]}>
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={floors}
-              style={{
-                backgroundColor: '#fff',
-                borderRadius: 5,
-                width: width < 720 ? '100%' : 500,
-              }}
-              renderItem={renderItem}
-              keyExtractor={(item: any) => item._id}
-            />
-          </View>
-        </View>
-      </Modal>
     </Modal>
   );
 };
@@ -274,6 +223,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff',
     fontWeight: '500',
+    fontSize: 20,
   },
   title: {
     textAlign: 'center',

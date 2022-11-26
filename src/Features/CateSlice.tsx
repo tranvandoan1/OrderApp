@@ -1,58 +1,64 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import CateAPI, {add, remove, upload} from './../API/CateAPI';
-
-export const getAll = createAsyncThunk('categoris/getAll', async () => {
-  const {data: categoris} = await CateAPI.getAll();
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import CateAPI, { add, remove, upload } from "../API/CateAPI";
+async function getAll() {
+  const { data: categoris } = await CateAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
-  const dataCate: any = [];
-  for (let i = 0; i < categoris.length; i++) {
-    if (categoris[i].user_id == user.data._id) {
-      dataCate.push(categoris[i]);
+  const dataCategoris:any = [];
+  categoris?.filter((item:any) => {
+    if (item.user_id == user.data._id) {
+      dataCategoris.push(item);
     }
-  }
+  });
 
-  return dataCate;
-});
-export const addCate = createAsyncThunk(
-  'categoris/addCate',
-  async (data: any) => {
-    const {data: categoris} = await add(data);
-    return categoris;
-  },
+  return dataCategoris;
+}
+export const getCategori = createAsyncThunk(
+  "categori/getCategori",
+  async () => {
+    return getAll();
+  }
 );
-export const removeCate = createAsyncThunk(
-  'categoris/removeCate',
-  async (id: String) => {
-    const {data: categoris} = await remove(id);
-    return categoris;
-  },
+export const addCategori = createAsyncThunk(
+  "categori/addCategori",
+  async (data) => {
+    await add(data);
+    return getAll();
+  }
 );
-export const editCatee = createAsyncThunk(
-  'categoris/editCatee',
-  async (data: any) => {
-    const {data: categoris} = await upload(data.id, data.data);
-    return categoris;
-  },
+export const removeCategori = createAsyncThunk(
+  "categori/removeCategori",
+  async (data) => {
+    await remove(data);
+    return getAll();
+  }
+);
+export const uploadCategori = createAsyncThunk(
+  "categori/uploadCategori",
+  async (data:any) => {
+    await upload(data.id, data.data);
+    return getAll();
+  }
 );
 const cateSlice = createSlice({
-  name: 'categoris',
+  name: "categori",
   initialState: {
     value: [],
+    checkData: false,
   },
   reducers: {},
-  extraReducers: (builder: any) => {
-    builder.addCase(getAll.fulfilled, (state: any, action: any) => {
+  extraReducers: (builder) => {
+    builder.addCase(getCategori.fulfilled, (state:any, action:any) => {
+      if (action.payload.length <= 0) {
+        state.checkData = true;
+      }
       state.value = action.payload;
-    });
-    builder.addCase(addCate.fulfilled, (state: any, action: any) => {
-      state.value = action.payload;
-    });
-    builder.addCase(removeCate.fulfilled, (state: any, action: any) => {
-      state.value = action.payload;
-    });
-    builder.addCase(editCatee.fulfilled, (state: any, action: any) => {
+    }),
+      builder.addCase(removeCategori.fulfilled, (state:any, action:any) => {
+        state.value = action.payload;
+      });
+    builder.addCase(uploadCategori.fulfilled, (state:any, action:any) => {
       state.value = action.payload;
     });
   },

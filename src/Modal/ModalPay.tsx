@@ -13,7 +13,6 @@ import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../App/Store';
 import {Avatar} from 'react-native-elements';
 import {getAllTable} from '../Features/TableSlice';
-import {getAllFloor} from './../Features/FloorSlice';
 import moment from 'moment';
 import {
   Table,
@@ -34,7 +33,6 @@ const ModalPay = (props: Props) => {
   const width = Size().width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const floors = useAppSelect((data: any) => data.floors.value);
   const tables = useAppSelect((data: any) => data.tables.value);
   const [tableHead, setTableHead] = useState<any>([
     'Tên hàng',
@@ -46,7 +44,6 @@ const ModalPay = (props: Props) => {
   const [tableData, setTableData] = useState<any>([]);
   useEffect(() => {
     dispatch(getAllTable());
-    dispatch(getAllFloor());
     const persons: any = [];
     props?.saveorders?.filter((item: any, index: any) => {
       persons.push([
@@ -113,12 +110,6 @@ const ModalPay = (props: Props) => {
                   <Text style={styles.phone}>ĐT : 0329903787</Text>
                   <Text style={styles.name}>Hóa đơn bán hàng</Text>
                   <Text style={styles.nametablefloor}>
-                    {' '}
-                    {floors?.map(
-                      (item: any) =>
-                        item._id == props?.idTableFloor.floor_id && item.name,
-                    )}
-                    /{' '}
                     {tables?.map(
                       (item: any) =>
                         item._id == props?.idTableFloor.id_table && item.name,

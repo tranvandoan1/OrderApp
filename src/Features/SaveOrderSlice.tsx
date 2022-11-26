@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import SaveorderAPI, {
   add,
   upload,
@@ -7,13 +7,13 @@ import SaveorderAPI, {
   updateFind,
   removes,
   changeTable,
-} from './../API/SaveOrder';
+} from "../API/SaveOrder";
 async function getAll() {
-  const {data: saveorders} = await SaveorderAPI.getAll();
+  const { data: saveorders } = await SaveorderAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
-  const dataSaveOrder: any = [];
-  saveorders?.filter((item: any) => {
+  const dataSaveOrder:any = [];
+  saveorders?.filter((item:any) => {
     if (item.id_user == user.data._id) {
       dataSaveOrder.push(item);
     }
@@ -22,85 +22,84 @@ async function getAll() {
   return dataSaveOrder;
 }
 export const getAllSaveOrder = createAsyncThunk(
-  'saveOrder/getAll',
+  "saveOrder/getAll",
   async () => {
     return getAll();
-  },
+  }
 );
 export const addSaveOrder = createAsyncThunk(
-  'saveorder/addSaveOrder',
-  async (data: any) => {
-    const {data: saveorders} = await add(data);
-    return saveorders;
-  },
+  "saveorder/addSaveOrder",
+  async (data) => {
+    await add(data);
+    return getAll();
+  }
 );
 export const uploadSaveOrder = createAsyncThunk(
-  'saveorder/uploadSaveOrder',
-  async (data: any) => {
-    const {data: saveorders} = await upload(data.id, data.data);
-    return saveorders;
-  },
+  "saveorder/uploadSaveOrder",
+  async (data:any) => {
+    await upload(data.id, data.data);
+    return getAll();
+  }
 );
 export const removeSaveOrder = createAsyncThunk(
-  'saveorder/removeSaveOrder',
-  async (id: any) => {
-    const {data: saveorders} = await remove(id);
-    return saveorders;
-  },
+  "saveorder/removeSaveOrder",
+  async (id) => {
+    await remove(id);
+    return getAll();
+  }
 );
 export const uploadSaveOrderFind = createAsyncThunk(
-  'saveorder/uploadSaveOrderFind',
-  async (data: any) => {
-    const {data: saveorders} = await updateFind(data.id, data.data);
-    return saveorders;
-  },
+  "saveorder/uploadSaveOrderFind",
+  async (data:any) => {
+    await updateFind(data.id, data.data);
+    return getAll();
+  }
 );
 export const removeSaveOrderAll = createAsyncThunk(
-  'saveorder/removeSaveOrderAll',
-  async (data: any) => {
-    for (let i = 0; i < data.length; i++) {
-      await remove(data[i]);
-    }
+  "saveorder/removeSaveOrderAll",
+  async (data) => {
+    await removes(data);
     return getAll();
-  },
+  }
 );
 export const changeTables = createAsyncThunk(
-  'saveorder/changeTable',
-  async (data: any) => {
+  "saveorder/changeTables",
+  async (data) => {
     await changeTable(data);
 
     return getAll();
-  },
+  }
 );
 const saveOrderSlice = createSlice({
-  name: 'table',
+  name: "table",
   initialState: {
     value: [],
+    checkData: false,
   },
   reducers: {},
-  extraReducers: (builder: any) => {
-    builder.addCase(getAllSaveOrder.fulfilled, (state: any, action: any) => {
+  extraReducers: (builder) => {
+    builder.addCase(getAllSaveOrder.fulfilled, (state:any, action) => {
+      if (action.payload.length <= 0) {
+        state.checkData = true;
+      }
       state.value = action.payload;
     });
-    builder.addCase(addSaveOrder.fulfilled, (state: any, action: any) => {
+    builder.addCase(addSaveOrder.fulfilled, (state:any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(uploadSaveOrder.fulfilled, (state: any, action: any) => {
+    builder.addCase(uploadSaveOrder.fulfilled, (state:any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(removeSaveOrder.fulfilled, (state: any, action: any) => {
+    builder.addCase(removeSaveOrder.fulfilled, (state:any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(removeSaveOrderAll.fulfilled, (state: any, action: any) => {
+    builder.addCase(removeSaveOrderAll.fulfilled, (state:any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(
-      uploadSaveOrderFind.fulfilled,
-      (state: any, action: any) => {
-        state.value = action.payload;
-      },
-    );
-    builder.addCase(changeTables.fulfilled, (state: any, action: any) => {
+    builder.addCase(uploadSaveOrderFind.fulfilled, (state:any, action) => {
+      state.value = action.payload;
+    });
+    builder.addCase(changeTables.fulfilled, (state:any, action) => {
       state.value = action.payload;
     });
   },

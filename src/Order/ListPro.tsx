@@ -23,13 +23,16 @@ import {
 } from './../Features/SaveOrderSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {FlatGrid} from 'react-native-super-grid';
-import {getAllPro} from '../Features/ProductsSlice';
+import {getProductAll} from '../Features/ProductsSlice';
 import ModalSelectCate from '../Modal/ModalSelectCate';
 
 type Props = {
   params: any;
-  navigation: () => void;
   loading: (e: any) => void;
+  showOrder: (e: any) => void;
+  hiddeViewCate: (e: any) => void;
+  selectModalCate: any;
+  valueCate: any;
 };
 const ListPro = (props: Props) => {
   const width = Size().width;
@@ -41,10 +44,9 @@ const ListPro = (props: Props) => {
   const saveorders = useAppSelect((data: any) => data.saveorders.value);
   useEffect(() => {
     dispatch(getAllSaveOrder());
-    dispatch(getAllPro());
+    dispatch(getProductAll());
   }, []);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectModalCate, setSelectModalCate] = useState(false);
 
   const [productOrder, setProductOrder] = useState<any>([]); //lấy sản phẩm ko có kg
   const [valueWeight, setValueWeight] = useState<any>(); //lấy số lượng kg
@@ -56,24 +58,24 @@ const ListPro = (props: Props) => {
         item.id_table == props.params.table._id &&
         item.weight == valueWeight,
     );
+    setValueWeight(undefined);
+    setModalVisible(false);
+    props?.showOrder(true);
+    props.loading(true);
     if (newSaveOrder !== undefined) {
       const upSaveOrder = {
         amount: +newSaveOrder.amount + +1,
         weight: Number(valueWeight),
       };
-      setValueWeight(undefined);
-      setModalVisible(false);
-      props.loading(true);
+
       await dispatch(
         uploadSaveOrderFind({id: newSaveOrder._id, data: upSaveOrder}),
       );
-      props.loading(false);
     } else {
       const newOrder: any = {
         id_user: checkUserStorage.data._id,
         amount: 1,
         id_table: props.params.table._id,
-        floor_id: props.params.floor._id,
         id_pro: productOrder._id,
         weight: Number(valueWeight),
         name: productOrder.name,
@@ -81,15 +83,16 @@ const ListPro = (props: Props) => {
         price: productOrder.price,
         dvt: productOrder.dvt,
       };
-      setValueWeight(undefined);
-      setModalVisible(false);
-      props.loading(true);
+
+      // @ts-ignore
       await dispatch(addSaveOrder(newOrder));
-      props.loading(false);
     }
+    props?.showOrder(false);
+    props.loading(false);
   };
 
   const selectProduct = async (pro: any) => {
+    props.loading(true);
     // lấy ra được sản phẩm vừa chọn
     // kiểm tra xem sp lựa chọn đã tồn lại ở bàn này hay chưa
     const newSaveOrder = saveorders.find(
@@ -104,7 +107,7 @@ const ListPro = (props: Props) => {
       setProductOrder(pro);
     } else {
       if (newSaveOrder == undefined) {
-        const newOrder = {
+        const newOrder: any = {
           id_user: checkUserStorage.data._id,
           amount: 1,
           id_table: props.params.table._id,
@@ -112,123 +115,75 @@ const ListPro = (props: Props) => {
           name: pro.name,
           photo: pro.photo,
           price: pro.price,
-          floor_id: props.params.floor._id,
           dvt: pro.dvt,
         };
-        props.loading(true);
+        props?.showOrder(true);
+        // @ts-ignore
         await dispatch(addSaveOrder(newOrder));
-        props.loading(false);
+        props?.showOrder(false);
       } else {
         const addSaveOrder = {
           amount: +newSaveOrder.amount + +1,
         };
-        props.loading(true);
+        props?.showOrder(true);
         await dispatch(
           uploadSaveOrderFind({id: newSaveOrder._id, data: addSaveOrder}),
         );
-        props.loading(false);
+        props?.showOrder(false);
       }
     }
+    props.loading(false);
   };
-  const [valueCate, setValueCate] = useState<any>()
+
   return (
     <>
       <View style={{width: '100%', flex: 1}}>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: 'blue',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => props.navigation()}>
-              <AntDesign name="left" size={23} color={'#fff'} />
-            </TouchableOpacity>
-            <Text
-              style={{
-                fontSize: 23,
-                color: '#fff',
-                marginLeft: 10,
-                fontWeight: '500',
-              }}>
-              {props?.params?.floor.name}/
-            </Text>
-            <Text style={{fontSize: 19, color: '#fff', marginLeft: 10}}>
-              {props?.params?.table.name}
-            </Text>
-          </View>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <View style={{position: 'relative'}}>
-              <TouchableOpacity onPress={() => setSelectModalCate(true)}>
-                <TextInput
-                  value={valueCate == undefined ? '' : valueCate.name}
-                  style={styles.inputSelect}
-                  placeholderTextColor="#fff"
-                  editable={false}
-                  selectTextOnFocus={false}
-                  placeholder="Lọc theo danh mục"
-                />
-              </TouchableOpacity>
-              <AntDesign
-                name="down"
-                size={18}
-                color={'#fff'}
-                style={{position: 'absolute', top: 10, right: 20}}
-              />
-            </View>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-              {valueCate !== undefined && (
-                <TouchableOpacity
-                  style={{
-                    marginRight: 5,
-                    backgroundColor: 'red',
-                    paddingHorizontal: 10,
-                    paddingVertical: 7,
-                    borderRadius: 3,
-                  }}
-                  onPress={() => setValueCate(undefined)}>
-                  <Text style={{color: '#fff', fontSize: 17}}>Xóa</Text>
-                </TouchableOpacity>
-              )}
-              {/* <TouchableOpacity style={{marginRight: 5}}>
-                <Feather name="search" size={25} color={'#fff'} />
-              </TouchableOpacity> */}
-            </View>
-          </View>
-        </View>
         {products.length <= 0 ? (
           <View style={styles.loading}>
             <ActivityIndicator size="large" color={'blue'} />
           </View>
         ) : (
-          <FlatGrid
-            itemDimension={200}
-            showsVerticalScrollIndicator={false}
-            data={valueCate == undefined ? products : valueCate.pro}
-            renderItem={({item, index}) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.listPro, {height: width < 960 ? 250 : 230}]}
-                onPress={() => selectProduct(item)}>
-                <ImageBackground
-                  source={{
-                    uri: item.photo,
-                  }}
-                  resizeMode="cover"
-                  style={styles.image}></ImageBackground>
-                <View style={styles.listtt}>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.price}>
-                    {item.price
-                      .toString()
-                      .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-                    đ
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
+          <View style={{flex: 1, marginBottom: width < 960 ? 80 : 0}}>
+            <FlatGrid
+              itemDimension={width < 960 ? (width < 960 ? 190 : 220) : 190}
+              showsVerticalScrollIndicator={false}
+              data={
+                props?.valueCate == undefined ||
+                String(props?.valueCate).length <= 0
+                  ? products
+                  : props?.valueCate.pro
+              }
+              renderItem={({item, index}: any) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.listPro,
+                    {height: width < 960 ? (width < 960 ? 280 : 290) : 230},
+                  ]}
+                  onPress={() => selectProduct(item)}>
+                  <ImageBackground
+                    source={{
+                      uri: item.photo,
+                    }}
+                    resizeMode="cover"
+                    style={styles.image}></ImageBackground>
+                  <View style={styles.listtt}>
+                    <Text
+                      style={[styles.name, {fontSize: width < 960 ? 24 : 18}]}>
+                      {item.name}
+                    </Text>
+                    <Text
+                      style={[styles.price, {fontSize: width < 960 ? 24 : 18}]}>
+                      {item.price
+                        .toString()
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                      đ
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
         )}
 
         <Modal transparent={true} visible={modalVisible} animationType="slide">
@@ -308,8 +263,9 @@ const ListPro = (props: Props) => {
         </Modal>
 
         <ModalSelectCate
-          selectModalCate={selectModalCate}
-          selectCate={(e: any) => (setSelectModalCate(false), setValueCate(e))}
+          selectModalCate={props?.selectModalCate}
+          selectCate={(e: any) => props?.hiddeViewCate(e)}
+          valueCate={props?.valueCate}
         />
       </View>
     </>
@@ -357,7 +313,6 @@ const styles = StyleSheet.create({
   },
   name: {
     textAlign: 'center',
-    fontSize: 18,
     fontWeight: '500',
     color: 'black',
     textTransform: 'capitalize',
@@ -365,7 +320,6 @@ const styles = StyleSheet.create({
 
   price: {
     textAlign: 'center',
-    fontSize: 18,
     fontWeight: '500',
     color: 'red',
     textTransform: 'capitalize',
@@ -393,8 +347,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   inputSelect: {
-    borderColor: '#fff',
-    borderWidth: 0.5,
     paddingLeft: 10,
     paddingVertical: 3,
     marginRight: 10,
