@@ -16,17 +16,15 @@ import {store} from './App/Store';
 import {Provider} from 'react-redux';
 import ListCate from './Manage/Categoris/ListCate';
 import {Size} from './size';
-import Floor from './Order/Floors';
+import Home from './Order/Home';
 import Order from './Order/Order';
-import ListFloor from './Manage/Floors/ListFloor';
 import {checkUserAsyncStorage} from './checkUser';
 import ListTable from './Manage/Table/ListTable';
 import ListBill from './Manage/Bill/ListBill';
 import ListStatistical from './Manage/Statistical/ListStatistical';
 import Account from './Manage/Account/Account';
 const Tab = createBottomTabNavigator();
-LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
-LogBox.ignoreAllLogs();//Ignore all log notifications
+
 function Router() {
   const width = Size().width;
   return (
@@ -36,7 +34,7 @@ function Router() {
       }}>
       <Tab.Screen
         name="Order"
-        component={Floor}
+        component={Home}
         options={{
           headerShown: false,
           tabBarIcon: () => <View></View>,
@@ -133,7 +131,7 @@ function App() {
           )}
           <Stack.Screen
             name="home"
-            component={Floor}
+            component={Home}
             options={{headerShown: false}}
           />
           <Stack.Screen
@@ -151,11 +149,7 @@ function App() {
             component={ListCate}
             options={{headerShown: false}}
           />
-          <Stack.Screen
-            name="floor"
-            component={ListFloor}
-            options={{headerShown: false}}
-          />
+
           <Stack.Screen
             name="table"
             component={ListTable}
@@ -176,7 +170,7 @@ function App() {
             component={Account}
             options={{headerShown: false}}
           />
-              <Stack.Screen
+          <Stack.Screen
             name="manage"
             component={Manage}
             options={{headerShown: false}}

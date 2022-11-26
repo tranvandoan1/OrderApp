@@ -26,3 +26,7 @@ export const uploadBookTable = (table) => {
   const url = `/table/book-table`;
   return axiosClient.post(url, table);
 };
+export const uploadMoveTable = (table) => {
+  const url = `/table/move-table`;
+  return axiosClient.post(url, table);
+};

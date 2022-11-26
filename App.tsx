@@ -1,9 +1,8 @@
-import {Text, View} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
+import {LogBox, Text, View} from 'react-native';
 import * as React from 'react';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Router from './src/Router';
-
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs(); //Ignore all log notifications
 export default function App() {
   return (
     <>

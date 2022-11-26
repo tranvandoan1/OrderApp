@@ -15,7 +15,6 @@ import {Size} from '../size';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../App/Store';
 import {editBookTable, getAllTable} from '../Features/TableSlice';
-import {getAllFloor} from '../Features/FloorSlice';
 import moment from 'moment';
 import {
   Table,
@@ -38,7 +37,6 @@ const ModalCheckPay = (props: Props) => {
   const width = Size().width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const floors = useAppSelect((data: any) => data.floors.value);
   const tables = useAppSelect((data: any) => data.tables.value);
   const [tableHead, setTableHead] = useState<any>([
     'Tên hàng',
@@ -52,7 +50,6 @@ const ModalCheckPay = (props: Props) => {
   const [loading, setLoading] = useState<boolean>(false);
   useEffect(() => {
     dispatch(getAllTable());
-    dispatch(getAllFloor());
     const persons: any = [];
     props?.saveorders?.filter((item: any, index: any) => {
       persons.push([
@@ -88,10 +85,15 @@ const ModalCheckPay = (props: Props) => {
       seller_name: valueName == undefined ? 'Admin' : valueName,
       user_id: props.saveorders[0].id_user,
       orders: order,
-      sale: props.valueSale == undefined ? 0 : props.valueSale,
-      price: props.sum,
-      table_id: props.params.table._id,
-      floor_id: props.params.floor._id,
+      bookTable: {
+        nameUser: props?.params.table?.nameUser,
+        timeBookTable: props?.params.table?.timeBookTable,
+        phone: props?.params.table?.phone,
+        amount: props?.params.table?.amount,
+      },
+      sale: props?.valueSale == undefined ? 0 : props.valueSale,
+      sumPrice: props?.sum,
+      table_id: props?.params.table._id,
       start_time: `${
         String(date.getHours()).length == 1
           ? `0${date.getHours()}`
@@ -114,11 +116,14 @@ const ModalCheckPay = (props: Props) => {
     const id: any = [];
     order.map((item: any) => id.push(item._id));
     setLoading(true);
+    // @ts-ignore
+
     await dispatch(addOrder(data));
+    // @ts-ignore
     await dispatch(removeSaveOrderAll(id));
     if (props?.params.table.timeBookTable !== 'null') {
-      console.log('first')
       await dispatch(
+        // @ts-ignore
         editBookTable({
           id: props?.params.table._id,
           nameUser: '',
@@ -128,8 +133,15 @@ const ModalCheckPay = (props: Props) => {
       );
     }
 
+    setLoading(false);
+    props?.hiidenCheckPay({name: valueName, check: true});
+  };
+  const close = () => {
     setLoading(true);
     props?.hiidenCheckPay({name: valueName, check: true});
+    setTableData([]);
+    setValueName(undefined);
+    setLoading(false);
   };
   return (
     <Modal transparent={true} visible={props?.checkPay} animationType="slide">
@@ -149,7 +161,7 @@ const ModalCheckPay = (props: Props) => {
         <View
           style={[
             styles.navigationContainer,
-            {width: width < 720 ? '100%' : '50%'},
+            {width: width < 960 ? '80%' : '50%'},
           ]}>
           <SafeAreaView>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -157,16 +169,9 @@ const ModalCheckPay = (props: Props) => {
                 <View>
                   <Text style={styles.name}>Thông tin bán hàng</Text>
                   <Text style={styles.nametablefloor}>
-                    {' '}
-                    {floors?.map(
-                      (item: any) =>
-                        item._id == props?.params.floor._id && item.name,
-                    )}
-                    /{' '}
-                    {tables?.map(
-                      (item: any) =>
-                        item._id == props?.params.table._id && item.name,
-                    )}
+                    {props?.params?.table.timeBookTable == 'null'
+                      ? props?.params?.table.name
+                      : `${props?.params?.table.name}( Bàn đặt )`}
                   </Text>
                 </View>
                 <View style={styles.flex}>
@@ -189,6 +194,16 @@ const ModalCheckPay = (props: Props) => {
                     Giờ ra : {moment().hours()}:{moment().minutes()}
                   </Text>
                 </View>
+                {props?.params?.table.timeBookTable !== 'null' && (
+                  <View style={styles.flex}>
+                    <Text style={styles.date}>
+                      Khách đặt : {props?.params?.table.name}
+                    </Text>
+                    <Text style={styles.date}>
+                      Số điện thoại : {props?.params?.table.phone}
+                    </Text>
+                  </View>
+                )}
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                   <Text style={[styles.date, {marginVertical: 10}]}>
                     Thu ngân :
@@ -197,6 +212,7 @@ const ModalCheckPay = (props: Props) => {
                     value={valueName}
                     onChangeText={e => setValueName(e)}
                     placeholder="Mời nhập tên người bán"
+                    // @ts-ignore
                     placeholderTextColor={
                       valueName == '' ||
                       (String(valueName).length <= 0 && 'red')
@@ -287,7 +303,7 @@ const ModalCheckPay = (props: Props) => {
               <TouchableOpacity
                 onPress={() => pay()}
                 style={{
-                  backgroundColor: 'blue',
+                  backgroundColor: '#0099FF',
                   paddingVertical: 5,
                   paddingHorizontal: 10,
                   marginTop: 30,
@@ -303,6 +319,28 @@ const ModalCheckPay = (props: Props) => {
                       fontWeight: '500',
                     }}>
                     Thanh toán
+                  </Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => close()}
+                style={{
+                  backgroundColor: 'red',
+                  paddingVertical: 5,
+                  paddingHorizontal: 10,
+                  marginTop: 10,
+                }}>
+                {loading == true ? (
+                  <ActivityIndicator size="large" color={'#fff'} />
+                ) : (
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      color: '#fff',
+                      fontSize: 20,
+                      fontWeight: '500',
+                    }}>
+                    Hủy
                   </Text>
                 )}
               </TouchableOpacity>
@@ -352,9 +390,9 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   nametablefloor: {
-    fontSize: 22,
+    fontSize: 20,
     textAlign: 'center',
-    color: 'black',
+    color: 'red',
     fontWeight: '600',
   },
   date: {

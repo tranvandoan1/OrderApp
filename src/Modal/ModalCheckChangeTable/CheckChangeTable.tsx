@@ -15,8 +15,11 @@ import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {Size} from '../../size';
 import {TextInput} from 'react-native-gesture-handler';
 import {AppDispatch, RootState} from '../../App/Store';
-import {getAllFloor} from './../../Features/FloorSlice';
-import {editBookTable, getAllTable} from './../../Features/TableSlice';
+import {
+  editBookTable,
+  editMoveTable,
+  getAllTable,
+} from './../../Features/TableSlice';
 import {changeTables, removeSaveOrderAll} from '../../Features/SaveOrderSlice';
 type Props = {
   select: any;
@@ -40,7 +43,7 @@ const CheckChangeTable = (props: Props) => {
   for (var i = 0; i < prices?.length; i++) {
     sum += +prices[i];
   }
-  const [checkSelectFloorTable, setCheckSelectFloorTable] = useState<any>(0);
+  const [checkSelectTable, setCheckSelectTable] = useState<any>(0);
   const [checkChangeTable, setCheckChangeTable] = useState<boolean>(false);
   const [checkDeleteTable, setCheckDeleteTable] = useState<boolean>(false);
   const [cancelBookTable, setCancelBookTable] = useState<boolean>(false);
@@ -51,10 +54,8 @@ const CheckChangeTable = (props: Props) => {
 
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const floors = useAppSelect((data: any) => data.floors.value);
   const tables = useAppSelect((data: any) => data.tables.value);
   useEffect(() => {
-    dispatch(getAllFloor());
     dispatch(getAllTable());
   }, []);
 
@@ -63,7 +64,6 @@ const CheckChangeTable = (props: Props) => {
       item.floor_id == idFloorTable?.floor_id?._id &&
       item._id !== props?.select?._id,
   );
-
   // chuyển bàn
   const save = async () => {
     if (idFloorTable?.floor_id !== null && idFloorTable?.table_id !== null) {
@@ -75,11 +75,26 @@ const CheckChangeTable = (props: Props) => {
         floor_id: idFloorTable?.floor_id,
         id_table: idFloorTable?.table_id,
       };
+
+      const uploadTable = {
+        idStart: props?.select?._id,
+        idEnd: idFloorTable?.table_id._id,
+        timeBookTableStart: 'null',
+        amountStart: 0,
+        nameUserStart: '',
+        timeBookTableEnd: props?.select?.timeBookTable,
+        amountEnd: props?.select?.amount,
+        nameUserEnd: props?.select?.nameUser,
+      };
+
       setCheckChangeTable(true);
+      // @ts-ignore
       await dispatch(changeTables(data));
+      // @ts-ignore
+      await dispatch(editMoveTable(uploadTable));
       ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
       props?.hiddeSelect('');
-      setCheckSelectFloorTable(0);
+      setCheckSelectTable(0);
       setIdFloorTable({
         floor_id: null,
         table_id: null,
@@ -94,12 +109,13 @@ const CheckChangeTable = (props: Props) => {
     });
     setCheckChangeTable(true);
 
+      // @ts-ignore
     await dispatch(removeSaveOrderAll(id));
 
     ToastAndroid.show('Xóa bàn thành công', ToastAndroid.SHORT);
     props?.hiddeSelect('');
     setCheckDeleteTable(false);
-    setCheckSelectFloorTable(0);
+    setCheckSelectTable(0);
     setIdFloorTable({
       floor_id: null,
       table_id: null,
@@ -109,20 +125,48 @@ const CheckChangeTable = (props: Props) => {
   // hủy bàn đặt
   const cancelTable = async () => {
     setCheckChangeTable(true);
+    if (
+      props?.select?.timeBookTable !== 'null' &&
+      props?.saveorderCheckChangeTable.length <= 0
+    ) {
+      await dispatch(
+        // @ts-ignore
+        editBookTable({
+          id: props?.select?._id,
+          nameUser: '',
+          timeBookTable: 'null',
+          amount: 0,
+        }),
+      );
+    } else {
+      const id = props?.saveorderCheckChangeTable?.map((item: any) => {
+        return item._id;
+      });
+      await dispatch(
+        // @ts-ignore
+        editBookTable({
+          id: props?.select?._id,
+          nameUser: '',
+          timeBookTable: 'null',
+          amount: 0,
+        }),
+      );
+      // @ts-ignore
+      await dispatch(removeSaveOrderAll(id));
+    }
 
-    await dispatch(
-      editBookTable({
-        id: props?.select?._id,
-        nameUser: '',
-        timeBookTable: 'null',
-        amount: 0,
-      }),
+    ToastAndroid.show(
+      `Hủy bàn ${
+        props?.select?.timeBookTable !== 'null' &&
+        props?.saveorderCheckChangeTable.length <= 0
+          ? 'đặt'
+          : ''
+      } thành công`,
+      ToastAndroid.SHORT,
     );
-
-    ToastAndroid.show('Hủy bàn đặt thành công', ToastAndroid.SHORT);
     props?.hiddeSelect('');
     setCheckDeleteTable(false);
-    setCheckSelectFloorTable(0);
+    setCheckSelectTable(0);
     setIdFloorTable({
       floor_id: null,
       table_id: null,
@@ -134,42 +178,41 @@ const CheckChangeTable = (props: Props) => {
     return (
       <SafeAreaView>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {(checkSelectFloorTable == 1 ? floors : tableFilter)?.map(
-            (item: any) => {
-              return (
-                <TouchableOpacity
-                  style={{marginTop: 10}}
-                  onPress={() =>
-                    checkSelectFloorTable == 1
-                      ? (setCheckSelectFloorTable(3),
-                        setIdFloorTable({
-                          floor_id: item,
-                          table_id:
-                            idFloorTable?.table_id == null
-                              ? null
-                              : idFloorTable?.table_id,
-                        }))
-                      : (setCheckSelectFloorTable(3),
-                        setIdFloorTable({
-                          floor_id:
-                            idFloorTable?.floor_id == null
-                              ? null
-                              : idFloorTable?.floor_id,
-                          table_id: item,
-                        }))
-                  }>
-                  <Text
-                    style={{
-                      color: 'black',
-                      fontSize: 18,
-                      textAlign: 'center',
-                    }}>
-                    {item.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            },
-          )}
+          {tableFilter?.map((item: any) => {
+            return (
+              <TouchableOpacity
+                style={{marginTop: 10}}
+                onPress={() =>
+                  // checkSelectTable == 1
+                  //   ? (setCheckSelectTable(3),
+                  //     setIdFloorTable({
+                  //       floor_id: item,
+                  //       table_id:
+                  //         idFloorTable?.table_id == null
+                  //           ? null
+                  //           : idFloorTable?.table_id,
+                  //     }))
+                  //   : (setCheckSelectTable(3),
+                  //     setIdFloorTable({
+                  //       floor_id:
+                  //         idFloorTable?.floor_id == null
+                  //           ? null
+                  //           : idFloorTable?.floor_id,
+                  //       table_id: item,
+                  //     }))
+                  console.log('first')
+                }>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    textAlign: 'center',
+                  }}>
+                  {item.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </SafeAreaView>
     );
@@ -193,7 +236,7 @@ const CheckChangeTable = (props: Props) => {
           <View
             style={{
               backgroundColor: '#fff',
-              width: 200,
+              width: 400,
               paddingVertical: 10,
               borderRadius: 3,
             }}>
@@ -201,20 +244,27 @@ const CheckChangeTable = (props: Props) => {
               style={{
                 color: 'black',
                 textAlign: 'center',
-                fontSize: 23,
+                fontSize: 30,
                 marginBottom: 20,
                 paddingBottom: 10,
                 borderColor: 'rgb(219,219,219)',
+                fontWeight: '500',
                 borderBottomWidth: 1,
               }}>
               {props?.select?.name}
             </Text>
             <TouchableOpacity onPress={() => props.setCheckSelect(1)}>
-              <Text style={{color: 'black', fontSize: 18, textAlign: 'center'}}>
+              <Text
+                style={{
+                  color: 'black',
+                  fontSize: 21,
+                  textAlign: 'center',
+                  fontWeight: '500',
+                }}>
                 Chuyển bàn
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setCheckDeleteTable(true)}>
+            {/* <TouchableOpacity onPress={() => setCheckDeleteTable(true)}>
               <Text
                 style={{
                   color: 'black',
@@ -224,15 +274,23 @@ const CheckChangeTable = (props: Props) => {
                 }}>
                 Hủy bàn
               </Text>
+            </TouchableOpacity> */}
+
+            <TouchableOpacity onPress={() => setCancelBookTable(true)}>
+              <Text
+                style={{
+                  color: 'black',
+                  fontSize: 21,
+                  textAlign: 'center',
+                  marginVertical: 10,
+                  fontWeight: '500',
+                }}>
+                {props?.select?.timeBookTable !== 'null' &&
+                props?.saveorderCheckChangeTable.length <= 0
+                  ? ' Hủy bàn đặt'
+                  : 'Hủy bàn'}
+              </Text>
             </TouchableOpacity>
-            {props?.select?.timeBookTable !== 'null' && (
-              <TouchableOpacity onPress={() => setCancelBookTable(true)}>
-                <Text
-                  style={{color: 'black', fontSize: 18, textAlign: 'center'}}>
-                  Hủy bàn đặt
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
       )}
@@ -256,7 +314,7 @@ const CheckChangeTable = (props: Props) => {
           <View
             style={[
               {
-                width: width < 720 ? '50%' : '30%',
+                width: width < 960 ? '50%' : '60%',
                 backgroundColor: '#fff',
                 paddingVertical: 10,
               },
@@ -328,55 +386,14 @@ const CheckChangeTable = (props: Props) => {
                 alignItems: 'center',
                 paddingHorizontal: 10,
               }}>
-              <View style={{position: 'relative', width: '40%'}}>
-                <TouchableOpacity
-                  style={[styles.floorTable]}
-                  onPress={() => setCheckSelectFloorTable(1)}>
-                  <TextInput
-                    value={
-                      idFloorTable?.floor_id == null
-                        ? ''
-                        : idFloorTable?.floor_id?.name
-                    }
-                    style={styles.input}
-                    placeholder="Chọn tầng"
-                    selectTextOnFocus={false}
-                    editable={false}
-                  />
-                </TouchableOpacity>
-                {checkSelectFloorTable == 1 && (
-                  <View
-                    style={[
-                      {
-                        position: 'absolute',
-                        top: 42,
-                        width: '100%',
-                        height:
-                          floors?.length <= 4
-                            ? tableFilter?.length <= 4
-                              ? 150
-                              : 200
-                            : 200,
-                        backgroundColor: '#fff',
-                        paddingVertical: 10,
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        zIndex: 1000,
-                        borderColor: '#AAAAAA',
-                        borderWidth: 1,
-                      },
-                    ]}>
-                    {renderFloorTable()}
-                  </View>
-                )}
-              </View>
+            
               <Text style={{textAlign: 'center', color: 'black'}}>-</Text>
               <View style={{width: '40%', position: 'relative'}}>
                 <TouchableOpacity
                   style={styles.floorTable}
                   onPress={() =>
-                    checkSelectFloorTable == 3
-                      ? setCheckSelectFloorTable(2)
+                    checkSelectTable == 3
+                      ? setCheckSelectTable(2)
                       : null
                   }>
                   <TextInput
@@ -391,19 +408,14 @@ const CheckChangeTable = (props: Props) => {
                     placeholder="Chọn bàn"
                   />
                 </TouchableOpacity>
-                {checkSelectFloorTable == 2 && (
+                {checkSelectTable == 2 && (
                   <View
                     style={[
                       {
                         position: 'absolute',
                         top: 42,
                         width: '100%',
-                        height:
-                          floors?.length <= 4
-                            ? tableFilter?.length <= 4
-                              ? 150
-                              : 200
-                            : 200,
+
                         backgroundColor: '#fff',
                         paddingVertical: 10,
                         borderRadius: 2,

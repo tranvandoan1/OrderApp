@@ -11,8 +11,6 @@ import {
 } from 'react-native';
 import {useDispatch} from 'react-redux';
 import {AppDispatch} from '../../App/Store';
-import {removeCate} from '../../Features/CateSlice';
-import { removeFloor } from '../../Features/FloorSlice';
 import { removeTable } from './../../Features/TableSlice';
 type Props = {
   onCloseModal: () => void;

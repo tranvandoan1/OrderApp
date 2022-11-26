@@ -9,13 +9,9 @@ import {
 import React, {useEffect, useState} from 'react';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
-import {getAll} from '../../Features/CateSlice';
-import ModalDelete from '../../Modal/ModalCategoris/ModalDelete';
 import {Size} from '../../size';
 import {FlatGrid} from 'react-native-super-grid';
 import Fontisto from 'react-native-vector-icons/Fontisto';
-import {getAllFloor} from '../../Features/FloorSlice';
-import ModalDeleteFloor from '../../Modal/ModalFloors/ModalDelete';
 import { getAllTable } from '../../Features/TableSlice';
 import ModalDeleteTable from '../../Modal/ModalTable/ModalDelete';
 type Props = {

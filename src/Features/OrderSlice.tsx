@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import OrderAPI, {add, remove, upload} from '../API/Order';
-export const getAllOrder = createAsyncThunk('order/getAllOrder', async () => {
+async function getAll() {
   const {data: orders} = await OrderAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
-  const dataOrder: any = [];
+  const dataOrder = [];
   for (let i = 0; i < orders.length; i++) {
     if (orders[i].user_id == user.data._id) {
       await dataOrder.push(orders[i]);
@@ -13,45 +13,46 @@ export const getAllOrder = createAsyncThunk('order/getAllOrder', async () => {
   }
 
   return dataOrder;
+}
+export const getAllOrder = createAsyncThunk('order/getAllOrder', async () => {
+  return getAll();
 });
-export const addOrder = createAsyncThunk(
-  'order/addOrder',
-  async (data: any) => {
-    const {data: orders} = await add(data);
-    return orders;
-  },
-);
+export const addOrder = createAsyncThunk('order/addOrder', async data => {
+  await add(data);
+  return getAll();
+});
 export const uploadOrder = createAsyncThunk(
   'order/uploadOrder',
   async (data: any) => {
-    const {data: orders} = await upload(data.id, data.data);
-    return orders;
+    await upload(data.id, data.data);
+    return getAll();
   },
 );
-export const removeOrder = createAsyncThunk(
-  'order/removeOrder',
-  async (id: any) => {
-    const {data: orders} = await remove(id);
-    return orders;
-  },
-);
+export const removeOrder = createAsyncThunk('order/removeOrder', async id => {
+  await remove(id);
+  return getAll();
+});
 const orderSlice = createSlice({
   name: 'order',
   initialState: {
     value: [],
+    checkData: false,
   },
   reducers: {},
-  extraReducers: (builder: any) => {
-    builder.addCase(getAllOrder.fulfilled, (state: any, action: any) => {
+  extraReducers: builder => {
+    builder.addCase(getAllOrder.fulfilled, (state: any, action) => {
+      if (action.payload.length <= 0) {
+        state.checkData = true;
+      }
       state.value = action.payload;
     });
-    builder.addCase(addOrder.fulfilled, (state: any, action: any) => {
+    builder.addCase(addOrder.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(uploadOrder.fulfilled, (state: any, action: any) => {
+    builder.addCase(uploadOrder.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(removeOrder.fulfilled, (state: any, action: any) => {
+    builder.addCase(removeOrder.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
   },

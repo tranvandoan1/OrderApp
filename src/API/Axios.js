@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: 'https://order-back.vercel.app/api',
+  baseURL: 'https://back-end-order.vercel.app/api',
 });
 axiosClient.interceptors.request.use(async req => {
   const logStorage = await AsyncStorage?.getItem('user');
