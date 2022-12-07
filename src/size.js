@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import {Dimensions} from 'react-native';
 
 export function Size() {
   const [size, setSize] = useState(Dimensions.get('screen'));
-  useEffect(()=>{
+  useEffect(() => {
     Dimensions.addEventListener('change', function () {
       const width = Dimensions.get('screen').width;
       const height = Dimensions.get('screen').height;
       setSize({width: width, height: height});
     });
-  },[])
+  }, []);
 
   return size;
 }
@@ -23,15 +23,15 @@ export function SizeScale() {
       : {width: width / 1014, height: height / 1366},
   );
 
-  useEffect(()=>{
+  useEffect(() => {
     Dimensions.addEventListener('change', function () {
-    if (width > height) {
-      setSize({width: width / 1366, height: height / 1014});
-    } else {
-      setSize({width: width / 1014, height: height / 1366});
-    }
-  });
-},[])
+      if (width > height) {
+        setSize({width: width / 1366, height: height / 1014});
+      } else {
+        setSize({width: width / 1014, height: height / 1366});
+      }
+    });
+  }, []);
 
   return size;
 }
