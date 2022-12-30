@@ -25,6 +25,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import {FlatGrid} from 'react-native-super-grid';
 import {getProductAll} from '../Features/ProductsSlice';
 import ModalSelectCate from '../Modal/ModalSelectCate';
+import {addOrderTable, getAllTable} from '../Features/TableSlice';
 
 type Props = {
   params: any;
@@ -42,9 +43,14 @@ const ListPro = (props: Props) => {
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const products = useAppSelect((data: any) => data.products.value);
   const saveorders = useAppSelect((data: any) => data.saveorders.value);
+  const tables = useAppSelect((data: any) => data.tables.value);
+  const tablesOrder = tables?.find(
+    (item: any) => props?.params?.table._id == item._id,
+  );
   useEffect(() => {
     dispatch(getAllSaveOrder());
     dispatch(getProductAll());
+    dispatch(getAllTable());
   }, []);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -52,40 +58,56 @@ const ListPro = (props: Props) => {
   const [valueWeight, setValueWeight] = useState<any>(); //lấy số lượng kg
 
   const apply = async () => {
-    const newSaveOrder = saveorders.find(
+    const newSaveOrder = tablesOrder?.orders?.find(
       (item: any) =>
-        item.id_pro == productOrder._id &&
-        item.id_table == props.params.table._id &&
-        item.weight == valueWeight,
+        item.id_pro == productOrder._id && item.weight == valueWeight,
     );
+
     setValueWeight(undefined);
     setModalVisible(false);
     props?.showOrder(true);
     props.loading(true);
     if (newSaveOrder !== undefined) {
-      const upSaveOrder = {
-        amount: +newSaveOrder.amount + +1,
-        weight: Number(valueWeight),
-      };
+      const newData = [];
+      tablesOrder?.orders?.map(itemOrder => {
+        if (itemOrder.id == newSaveOrder.id) {
+          newData.push({
+            ...itemOrder,
+            amount: +newSaveOrder.amount + +1,
+            weight: Number(valueWeight),
+          });
+        } else {
+          newData.push(itemOrder);
+        }
+      });
 
       await dispatch(
-        uploadSaveOrderFind({id: newSaveOrder._id, data: upSaveOrder}),
+        addOrderTable({
+          data: newData,
+          id_table: props?.params?.table._id,
+        }),
       );
     } else {
-      const newOrder: any = {
-        id_user: checkUserStorage.data._id,
+      const newOrder = {
         amount: 1,
-        id_table: props.params.table._id,
         id_pro: productOrder._id,
         weight: Number(valueWeight),
         name: productOrder.name,
         photo: productOrder.photo,
         price: productOrder.price,
         dvt: productOrder.dvt,
+        id: Math.random().toString(36).substring(0, 20),
       };
-
-      // @ts-ignore
-      await dispatch(addSaveOrder(newOrder));
+      await dispatch(
+        // @ts-ignore
+        addOrderTable({
+          data:
+            tablesOrder?.orders?.length <= 0 || tablesOrder?.orders == undefined
+              ? newOrder
+              : [...tablesOrder?.orders, newOrder],
+          id_table: props?.params?.table._id,
+        }),
+      );
     }
     props?.showOrder(false);
     props.loading(false);
@@ -93,11 +115,11 @@ const ListPro = (props: Props) => {
 
   const selectProduct = async (pro: any) => {
     props.loading(true);
+    const date = new Date();
     // lấy ra được sản phẩm vừa chọn
     // kiểm tra xem sp lựa chọn đã tồn lại ở bàn này hay chưa
-    const newSaveOrder = saveorders.find(
-      (item: any) =>
-        item.id_pro == pro._id && item.id_table == props.params.table._id,
+    const newSaveOrder = tablesOrder?.orders?.find(
+      item => item.id_pro == pro._id,
     );
 
     // th1 nếu mà sp order mà cần có kg
@@ -108,26 +130,56 @@ const ListPro = (props: Props) => {
     } else {
       if (newSaveOrder == undefined) {
         const newOrder: any = {
-          id_user: checkUserStorage.data._id,
           amount: 1,
-          id_table: props.params.table._id,
           id_pro: pro._id,
           name: pro.name,
           photo: pro.photo,
           price: pro.price,
           dvt: pro.dvt,
+          weight: 0,
+          id: Math.random().toString(36).substring(0, 20),
         };
         props?.showOrder(true);
         // @ts-ignore
         await dispatch(addSaveOrder(newOrder));
+        await dispatch(
+          addOrderTable({
+            data:
+              tablesOrder?.orders?.length <= 0 ||
+              tablesOrder?.orders == undefined
+                ? newOrder
+                : [...tablesOrder?.orders, newOrder],
+            id_table: props?.params?.table._id,
+            time_start: `${
+              String(date.getHours()).length == 1
+                ? `0${date.getHours()}`
+                : date.getHours()
+            }:${
+              String(date.getMinutes()).length == 1
+                ? `0${date.getMinutes()}`
+                : date.getMinutes()
+            }`,
+          }),
+        );
         props?.showOrder(false);
       } else {
-        const addSaveOrder = {
-          amount: +newSaveOrder.amount + +1,
-        };
+        const newData: any = [];
+        tablesOrder?.orders?.map(itemOrder => {
+          if (itemOrder.id == newSaveOrder.id) {
+            newData.push({
+              ...itemOrder,
+              amount: +newSaveOrder.amount + +1,
+            });
+          } else {
+            newData.push(itemOrder);
+          }
+        });
         props?.showOrder(true);
         await dispatch(
-          uploadSaveOrderFind({id: newSaveOrder._id, data: addSaveOrder}),
+          addOrderTable({
+            data: newData,
+            id_table: props?.params?.table._id,
+          }),
         );
         props?.showOrder(false);
       }

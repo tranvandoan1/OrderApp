@@ -174,7 +174,8 @@ const ModalBookTable = (props: Props) => {
               paddingVertical: 10,
               marginBottom: 10,
             }}>
-            Thông tin đặt bàn {String(selectTable).length}
+            Thông tin đặt bàn 
+            {/* {String(selectTable).length} */}
           </Text>
           <View style={styles.name}>
             <Controller

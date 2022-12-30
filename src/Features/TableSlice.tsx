@@ -2,10 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import TableAPI, {
   add,
+  addOrdersTable,
   remove,
+  removeOrderTable,
   upload,
   uploadBookTable,
-  uploadMoveTable,
+  changeTable
 } from "../API/TableAPI";
 
 async function tableAll() {
@@ -27,9 +29,11 @@ async function tableAll() {
 
   for (let i = 0; i < dataTable.length; i++) {
     dataTable[i].name = `Bàn ${dataTable[i].name}`;
+    dataTable[i].orders =
+      dataTable[i].orders == null ? null : JSON.parse(dataTable[i].orders);
     newData.push(dataTable[i]);
   }
-  
+
   return newData;
 }
 export const getAllTable = createAsyncThunk("table/getAllTable", async () => {
@@ -40,6 +44,14 @@ export const addTable = createAsyncThunk("table/addTable", async (data) => {
   await add(data);
   return tableAll();
 });
+
+export const addOrderTable = createAsyncThunk(
+  "table/addOrderTable",
+  async (data) => {
+    await addOrdersTable(data);
+    return tableAll();
+  }
+);
 export const editBookTable = createAsyncThunk(
   "table/editBookTable",
   async (data) => {
@@ -51,49 +63,61 @@ export const removeTable = createAsyncThunk("table/removeTable", async (id) => {
   await remove(id);
   return tableAll();
 });
-export const editTable = createAsyncThunk("table/editTable", async (data:any) => {
+export const editTable = createAsyncThunk("table/editTable", async (data) => {
   await upload(data.id, data.data);
   return tableAll();
 });
-export const editMoveTable = createAsyncThunk(
-  "table/editMoveTable",
+
+export const changeTables = createAsyncThunk(
+  "saveorder/changeTables",
   async (data) => {
-    await uploadMoveTable(data);
+    await changeTable(data);
     return tableAll();
   }
 );
-
+export const cancelTable = createAsyncThunk(
+  "saveorder/cancelTable",
+  async (data) => {
+    await removeOrderTable(data);
+    return tableAll();
+  }
+);
 const tableSlice = createSlice({
   name: "table",
   initialState: {
     value: [],
     checkData: false,
-
   },
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(getAllTable.fulfilled, (state:any, action) => {
+    builder.addCase(getAllTable.fulfilled, (state, action) => {
       if (action.payload.length <= 0) {
         state.checkData = true;
       }
       state.value = action.payload;
     });
-    builder.addCase(addTable.fulfilled, (state:any, action) => {
+    builder.addCase(addTable.fulfilled, (state, action) => {
       state.value = action.payload;
     });
-    builder.addCase(removeTable.fulfilled, (state:any, action) => {
+    builder.addCase(removeTable.fulfilled, (state, action) => {
       state.value = action.payload;
     });
-    builder.addCase(editTable.fulfilled, (state:any, action) => {
+    builder.addCase(editTable.fulfilled, (state, action) => {
       state.value = action.payload;
     });
-    builder.addCase(editBookTable.fulfilled, (state:any, action) => {
+    builder.addCase(editBookTable.fulfilled, (state, action) => {
       state.value = action.payload;
     });
-    builder.addCase(editMoveTable.fulfilled, (state:any, action) => {
+ 
+    builder.addCase(addOrderTable.fulfilled, (state, action) => {
       state.value = action.payload;
     });
-
+    builder.addCase(changeTables.fulfilled, (state, action) => {
+      state.value = action.payload;
+    });
+    builder.addCase(cancelTable.fulfilled, (state, action) => {
+      state.value = action.payload;
+    });
   },
 });
 export default tableSlice.reducer;

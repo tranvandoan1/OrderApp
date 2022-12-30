@@ -88,15 +88,15 @@ const Home = ({navigation}: any, props: Props) => {
   };
 
   const renderBookTable = (item: any) => {
-    const prices = item.data.map((item: any) => {
-      if (item.weight) {
-        return Math.ceil(+item.price * item.weight * +item.amount);
+    const prices = item?.map((item: any) => {
+      if (item?.weight > 0) {
+        return Math.ceil(+item?.price * item?.weight * +item?.amount);
       } else {
-        return Math.ceil(+item.price * +item.amount);
+        return Math.ceil(+item?.price * +item?.amount);
       }
     });
     let sum = 0;
-    for (var i = 0; i < prices.length; i++) {
+    for (var i = 0; i < prices?.length; i++) {
       sum += +prices[i];
     }
     return sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -126,6 +126,20 @@ const Home = ({navigation}: any, props: Props) => {
         },
       },
     ]);
+  };
+  // check xem bàn đó đã gọi món chưa nếu rồi hiện mockup chọn chuyển bàn hoặc hủy
+  const showMockUp = (item: any) => {
+    console.log(item, 'ewds1323ew');
+    checkSaveOrder?.map((check: any, index: any) => {
+      console.log('first');
+      if (check._id == item?._id) {
+        console.log('first1');
+        if (check.data.length > 0) {
+          console.log('first2');
+          setSelect(item);
+        }
+      }
+    });
   };
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
@@ -233,7 +247,7 @@ const Home = ({navigation}: any, props: Props) => {
                       <TouchableOpacity
                         style={styles.table}
                         onPress={() => order(item)}
-                        onLongPress={() => setSelect(item)}
+                        onLongPress={() => showMockUp(item)}
                         key={item._id}>
                         <View
                           style={{
@@ -254,22 +268,16 @@ const Home = ({navigation}: any, props: Props) => {
                                 marginRight: 5,
                               }}></View>
                           )}
-                          {checkSaveOrder?.map((check: any, index: any) => {
-                            if (check._id == item._id) {
-                              if (check.data.length > 0) {
-                                return (
-                                  <View
-                                    key={index}
-                                    style={{
-                                      width: 20,
-                                      height: 20,
-                                      borderRadius: 100,
-                                      backgroundColor: '#00FF00',
-                                    }}></View>
-                                );
-                              }
-                            }
-                          })}
+                          {item?.orders?.length > 0 && (
+                            <View
+                              key={index}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: 100,
+                                backgroundColor: '#00FF00',
+                              }}></View>
+                          )}
                         </View>
 
                         <Image
@@ -283,78 +291,37 @@ const Home = ({navigation}: any, props: Props) => {
                           ]}>
                           {item.name}
                         </Text>
-                        {item.amount > 0
-                          ? checkSaveOrder?.map((check: any, index: any) => {
-                              if (check._id == item._id) {
-                                if (check.data.length > 0) {
-                                  return (
-                                    <Text
-                                      style={[
-                                        {
-                                          fontSize: width < 960 ? 18 : 16,
-                                          color: '#00CC00',
-                                          fontWeight: '500',
-                                        },
-                                      ]}>
-                                      <Text style={{color: 'red'}}>
-                                        {item.timeBookTable}{' '}
-                                      </Text>
-                                      {/* Tổng tiền  {sum} */}({' '}
-                                      {renderBookTable(check)}đ )
-                                    </Text>
-                                  );
-                                } else {
-                                  return (
-                                    <Text
-                                      style={[
-                                        {
-                                          fontSize: width < 960 ? 18 : 16,
-                                          color: '#00CC00',
-                                          fontWeight: '500',
-                                        },
-                                      ]}>
-                                      <Text style={{color: 'red'}}>
-                                        {item.timeBookTable}{' '}
-                                      </Text>
-                                      {/* Tổng tiền  {sum} */}({' '}
-                                      {renderBookTable(check)}đ )
-                                    </Text>
-                                  );
-                                }
-                              }
-                            })
-                          : checkSaveOrder?.map((check: any, index: any) => {
-                              if (check._id == item._id) {
-                                if (check.data.length > 0) {
-                                  return (
-                                    <Text
-                                      style={[
-                                        {
-                                          fontSize: width < 960 ? 18 : 16,
-                                          color: '#00CC00',
-                                          fontWeight: '500',
-                                        },
-                                      ]}>
-                                      {/* Tổng tiền  {sum} */}
-                                      Tổng {renderBookTable(check)}đ
-                                    </Text>
-                                  );
-                                } else {
-                                  return (
-                                    <Text
-                                      style={[
-                                        {
-                                          fontSize: width < 960 ? 18 : 16,
-                                          color: 'red',
-                                          fontWeight: '500',
-                                        },
-                                      ]}>
-                                      Trống
-                                    </Text>
-                                  );
-                                }
-                              }
-                            })}
+
+                        <Text
+                          style={[
+                            {
+                              fontSize: width < 960 ? 18 : 16,
+                              color: '#00CC00',
+                              fontWeight: '500',
+                            },
+                          ]}>
+                          {(item?.orders?.length <= 0 ||
+                            item?.orders?.length == undefined) &&
+                          (item.timeBookTable == null ||
+                            item.timeBookTable == 'null') ? (
+                            <Text style={{color: 'red'}}> Trống</Text>
+                          ) : ((item?.orders?.length <= 0 ||
+                              item?.orders?.length == undefined) &&
+                            (item.timeBookTable !== null ||
+                              item.timeBookTable !== 'null')) ? (
+                            <Text style={{color: 'red'}}>
+                              {' '}
+                              {item.timeBookTable}{' '}
+                              {renderBookTable(item?.orders)}đ{' '}
+                            </Text>
+                          ) : (
+                            <Text style={{color: '#00CC00'}}>
+                              Tổng 
+                              {' '}
+                              {renderBookTable(item?.orders)}đ{' '}
+                            </Text>
+                          )}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   );
@@ -369,6 +336,7 @@ const Home = ({navigation}: any, props: Props) => {
             hiddeSelect={(e: any) => (
               setCheckSelect(undefined), setSelect(undefined)
             )}
+            checkSaveOrder={checkSaveOrder}
             setCheckSelect={(e: any) => setCheckSelect(e)}
             hiddeCheckSelect={(e: any) => setCheckSelect(undefined)}
           />
@@ -574,13 +542,13 @@ const styles = StyleSheet.create({
   listTable: {
     backgroundColor: '#fff',
     borderRadius: 10,
-    elevation: 4,
+    elevation: 7,
     shadowColor: 'tomato',
     overflow: 'hidden',
   },
   table: {
     borderColor: 'rgb(219, 219, 219)',
-    borderWidth: 1,
+    borderWidth: 0.5,
     paddingVertical: 10,
     flexDirection: 'column',
     borderRadius: 10,

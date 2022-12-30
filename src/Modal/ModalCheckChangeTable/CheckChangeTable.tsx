@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {Size} from '../../size';
+import {Size, SizeScale} from '../../size';
 import {TextInput} from 'react-native-gesture-handler';
 import {AppDispatch, RootState} from '../../App/Store';
 import {
@@ -20,7 +20,11 @@ import {
   editMoveTable,
   getAllTable,
 } from './../../Features/TableSlice';
-import {changeTables, removeSaveOrderAll} from '../../Features/SaveOrderSlice';
+import {
+  changeTables,
+  removeSaveOrderAll,
+  getAllSaveOrder,
+} from '../../Features/SaveOrderSlice';
 type Props = {
   select: any;
   checkSelect: any;
@@ -28,9 +32,12 @@ type Props = {
   setCheckSelect: (e: any) => void;
   hiddeSelect: (e: any) => void;
   hiddeCheckSelect: (e: any) => void;
+  checkSaveOrder: any;
 };
 const CheckChangeTable = (props: Props) => {
   const width = Size().width;
+  const sizeScale = SizeScale().width;
+
   // tính tổng tiền
   const prices = props?.saveorderCheckChangeTable?.map((item: any) => {
     if (item.weight) {
@@ -43,63 +50,85 @@ const CheckChangeTable = (props: Props) => {
   for (var i = 0; i < prices?.length; i++) {
     sum += +prices[i];
   }
-  const [checkSelectTable, setCheckSelectTable] = useState<any>(0);
+  const [checkSelectTable, setCheckSelectTable] = useState<boolean>(false);
   const [checkChangeTable, setCheckChangeTable] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [checkDeleteTable, setCheckDeleteTable] = useState<boolean>(false);
   const [cancelBookTable, setCancelBookTable] = useState<boolean>(false);
-  const [idFloorTable, setIdFloorTable] = useState<any>({
-    floor_id: null,
-    table_id: null,
-  });
+  const [selectTable, setSelectTable] = useState<any>();
+  const saveorders = useSelector((data: any) => data.saveorders.value);
 
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const tables = useAppSelect((data: any) => data.tables.value);
   useEffect(() => {
     dispatch(getAllTable());
+    dispatch(getAllSaveOrder());
   }, []);
 
-  const tableFilter = tables.filter(
-    (item: any) =>
-      item.floor_id == idFloorTable?.floor_id?._id &&
-      item._id !== props?.select?._id,
-  );
+  const tableFilter: any = [];
+  props?.checkSaveOrder.map((item: any) => {
+    tables.map((itemTabe: any) => {
+      if (itemTabe._id == item._id) {
+        if (itemTabe.timeBookTable == 'null' && item.data.length <= 0) {
+          tableFilter.push(itemTabe);
+        }
+      }
+    });
+  });
   // chuyển bàn
   const save = async () => {
-    if (idFloorTable?.floor_id !== null && idFloorTable?.table_id !== null) {
-      const id = props?.saveorderCheckChangeTable?.map((item: any) => {
-        return item._id;
-      });
-      const data = {
-        id: id,
-        floor_id: idFloorTable?.floor_id,
-        id_table: idFloorTable?.table_id,
-      };
+    const id: any = [];
+    saveorders?.map((itemm: any) => {
+      if (itemm.id_table == props?.select._id) {
+        id.push(itemm._id);
+      }
+    });
+    if (selectTable == undefined) {
+      ToastAndroid.show('Chưa chọn bàn muốn chuyển !', ToastAndroid.SHORT);
+    } else {
+      if (props?.select?.timeBookTable == 'null') {
+        const data = {
+          id: id,
+          id_table: selectTable._id,
+        };
+        setLoading(true);
+        // @ts-ignore
+        await dispatch(changeTables(data));
+        ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
+        props?.hiddeSelect('');
+        setCheckSelectTable(false);
+        setSelectTable(undefined);
+        setCheckChangeTable(false);
+        setLoading(false);
+      } else {
+        const data = {
+          id: id,
+          id_table: selectTable._id,
+        };
+        const uploadTable = {
+          idStart: props.select._id,
+          idEnd: selectTable._id,
+          timeBookTableStart: 'null',
+          amountStart: 0,
+          nameUserStart: '',
+          timeBookTableEnd: props?.select.timeBookTable,
+          amountEnd: props?.select.amount,
+          nameUserEnd: props?.select.nameUser,
+        };
 
-      const uploadTable = {
-        idStart: props?.select?._id,
-        idEnd: idFloorTable?.table_id._id,
-        timeBookTableStart: 'null',
-        amountStart: 0,
-        nameUserStart: '',
-        timeBookTableEnd: props?.select?.timeBookTable,
-        amountEnd: props?.select?.amount,
-        nameUserEnd: props?.select?.nameUser,
-      };
-
-      setCheckChangeTable(true);
-      // @ts-ignore
-      await dispatch(changeTables(data));
-      // @ts-ignore
-      await dispatch(editMoveTable(uploadTable));
-      ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
-      props?.hiddeSelect('');
-      setCheckSelectTable(0);
-      setIdFloorTable({
-        floor_id: null,
-        table_id: null,
-      });
-      setCheckChangeTable(false);
+        setLoading(true);
+        // @ts-ignore
+        await dispatch(changeTables(data));
+        // @ts-ignore
+        await dispatch(editMoveTable(uploadTable));
+        ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
+        props?.hiddeSelect('');
+        setCheckSelectTable(false);
+        setSelectTable(undefined);
+        setCheckChangeTable(false);
+        setLoading(false);
+      }
     }
   };
   // xóa bàn
@@ -109,17 +138,15 @@ const CheckChangeTable = (props: Props) => {
     });
     setCheckChangeTable(true);
 
-      // @ts-ignore
+    // @ts-ignore
     await dispatch(removeSaveOrderAll(id));
 
     ToastAndroid.show('Xóa bàn thành công', ToastAndroid.SHORT);
     props?.hiddeSelect('');
     setCheckDeleteTable(false);
-    setCheckSelectTable(0);
-    setIdFloorTable({
-      floor_id: null,
-      table_id: null,
-    });
+    setCheckSelectTable(false);
+    setSelectTable(undefined);
+
     setCheckChangeTable(false);
   };
   // hủy bàn đặt
@@ -166,11 +193,9 @@ const CheckChangeTable = (props: Props) => {
     );
     props?.hiddeSelect('');
     setCheckDeleteTable(false);
-    setCheckSelectTable(0);
-    setIdFloorTable({
-      floor_id: null,
-      table_id: null,
-    });
+    setCheckSelectTable(false);
+    setSelectTable(undefined);
+
     setCheckChangeTable(false);
     setCancelBookTable(false);
   };
@@ -182,7 +207,7 @@ const CheckChangeTable = (props: Props) => {
             return (
               <TouchableOpacity
                 style={{marginTop: 10}}
-                onPress={() =>
+                onPress={() => {
                   // checkSelectTable == 1
                   //   ? (setCheckSelectTable(3),
                   //     setIdFloorTable({
@@ -193,15 +218,11 @@ const CheckChangeTable = (props: Props) => {
                   //           : idFloorTable?.table_id,
                   //     }))
                   //   : (setCheckSelectTable(3),
-                  //     setIdFloorTable({
-                  //       floor_id:
-                  //         idFloorTable?.floor_id == null
-                  //           ? null
-                  //           : idFloorTable?.floor_id,
-                  //       table_id: item,
-                  //     }))
-                  console.log('first')
-                }>
+                  setSelectTable(item);
+                  setCheckSelectTable(false);
+                  // )
+                  // console.log('first')
+                }}>
                 <Text
                   style={{
                     color: 'black',
@@ -264,17 +285,6 @@ const CheckChangeTable = (props: Props) => {
                 Chuyển bàn
               </Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity onPress={() => setCheckDeleteTable(true)}>
-              <Text
-                style={{
-                  color: 'black',
-                  fontSize: 18,
-                  textAlign: 'center',
-                  marginVertical: 10,
-                }}>
-                Hủy bàn
-              </Text>
-            </TouchableOpacity> */}
 
             <TouchableOpacity onPress={() => setCancelBookTable(true)}>
               <Text
@@ -311,12 +321,18 @@ const CheckChangeTable = (props: Props) => {
               left: 0,
               right: 0,
             }}></Pressable>
+          {loading == true && (
+            <View style={styles.loading}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          )}
           <View
             style={[
               {
-                width: width < 960 ? '50%' : '60%',
+                width: width < 960 ? '50%' : '35%',
                 backgroundColor: '#fff',
                 paddingVertical: 10,
+                borderRadius: 4,
               },
             ]}>
             <Text
@@ -325,49 +341,128 @@ const CheckChangeTable = (props: Props) => {
                 fontSize: 23,
                 textAlign: 'center',
                 fontWeight: '500',
-                borderColor: 'rgb(219,219,219)',
+                borderColor: '#BBBBBB',
                 borderBottomWidth: 1,
-                paddingBottom: 10,
+                paddingBottom: sizeScale * 20,
+                marginBottom: sizeScale * 20,
               }}>
-              Chuyển bàn
+              Chuyển {props?.select?.name}
             </Text>
-            <View style={styles.list}>
-              <Text
-                style={{
-                  color: 'black',
-                  fontSize: 20,
-                  fontWeight: '500',
-                }}>
-                {props?.select?.name} :
-              </Text>
-              <Text
-                style={{
-                  color: 'red',
-                  marginLeft: 10,
-                  fontWeight: '500',
-                  fontSize: 18,
-                }}>
-                {props?.saveorderCheckChangeTable?.length} sản phẩm
-              </Text>
-            </View>
-            <View style={styles.list}>
-              <Text
-                style={{
-                  color: 'black',
-                  fontSize: 20,
-                  fontWeight: '500',
-                }}>
-                Tổng tiền :
-              </Text>
-              <Text
-                style={{
-                  color: 'red',
-                  marginLeft: 10,
-                  fontWeight: '500',
-                  fontSize: 18,
-                }}>
-                {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
-              </Text>
+            <View
+              style={{
+                flexDirection: 'column',
+                width: '100%',
+                alignItems: 'center',
+                paddingHorizontal: 50,
+              }}>
+              {props?.select?.timeBookTable !== 'null' && (
+                <React.Fragment>
+                  <View
+                    style={[
+                      styles.list,
+                      {
+                        justifyContent: 'space-between',
+                        width: '100%',
+                      },
+                    ]}>
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontSize: 20,
+                        fontWeight: '500',
+                      }}>
+                      Người đặt :
+                    </Text>
+                    <Text
+                      style={{
+                        color: 'red',
+                        marginLeft: 10,
+                        fontWeight: '500',
+                        fontSize: 18,
+                      }}>
+                      {props?.select?.nameUser}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.list,
+                      {
+                        justifyContent: 'space-between',
+                        width: '100%',
+                      },
+                    ]}>
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontSize: 20,
+                        fontWeight: '500',
+                      }}>
+                      Thời gian đặt :
+                    </Text>
+                    <Text
+                      style={{
+                        color: 'red',
+                        marginLeft: 10,
+                        fontWeight: '500',
+                        fontSize: 18,
+                      }}>
+                      {props?.select?.timeBookTable}
+                    </Text>
+                  </View>
+                </React.Fragment>
+              )}
+              <View
+                style={[
+                  styles.list,
+                  {
+                    justifyContent: 'space-between',
+                    width: '100%',
+                  },
+                ]}>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontSize: 20,
+                    fontWeight: '500',
+                  }}>
+                  {props?.select?.name} :
+                </Text>
+                <Text
+                  style={{
+                    color: 'red',
+                    marginLeft: 10,
+                    fontWeight: '500',
+                    fontSize: 18,
+                  }}>
+                  {props?.saveorderCheckChangeTable?.length} sản phẩm
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.list,
+                  {
+                    justifyContent: 'space-between',
+                    width: '100%',
+                  },
+                ]}>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontSize: 20,
+                    fontWeight: '500',
+                  }}>
+                  Tổng tiền :
+                </Text>
+                <Text
+                  style={{
+                    color: 'red',
+                    marginLeft: 10,
+                    fontWeight: '500',
+                    fontSize: 18,
+                  }}>
+                  {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
+                </Text>
+              </View>
             </View>
             <Text
               style={{
@@ -375,7 +470,7 @@ const CheckChangeTable = (props: Props) => {
                 fontSize: 18,
                 textAlign: 'center',
                 fontWeight: '500',
-                marginVertical: 10,
+                marginVertical: 20,
               }}>
               Chuyển đến
             </Text>
@@ -386,43 +481,38 @@ const CheckChangeTable = (props: Props) => {
                 alignItems: 'center',
                 paddingHorizontal: 10,
               }}>
-            
-              <Text style={{textAlign: 'center', color: 'black'}}>-</Text>
-              <View style={{width: '40%', position: 'relative'}}>
+              <View
+                style={{
+                  width: '100%',
+                  position: 'relative',
+                  paddingHorizontal: sizeScale * 10,
+                }}>
                 <TouchableOpacity
                   style={styles.floorTable}
-                  onPress={() =>
-                    checkSelectTable == 3
-                      ? setCheckSelectTable(2)
-                      : null
-                  }>
+                  onPress={() => setCheckSelectTable(!checkSelectTable)}>
                   <TextInput
                     selectTextOnFocus={false}
                     editable={false}
-                    value={
-                      idFloorTable?.table_id == null
-                        ? ''
-                        : idFloorTable?.table_id?.name
-                    }
+                    value={selectTable == null ? '' : selectTable?.name}
                     style={styles.input}
                     placeholder="Chọn bàn"
                   />
                 </TouchableOpacity>
-                {checkSelectTable == 2 && (
+                {checkSelectTable == true && (
                   <View
                     style={[
                       {
                         position: 'absolute',
                         top: 42,
                         width: '100%',
-
+                        height: sizeScale * 200,
                         backgroundColor: '#fff',
                         paddingVertical: 10,
                         borderRadius: 2,
-                        overflow: 'hidden',
                         zIndex: 1000,
                         borderColor: '#AAAAAA',
                         borderWidth: 1,
+                        left: sizeScale * 10,
                       },
                     ]}>
                     {renderFloorTable()}
@@ -430,16 +520,53 @@ const CheckChangeTable = (props: Props) => {
                 )}
               </View>
             </View>
-            <View style={{paddingHorizontal: 10, marginTop: 20}}>
+
+            <View
+              style={{
+                marginTop: sizeScale * 30,
+                paddingHorizontal: sizeScale * 20,
+                zIndex: 1,
+              }}>
               <TouchableOpacity
-                style={{backgroundColor: 'blue', padding: 5}}
+                style={{
+                  backgroundColor: '#0099FF',
+                  padding: 10,
+                  borderRadius: 5,
+                }}
                 onPress={() => save()}>
-                {checkChangeTable == true ? (
+                {loading == true ? (
                   <ActivityIndicator size={25} color={'#fff'} />
                 ) : (
                   <Text
-                    style={{color: '#fff', fontSize: 18, textAlign: 'center'}}>
+                    style={{
+                      color: '#fff',
+                      fontSize: sizeScale * 18,
+                      textAlign: 'center',
+                      fontWeight: '500',
+                    }}>
                     Chuyển bàn
+                  </Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'red',
+                  padding: 10,
+                  borderRadius: 5,
+                  marginTop: 10,
+                }}
+                onPress={() => props?.hiddeSelect('')}>
+                {loading == true ? (
+                  <ActivityIndicator size={25} color={'#fff'} />
+                ) : (
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontSize: sizeScale * 18,
+                      textAlign: 'center',
+                      fontWeight: '500',
+                    }}>
+                    Hủy
                   </Text>
                 )}
               </TouchableOpacity>
@@ -447,7 +574,7 @@ const CheckChangeTable = (props: Props) => {
           </View>
         </View>
       </Modal>
-
+      {/* hủy bàn */}
       <Modal
         transparent={true}
         visible={checkDeleteTable}
@@ -662,12 +789,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   list: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
     marginLeft: 10,
+    justifyContent: 'center',
   },
   input: {
     color: 'black',
@@ -678,10 +807,10 @@ const styles = StyleSheet.create({
   },
   floorTable: {
     borderWidth: 1,
-    borderColor: 'rgb(219,219,219)',
+    borderColor: '#0099FF',
     width: '100%',
     color: 'black',
-    borderRadius: 3,
+    borderRadius: 5,
     textAlign: 'center',
   },
   selectFloor: {
@@ -693,5 +822,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 100,
+  },
+  loading: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,.9)',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10000000,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
   },
 });

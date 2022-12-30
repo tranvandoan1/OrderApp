@@ -25,6 +25,7 @@ import {uploadSaveOrderFind} from './../Features/SaveOrderSlice';
 import {getProductAll} from './../Features/ProductsSlice';
 import ModalCheckPay from './../Modal/ModalCheckPay';
 import {Size, SizeScale} from '../size';
+import {addOrderTable, getAllTable} from '../Features/TableSlice';
 type Props = {
   route: any;
   navigation: any;
@@ -38,9 +39,9 @@ const Order = (props: Props) => {
   const saveorders = useAppSelect((data: any) => data.saveorders.value);
   const products = useAppSelect((data: any) => data.products.value);
   const propParams = props?.route?.params;
-  const newOrder = saveorders?.filter(
-    (item: any) => item.id_table == propParams?.table._id,
-  );
+  // const newOrder = saveorders?.filter(
+  //   (item: any) => item.id_table == propParams?.table._id,
+  // );
   const [loading, setLoading] = useState<boolean>(false);
   const [value, setValue] = useState<any>();
   const [valueAmount, setValueMount] = useState<any>();
@@ -53,74 +54,106 @@ const Order = (props: Props) => {
   const [selectModalCate, setSelectModalCate] = useState(false);
   const [infor, setInfor] = useState(false);
   const [id, setId] = useState<any>();
+  const tables = useAppSelect((data: any) => data.tables.value);
+  const tablesOrder = tables?.find(
+    (item: any) => propParams?.table._id == item._id,
+  );
   useEffect(() => {
     dispatch(getAllSaveOrder());
     dispatch(getProductAll());
+    dispatch(getAllTable());
   }, []);
   // tính tổng tiền
-  const prices = newOrder.map((item: any) => {
-    if (item.weight) {
-      return Math.ceil(+item.price * item.weight * +item.amount);
+  const prices = tablesOrder?.orders?.map((item: any) => {
+    if (item?.weight) {
+      return Math.ceil(+item?.price * item?.weight * +item?.amount);
     } else {
-      return Math.ceil(+item.price * +item.amount);
+      return Math.ceil(+item?.price * +item?.amount);
     }
   });
   let sum = 0;
-  for (var i = 0; i < prices.length; i++) {
+  for (var i = 0; i < prices?.length; i++) {
     sum += +prices[i];
   }
-
+  // xóa món ăn
+  const deleteOrder = async (id: any) => {
+    const dataNew = tablesOrder?.orders?.filter((item: any) => item.id !== id);
+    setLoading(true);
+    setValueMount(undefined);
+    // @ts-ignore
+    await dispatch(
+      addOrderTable({
+        data: dataNew,
+        id_table: propParams?.table._id,
+      }),
+    );
+    setLoading(false);
+  };
   const onSubmit = async (itemm: any) => {
     width < 960 && setLoadingOrder(true);
-    const findSaveOrder = saveorders.find(
-      (item: any) => item._id == itemm.data._id,
+    const dataOrder = tablesOrder?.orders?.find(
+      (item: any) => item.id == itemm.data.id,
     );
     if (
-      (findSaveOrder.amount >= 1 && itemm.check == 'add') ||
-      (findSaveOrder.amount > 1 && itemm.check == 'decrease')
+      (dataOrder.amount >= 1 && itemm.check == 'add') ||
+      (dataOrder.amount > 1 && itemm.check == 'decrease')
     ) {
-      const upSaveOrder = {
-        amount:
-          itemm.check == 'add'
-            ? +findSaveOrder.amount + +1
-            : +findSaveOrder.amount - +1,
-      };
+      const dataNew = [];
+      tablesOrder?.orders?.map((itemOrder: any) => {
+        if (itemOrder.id == itemm.data.id) {
+          dataNew.push({
+            ...itemOrder,
+            amount:
+              itemm.check == 'add'
+                ? +dataOrder.amount + +1
+                : +dataOrder.amount - +1,
+          });
+        } else {
+          dataNew.push(itemOrder);
+        }
+      });
+
       setLoading(true);
       await dispatch(
-        uploadSaveOrderFind({id: itemm.data._id, data: upSaveOrder}),
+        addOrderTable({
+          data: dataNew,
+          id_table: propParams?.table._id,
+        }),
       );
       setLoading(false);
-    } else if (findSaveOrder.amount <= 1 && itemm.check == 'decrease') {
-      setLoading(true);
-
-      // @ts-ignore
-      await dispatch(removeSaveOrder(itemm.data._id));
-      setLoading(false);
+    } else if (dataOrder.amount <= 1 && itemm.check == 'decrease') {
+      deleteOrder(itemm.data.id);
     }
     width < 960 && setLoadingOrder(false);
   };
   const uploadAmount = async (item: any) => {
-    const uploadSaveOrder = {
-      amount:
-        valueAmount == undefined || String(value).length <= 0
-          ? item.amount
-          : valueAmount,
-    };
+    const dataNew = [];
+    tablesOrder?.orders?.map((itemOrder: any) => {
+      if (itemOrder.id == item.id) {
+        dataNew.push({
+          ...itemOrder,
+          amount:
+            valueAmount == undefined || String(value).length <= 0
+              ? item.amount
+              : valueAmount,
+        });
+      } else {
+        dataNew.push(itemOrder);
+      }
+    });
+
     setLoading(true);
     setValueMount(undefined);
-    await dispatch(uploadSaveOrderFind({id: item._id, data: uploadSaveOrder}));
+    setId(undefined);
+    await dispatch(
+      addOrderTable({
+        data: dataNew,
+        id_table: propParams?.table._id,
+      }),
+    );
     setLoading(false);
   };
 
-  const deleteOrder = async (id: any) => {
-    setLoading(true);
-    setValueMount(undefined);
-    // @ts-ignore
-    await dispatch(removeSaveOrder(id));
-    setLoading(false);
-  };
-
-  // fadeAnim will be used as the value for opacity. Initial Value: 0
   const fadeAnim = useRef(new Animated.Value(100 * widthScale)).current;
 
   checkAnimated == true
@@ -235,7 +268,7 @@ const Order = (props: Props) => {
                 <AntDesign
                   name="infocirlceo"
                   size={21}
-                  color={'#00FF00'}
+                  color={'#fff'}
                   style={{marginRight: 20}}
                 />
               </TouchableOpacity>
@@ -276,7 +309,8 @@ const Order = (props: Props) => {
             <View style={{padding: 5, height: '70%'}}>
               <SafeAreaView>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                  {newOrder.length <= 0 && (
+                  {(tablesOrder?.orders?.length <= 0 ||
+                    tablesOrder?.orders == undefined) && (
                     <View
                       style={{
                         flexDirection: 'column',
@@ -302,7 +336,7 @@ const Order = (props: Props) => {
                   {loading == true && (
                     <ActivityIndicator size="large" color={'blue'} />
                   )}
-                  {newOrder
+                  {tablesOrder?.orders
                     ?.slice()
                     .reverse()
                     ?.map((item: any, index: any) => {
@@ -310,11 +344,11 @@ const Order = (props: Props) => {
                         <View
                           style={[
                             styles.listOrder,
-                            newOrder.length - 1 !== index && {
+                            tablesOrder?.orders?.length - 1 !== index && {
                               borderBottomWidth: 0.5,
                             },
                           ]}
-                          key={index}>
+                          key={item}>
                           <View
                             style={{
                               flexDirection: 'row',
@@ -323,7 +357,7 @@ const Order = (props: Props) => {
                               overflow: 'hidden',
                             }}>
                             <TouchableOpacity
-                              onPress={() => deleteOrder(item._id)}>
+                              onPress={() => deleteOrder(item.id)}>
                               <AntDesign
                                 name="closecircle"
                                 color={'tomato'}
@@ -332,12 +366,13 @@ const Order = (props: Props) => {
                               />
                             </TouchableOpacity>
 
-                            {/* <Text style={styles.stt}>{index + 1}</Text> */}
                             <View style={{flexDirection: 'column'}}>
                               <Text style={styles.proname} numberOfLines={2}>
                                 {item.name}
                               </Text>
-                              {item.weight && <Text>{item.weight}kg</Text>}
+                              {item?.weight > 0 ? (
+                                <Text>{item?.weight}kg</Text>
+                              ) : null}
                             </View>
                           </View>
                           <View
@@ -361,7 +396,7 @@ const Order = (props: Props) => {
                               value={`${
                                 valueAmount == undefined
                                   ? item.amount
-                                  : item._id == id
+                                  : item.id == id
                                   ? valueAmount
                                   : item.amount
                               }`}
@@ -369,7 +404,7 @@ const Order = (props: Props) => {
                               keyboardType="numeric"
                               onChangeText={e => setValueMount(e)}
                               onBlur={() => uploadAmount(item)}
-                              onPressIn={() => setId(item._id)}
+                              onPressIn={() => setId(item.id)}
                             />
                             <TouchableOpacity
                               onPress={() =>
@@ -448,7 +483,7 @@ const Order = (props: Props) => {
                               ? {fontSize: 19}
                               : {fontSize: 25},
                           ]}>
-                          Tổng tiền :{' '}
+                          Tổng tiền :
                         </Text>
                         <Text
                           style={[
@@ -483,7 +518,7 @@ const Order = (props: Props) => {
                                 styles.price,
                                 {marginVertical: 10, fontSize: 20},
                               ]}>
-                              Giảm giá :{' '}
+                              Giảm giá :
                             </Text>
                             <Text
                               style={[
@@ -503,7 +538,7 @@ const Order = (props: Props) => {
                               },
                             ]}>
                             <Text style={[styles.price, {fontSize: 23}]}>
-                              Tổng tiền thanh toán :{' '}
+                              Tổng tiền thanh toán :
                             </Text>
                             <Text style={[styles.priceRed, {fontSize: 25}]}>
                               {Math.ceil(sum * ((100 - valueSale) / 100))
@@ -552,7 +587,7 @@ const Order = (props: Props) => {
                       <Text style={styles.proOrder}>Sản phẩm đã chọn</Text>
                     </TouchableOpacity>
                     <View>
-                      {newOrder
+                      {tablesOrder?.orders
                         ?.slice()
                         .reverse()
                         ?.map((item: any, index: any) => {
@@ -561,7 +596,7 @@ const Order = (props: Props) => {
                               style={[
                                 styles.listOrder,
                                 {paddingVertical: 10},
-                                newOrder.length - 1 !== index && {
+                                tablesOrder?.orders.length - 1 !== index && {
                                   borderBottomWidth: 0.5,
                                 },
                               ]}
@@ -574,7 +609,7 @@ const Order = (props: Props) => {
                                   overflow: 'hidden',
                                 }}>
                                 <TouchableOpacity
-                                  onPress={() => deleteOrder(item._id)}>
+                                  onPress={() => deleteOrder(item.id)}>
                                   <AntDesign
                                     name="closecircle"
                                     color={'tomato'}
@@ -629,7 +664,7 @@ const Order = (props: Props) => {
                                   keyboardType="numeric"
                                   onChangeText={e => setValueMount(e)}
                                   onBlur={() => uploadAmount(item)}
-                                  onPressIn={() => setId(item._id)}
+                                  onPressIn={() => setId(item.id)}
                                 />
                                 <TouchableOpacity
                                   onPress={() =>
@@ -670,7 +705,7 @@ const Order = (props: Props) => {
                               color: 'blue',
                             },
                           ]}>
-                          Tổng tiền :{' '}
+                          Tổng tiền :
                         </Text>
                         <Text style={[styles.priceRed, {fontSize: 30}]}>
                           {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -704,7 +739,7 @@ const Order = (props: Props) => {
                               fontWeight: '500',
                               marginLeft: 10,
                             }}>
-                            {newOrder.length}
+                            {tablesOrder?.orders?.length}
                           </Text>
                         </View>
                       </View>
@@ -719,7 +754,7 @@ const Order = (props: Props) => {
                           styles.price,
                           {fontSize: 30, textAlign: 'center'},
                         ]}>
-                        Tổng tiền thanh toán :{' '}
+                        Tổng tiền thanh toán :
                       </Text>
                       <Text
                         style={[
@@ -749,7 +784,7 @@ const Order = (props: Props) => {
                             marginBottom: 10,
                           }}>
                           <Text style={{fontSize: 25, color: 'blue'}}>
-                            Giảm giá :{' '}
+                            Giảm giá :
                           </Text>
                           <Text style={{fontSize: 25, color: 'red'}}>
                             {valueSale}%
@@ -815,7 +850,7 @@ const Order = (props: Props) => {
         </View>
       )}
 
-      {newOrder?.length > 0 && checkPayy == true ? (
+      {tablesOrder?.orders?.length > 0 && checkPayy == true ? (
         <ModalCheckPay
           checkPay={checkPayy}
           hiidenCheckPay={(e: any) => (
@@ -825,7 +860,7 @@ const Order = (props: Props) => {
           )}
           valueSale={valueSale}
           params={propParams}
-          saveorders={newOrder}
+          saveorders={tablesOrder?.orders}
           sum={sum}
         />
       ) : null}
@@ -878,7 +913,7 @@ const Order = (props: Props) => {
               {propParams?.table.name}
             </Text>
             <Text style={{color: 'black', fontWeight: '500', fontSize: 18}}>
-              Khách hàng :{' '}
+              Khách hàng :
               <Text style={{color: 'red', fontWeight: '500', fontSize: 20}}>
                 {propParams?.table.nameUser}
               </Text>
@@ -890,15 +925,14 @@ const Order = (props: Props) => {
                 fontSize: 18,
                 marginVertical: 10,
               }}>
-              Thời gian đặt :{' '}
+              Thời gian đặt :
               <Text style={{color: 'red', fontWeight: '500', fontSize: 20}}>
                 {propParams?.table.timeBookTable}
               </Text>
             </Text>
             <Text style={{color: 'black', fontWeight: '500', fontSize: 18}}>
-              Số lượng :{' '}
+              Số lượng :
               <Text style={{color: 'red', fontWeight: '500', fontSize: 20}}>
-                {' '}
                 {propParams?.table.amount}
               </Text>
             </Text>

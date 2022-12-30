@@ -82,7 +82,7 @@ const Signin = ({navigation}: any) => {
             <View
               style={{
                 paddingVertical: 20,
-                paddingHorizontal: width < 960 ? 20 : 30,
+                paddingHorizontal: width < 960 ? 50 : 300,
               }}>
               <View
                 style={{
