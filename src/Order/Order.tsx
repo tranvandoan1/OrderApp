@@ -58,6 +58,7 @@ const Order = (props: Props) => {
   const tablesOrder = tables?.find(
     (item: any) => propParams?.table._id == item._id,
   );
+  console.log(propParams?.table._id,'propParams?.table._id')
   useEffect(() => {
     dispatch(getAllSaveOrder());
     dispatch(getProductAll());

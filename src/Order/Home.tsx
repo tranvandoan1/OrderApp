@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -6,32 +6,28 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
-  SafeAreaView,
-  ScrollView,
-  TextInput,
   Pressable,
   Modal,
   ToastAndroid,
   Alert,
 } from 'react-native';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
-import {editBookTable, getAllTable} from '../Features/TableSlice';
-import {FlatGrid} from 'react-native-super-grid';
-import {getAllSaveOrder} from '../Features/SaveOrderSlice';
-import {Size, SizeScale} from '../size';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
+import { getAllTable } from '../Features/TableSlice';
+import { FlatGrid } from 'react-native-super-grid';
+import { getAllSaveOrder } from '../Features/SaveOrderSlice';
+import { Size, SizeScale } from '../size';
 import CheckChangeTable from '../Modal/ModalCheckChangeTable/CheckChangeTable';
 import Feather from 'react-native-vector-icons/Feather';
-import {Avatar} from 'react-native-elements';
+import { Avatar } from 'react-native-elements';
 import ModalBookTable from '../Modal/ModalBookTable';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import {getUser} from './../Features/UserSlice';
+import { getUser } from './../Features/UserSlice';
+import { removeOrder } from './../Features/TableSlice';
 type Props = {
   route: any;
   navigation: any;
 };
-const Home = ({navigation}: any, props: Props) => {
-  const [dataFloors, setDataFloors] = useState<any>();
+const Home = ({ navigation }: any, props: Props) => {
   const width = Size().width;
   const width1 = SizeScale();
   const dispatch = useDispatch<AppDispatch>();
@@ -40,13 +36,9 @@ const Home = ({navigation}: any, props: Props) => {
   const saveorders = useAppSelect((data: any) => data.saveorders.value);
   const users = useAppSelect((data: any) => data.users.value);
   const [bookTable, setBookTable] = useState<boolean>(false);
-  const [select, setSelect] = useState<any>();
-  const [checkSelect, setCheckSelect] = useState<any>();
-  const [checkBookTable, setCheckBookTable] = useState<any>();
-  const [checkChangeTable, setCheckChangeTable] = useState<boolean>(false);
-  const saveorderCheckChangeTable = saveorders?.filter(
-    (item: any) => item.id_table == select?._id,
-  );
+  const [selectionTable, setSelectionTable] = useState<any>();
+  const [loading, setLoading] = useState<boolean>(false);
+
   useEffect(() => {
     dispatch(getAllTable());
     dispatch(getAllSaveOrder());
@@ -58,33 +50,18 @@ const Home = ({navigation}: any, props: Props) => {
     let arrFilter = saveorders?.filter((e: any) => {
       return e.id_table === element._id;
     });
-    checkSaveOrder.push({_id: element._id, data: arrFilter, sum: 0});
+    checkSaveOrder.push({ _id: element._id, data: arrFilter, sum: 0 });
   });
 
   const order = (item: any) => {
-    checkSaveOrder?.map((check: any) => {
-      if (
-        (item._id == check._id &&
-          check.data.length <= 0 &&
-          item.timeBookTable == 'null') ||
-        (item._id == check._id &&
-          check.data.length >= 1 &&
-          item.timeBookTable !== 'null') ||
-        (item._id == check._id &&
-          check.data.length >= 1 &&
-          item.timeBookTable == 'null')
-      ) {
-        navigation?.navigate('orders', {
-          table: item,
-        });
-      } else if (
-        item._id == check._id &&
-        check.data.length <= 0 &&
-        item.timeBookTable !== 'null'
-      ) {
-        setCheckBookTable(item);
-      }
-    });
+    if (((item?.orders?.length > 0 || item?.orders !== null) && item.timeBookTable !== 'null') || ((item?.orders?.length <= 0 || item?.orders == null) && item.timeBookTable == 'null')
+    ) {
+      navigation?.navigate('orders', {
+        table: item,
+      });
+    } else if (item.timeBookTable !== 'null') {
+      setSelectionTable(item);
+    }
   };
 
   const renderBookTable = (item: any) => {
@@ -101,56 +78,45 @@ const Home = ({navigation}: any, props: Props) => {
     }
     return sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
-  const cancelTable = async () => {
-    Alert.alert('Bạn có muốn hủy bàn đặt này không', '', [
+  const removeOrderTable = async () => {
+    Alert.alert('Bạn có muốn hủy này không', '', [
       {
         text: 'Không',
-        onPress: () => setCheckBookTable(undefined),
+        onPress: () => setSelectionTable(undefined),
       },
       {
         text: 'Có',
         onPress: async () => {
-          setCheckChangeTable(true);
+          setSelectionTable(undefined);
+          setLoading(true)
           await dispatch(
             // @ts-ignore
-            editBookTable({
-              id: checkBookTable?._id,
-              nameUser: '',
-              timeBookTable: 'null',
-              amount: 0,
+            removeOrder({
+              id: selectionTable?._id
             }),
           );
-          setCheckBookTable(undefined);
-          setCheckChangeTable(false);
+          setLoading(false)
           ToastAndroid.show(`Hủy bàn đặt thành công`, ToastAndroid.SHORT);
         },
       },
     ]);
   };
-  // check xem bàn đó đã gọi món chưa nếu rồi hiện mockup chọn chuyển bàn hoặc hủy
-  const showMockUp = (item: any) => {
-    console.log(item, 'ewds1323ew');
-    checkSaveOrder?.map((check: any, index: any) => {
-      console.log('first');
-      if (check._id == item?._id) {
-        console.log('first1');
-        if (check.data.length > 0) {
-          console.log('first2');
-          setSelect(item);
-        }
-      }
-    });
-  };
+
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {loading == true && (
+        <View style={styles.loading_g}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      )}
       {tables.length <= 0 ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'blue'} />
         </View>
       ) : (
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <View style={styles.header}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Avatar
                 rounded
                 source={{
@@ -164,14 +130,14 @@ const Home = ({navigation}: any, props: Props) => {
                 <Text
                   style={[
                     styles.titlePro,
-                    {fontSize: width < 960 ? 18 : 23, marginLeft: 10},
+                    { fontSize: width < 960 ? 18 : 23, marginLeft: 10 },
                   ]}>
                   {users?.nameRestaurant}
                 </Text>
               )}
             </View>
 
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View
                 style={{
                   flexDirection: 'row',
@@ -185,7 +151,7 @@ const Home = ({navigation}: any, props: Props) => {
                     borderRadius: 100,
                     backgroundColor: 'red',
                   }}></View>
-                <Text style={{color: '#fff', fontSize: 18, marginLeft: 10}}>
+                <Text style={{ color: '#fff', fontSize: 18, marginLeft: 10 }}>
                   Bàn đặt
                 </Text>
               </View>
@@ -202,14 +168,14 @@ const Home = ({navigation}: any, props: Props) => {
                     borderRadius: 100,
                     backgroundColor: '#00FF00',
                   }}></View>
-                <Text style={{color: '#fff', fontSize: 18, marginLeft: 10}}>
+                <Text style={{ color: '#fff', fontSize: 18, marginLeft: 10 }}>
                   Có khách
                 </Text>
               </View>
               <TouchableOpacity
                 style={styles.bookTable}
                 onPress={() => setBookTable(true)}>
-                <Text style={{color: '#fff', fontSize: 16}}>Đặt bàn</Text>
+                <Text style={{ color: '#fff', fontSize: 16 }}>Đặt bàn</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('manage')}
@@ -230,7 +196,7 @@ const Home = ({navigation}: any, props: Props) => {
               </TouchableOpacity>
             </View>
           </View>
-          <View style={{flexDirection: 'row', flex: 1}}>
+          <View style={{ flexDirection: 'row', flex: 1 }}>
             <View
               style={{
                 width: '100%',
@@ -241,13 +207,19 @@ const Home = ({navigation}: any, props: Props) => {
                 itemDimension={200}
                 data={tables}
                 showsVerticalScrollIndicator={false}
-                renderItem={({item, index}) => {
+                renderItem={({ item, index }) => {
+                  console.log(item, 'dâsasdasd')
                   return (
                     <View style={styles.listTable}>
                       <TouchableOpacity
                         style={styles.table}
                         onPress={() => order(item)}
-                        onLongPress={() => showMockUp(item)}
+                        onLongPress={() => {
+                          // check xem bàn đó đã gọi món chưa nếu rồi hiện mockup chọn chuyển bàn hoặc hủy
+                          if ((item?.orders?.length > 0 && (item?.timeBookTable == 'null' || item?.timeBookTable !== 'null'))) {
+                            setSelectionTable(item);
+                          }
+                        }}
                         key={item._id}>
                         <View
                           style={{
@@ -257,9 +229,9 @@ const Home = ({navigation}: any, props: Props) => {
                             flexDirection: 'row',
                             zIndex: 100,
                           }}>
-                          {item.timeBookTable !== 'null' && (
+                          {(item.timeBookTable !== 'null') ? (
                             <View
-                              key={index}
+                              key={item}
                               style={{
                                 width: 20,
                                 height: 20,
@@ -267,10 +239,10 @@ const Home = ({navigation}: any, props: Props) => {
                                 backgroundColor: 'red',
                                 marginRight: 5,
                               }}></View>
-                          )}
+                          ) : null}
                           {item?.orders?.length > 0 && (
                             <View
-                              key={index}
+                              key={item}
                               style={{
                                 width: 20,
                                 height: 20,
@@ -282,12 +254,12 @@ const Home = ({navigation}: any, props: Props) => {
 
                         <Image
                           source={require(`../assets/images/table.png`)}
-                          style={{width: 100, height: 100, tintColor: 'blue'}}
+                          style={{ width: 100, height: 100, tintColor: 'blue' }}
                         />
                         <Text
                           style={[
                             styles.nameTable,
-                            {fontSize: width < 960 ? 20 : 21},
+                            { fontSize: width < 960 ? 20 : 21 },
                           ]}>
                           {item.name}
                         </Text>
@@ -302,21 +274,21 @@ const Home = ({navigation}: any, props: Props) => {
                           ]}>
                           {(item?.orders?.length <= 0 ||
                             item?.orders?.length == undefined) &&
-                          (item.timeBookTable == null ||
-                            item.timeBookTable == 'null') ? (
-                            <Text style={{color: 'red'}}> Trống</Text>
+                            (item.timeBookTable == null ||
+                              item.timeBookTable == 'null') ? (
+                            <Text style={{ color: 'red' }}> Trống</Text>
                           ) : ((item?.orders?.length <= 0 ||
-                              item?.orders?.length == undefined) &&
+                            item?.orders?.length == undefined) &&
                             (item.timeBookTable !== null ||
                               item.timeBookTable !== 'null')) ? (
-                            <Text style={{color: 'red'}}>
+                            <Text style={{ color: 'red' }}>
                               {' '}
                               {item.timeBookTable}{' '}
-                              {renderBookTable(item?.orders)}đ{' '}
+                              ({renderBookTable(item?.orders)}đ){' '}
                             </Text>
                           ) : (
-                            <Text style={{color: '#00CC00'}}>
-                              Tổng 
+                            <Text style={{ color: '#00CC00' }}>
+                              Tổng
                               {' '}
                               {renderBookTable(item?.orders)}đ{' '}
                             </Text>
@@ -330,34 +302,32 @@ const Home = ({navigation}: any, props: Props) => {
             </View>
           </View>
           <CheckChangeTable
-            saveorderCheckChangeTable={saveorderCheckChangeTable}
-            select={select}
-            checkSelect={checkSelect}
-            hiddeSelect={(e: any) => (
-              setCheckSelect(undefined), setSelect(undefined)
-            )}
-            checkSaveOrder={checkSaveOrder}
-            setCheckSelect={(e: any) => setCheckSelect(e)}
-            hiddeCheckSelect={(e: any) => setCheckSelect(undefined)}
+            selectionTable={(selectionTable?.orders?.length <= 0 || selectionTable?.orders == null) ? undefined : selectionTable}
+            removeOrderTable={() => {
+              removeOrderTable()
+            }}
+            hiddeSelectTable={() => setSelectionTable(undefined)}
           />
         </View>
       )}
       <ModalBookTable
         bookTable={bookTable}
         hiddenBookTable={() => setBookTable(false)}
+        loading={(e: boolean) => setLoading(e)}
       />
 
       <Modal
         transparent={true}
-        visible={checkBookTable !== undefined ? true : false}
+        style={{ zIndex: 1 }}
+        visible={selectionTable !== undefined ? (selectionTable?.orders?.length <= 0 || selectionTable?.orders == null) ? true : false : false}
         animationType="fade">
         <View
           style={[
             styles.centeredView,
-            {justifyContent: 'center', alignItems: 'center'},
+            { justifyContent: 'center', alignItems: 'center' },
           ]}>
           <Pressable
-            onPress={() => setCheckBookTable(undefined)}
+            onPress={() => setSelectionTable(undefined)}
             style={{
               width: '100%',
               height: '100%',
@@ -389,7 +359,7 @@ const Home = ({navigation}: any, props: Props) => {
                 borderBottomWidth: 1,
                 width: '100%',
               }}>
-              {checkBookTable?.name}
+              {selectionTable?.name}
             </Text>
             <View
               style={{
@@ -404,7 +374,7 @@ const Home = ({navigation}: any, props: Props) => {
                   marginTop: 10,
                 }}>
                 <Text style={styles.listTT}>Tên khách hàng : </Text>
-                <Text style={styles.listTT}>{checkBookTable?.nameUser}</Text>
+                <Text style={styles.listTT}>{selectionTable?.nameUser}</Text>
               </View>
               <View
                 style={{
@@ -414,12 +384,12 @@ const Home = ({navigation}: any, props: Props) => {
                 }}>
                 <Text style={styles.listTT}>Thời gian đến : </Text>
                 <Text style={styles.listTT}>
-                  {checkBookTable?.timeBookTable}
+                  {selectionTable?.timeBookTable}
                 </Text>
               </View>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={styles.listTT}>Số lượng khách hàng : </Text>
-                <Text style={styles.listTT}>{checkBookTable?.amount}</Text>
+                <Text style={styles.listTT}>{selectionTable?.amount}</Text>
               </View>
               <View
                 style={{
@@ -430,9 +400,9 @@ const Home = ({navigation}: any, props: Props) => {
                 <TouchableOpacity
                   onPress={() => {
                     navigation?.navigate('orders', {
-                      table: checkBookTable,
+                      table: selectionTable,
                     });
-                    setCheckBookTable(undefined);
+                    setSelectionTable(undefined);
                   }}
                   style={{
                     width: '70%',
@@ -458,14 +428,14 @@ const Home = ({navigation}: any, props: Props) => {
                   marginTop: 20,
                 }}>
                 <TouchableOpacity
-                  onPress={() => cancelTable()}
+                  onPress={() => removeOrderTable()}
                   style={{
                     width: '70%',
                     borderRadius: 3,
                     backgroundColor: 'red',
                     paddingVertical: 5,
                   }}>
-                  {checkChangeTable == true ? (
+                  {loading == true ? (
                     <ActivityIndicator size={25} color={'#fff'} />
                   ) : (
                     <Text
@@ -579,6 +549,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 18,
     textAlign: 'center',
+  },
+  loading_g: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,.9)',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
   },
 });
 

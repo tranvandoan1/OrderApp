@@ -11,21 +11,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {Size} from '../size';
-import {checkUserAsyncStorage} from '../checkUser';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
+import React, { useEffect, useState } from 'react';
+import { Size } from '../size';
+import { checkUserAsyncStorage } from '../checkUser';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
 import {
   addSaveOrder,
   getAllSaveOrder,
   uploadSaveOrderFind,
 } from './../Features/SaveOrderSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {FlatGrid} from 'react-native-super-grid';
-import {getProductAll} from '../Features/ProductsSlice';
+import { FlatGrid } from 'react-native-super-grid';
+import { getProductAll } from '../Features/ProductsSlice';
 import ModalSelectCate from '../Modal/ModalSelectCate';
-import {addOrderTable, getAllTable} from '../Features/TableSlice';
+import { addOrderTable, getAllTable } from '../Features/TableSlice';
 
 type Props = {
   params: any;
@@ -42,7 +42,6 @@ const ListPro = (props: Props) => {
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const products = useAppSelect((data: any) => data.products.value);
-  const saveorders = useAppSelect((data: any) => data.saveorders.value);
   const tables = useAppSelect((data: any) => data.tables.value);
   const tablesOrder = tables?.find(
     (item: any) => props?.params?.table._id == item._id,
@@ -143,28 +142,27 @@ const ListPro = (props: Props) => {
         // @ts-ignore
         await dispatch(addSaveOrder(newOrder));
         await dispatch(
+          // @ts-ignore
           addOrderTable({
             data:
               tablesOrder?.orders?.length <= 0 ||
-              tablesOrder?.orders == undefined
+                tablesOrder?.orders == undefined
                 ? newOrder
                 : [...tablesOrder?.orders, newOrder],
             id_table: props?.params?.table._id,
-            time_start: `${
-              String(date.getHours()).length == 1
+            time_start: `${String(date.getHours()).length == 1
                 ? `0${date.getHours()}`
                 : date.getHours()
-            }:${
-              String(date.getMinutes()).length == 1
+              }:${String(date.getMinutes()).length == 1
                 ? `0${date.getMinutes()}`
                 : date.getMinutes()
-            }`,
+              }`,
           }),
         );
         props?.showOrder(false);
       } else {
         const newData: any = [];
-        tablesOrder?.orders?.map(itemOrder => {
+        tablesOrder?.orders?.map((itemOrder: any) => {
           if (itemOrder.id == newSaveOrder.id) {
             newData.push({
               ...itemOrder,
@@ -189,28 +187,28 @@ const ListPro = (props: Props) => {
 
   return (
     <>
-      <View style={{width: '100%', flex: 1}}>
+      <View style={{ width: '100%', flex: 1 }}>
         {products.length <= 0 ? (
           <View style={styles.loading}>
             <ActivityIndicator size="large" color={'blue'} />
           </View>
         ) : (
-          <View style={{flex: 1, marginBottom: width < 960 ? 80 : 0}}>
+          <View style={{ flex: 1, marginBottom: width < 960 ? 80 : 0 }}>
             <FlatGrid
               itemDimension={width < 960 ? (width < 960 ? 190 : 220) : 190}
               showsVerticalScrollIndicator={false}
               data={
                 props?.valueCate == undefined ||
-                String(props?.valueCate).length <= 0
+                  String(props?.valueCate).length <= 0
                   ? products
                   : props?.valueCate.pro
               }
-              renderItem={({item, index}: any) => (
+              renderItem={({ item, index }: any) => (
                 <TouchableOpacity
                   key={index}
                   style={[
                     styles.listPro,
-                    {height: width < 960 ? (width < 960 ? 280 : 290) : 230},
+                    { height: width < 960 ? (width < 960 ? 280 : 290) : 230 },
                   ]}
                   onPress={() => selectProduct(item)}>
                   <ImageBackground
@@ -221,11 +219,11 @@ const ListPro = (props: Props) => {
                     style={styles.image}></ImageBackground>
                   <View style={styles.listtt}>
                     <Text
-                      style={[styles.name, {fontSize: width < 960 ? 24 : 18}]}>
+                      style={[styles.name, { fontSize: width < 960 ? 24 : 18 }]}>
                       {item.name}
                     </Text>
                     <Text
-                      style={[styles.price, {fontSize: width < 960 ? 24 : 18}]}>
+                      style={[styles.price, { fontSize: width < 960 ? 24 : 18 }]}>
                       {item.price
                         .toString()
                         .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -257,11 +255,11 @@ const ListPro = (props: Props) => {
             <View
               style={[
                 styles.navigationContainer,
-                {width: width < 720 ? '100%' : '50%'},
+                { width: width < 720 ? '100%' : '50%' },
               ]}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                <View style={{flexDirection: 'column'}}>
+                <View style={{ flexDirection: 'column' }}>
                   <View
                     style={{
                       width: '100%',
@@ -273,7 +271,7 @@ const ListPro = (props: Props) => {
                         String(valueWeight).length <= 0
                           ? styles.inputActive
                           : styles.input,
-                        {fontSize: width < 720 ? 18 : 20},
+                        { fontSize: width < 720 ? 18 : 20 },
                       ]}
                       autoCapitalize="words"
                       onChangeText={e => setValueWeight(e)}

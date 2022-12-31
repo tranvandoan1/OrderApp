@@ -62,14 +62,7 @@ export const removeSaveOrderAll = createAsyncThunk(
     return getAll();
   }
 );
-export const changeTables = createAsyncThunk(
-  "saveorder/changeTables",
-  async (data) => {
-    await changeTable(data);
 
-    return getAll();
-  }
-);
 const saveOrderSlice = createSlice({
   name: "table",
   initialState: {
@@ -99,9 +92,7 @@ const saveOrderSlice = createSlice({
     builder.addCase(uploadSaveOrderFind.fulfilled, (state:any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(changeTables.fulfilled, (state:any, action) => {
-      state.value = action.payload;
-    });
+
   },
 });
 export default saveOrderSlice.reducer;
