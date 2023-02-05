@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Modal,
@@ -11,29 +12,30 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {Size} from '../size';
-import {checkUserAsyncStorage} from '../checkUser';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
+import React, { startTransition, useEffect, useState } from 'react';
+import { Size } from '../Component/size';
+import { checkUserAsyncStorage } from '../Component/checkUser';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
 import {
   addSaveOrder,
   getAllSaveOrder,
   uploadSaveOrderFind,
 } from './../Features/SaveOrderSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {FlatGrid} from 'react-native-super-grid';
-import {getProductAll} from '../Features/ProductsSlice';
+import { FlatGrid } from 'react-native-super-grid';
+import { getProductAll } from '../Features/ProductsSlice';
 import ModalSelectCate from '../Modal/ModalSelectCate';
-import {addOrderTable, getAllTable} from '../Features/TableSlice';
+import { addOrderTable, getAllTable } from '../Features/TableSlice';
 
 type Props = {
   params: any;
-  loading: (e: any) => void;
-  showOrder: (e: any) => void;
   hiddeViewCate: (e: any) => void;
+  order: (e: any) => void;
+  timeStartOrder: (e: any) => void;
   selectModalCate: any;
   valueCate: any;
+  data: any
 };
 const ListPro = (props: Props) => {
   const width = Size().width;
@@ -42,11 +44,11 @@ const ListPro = (props: Props) => {
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const products = useAppSelect((data: any) => data.products.value);
-  const saveorders = useAppSelect((data: any) => data.saveorders.value);
   const tables = useAppSelect((data: any) => data.tables.value);
-  const tablesOrder = tables?.find(
-    (item: any) => props?.params?.table._id == item._id,
-  );
+
+  // const tablesOrder = tables?.find(
+  //   (item: any) => props?.params?.table._id == item._id,
+  // );
   useEffect(() => {
     dispatch(getAllSaveOrder());
     dispatch(getProductAll());
@@ -56,72 +58,74 @@ const ListPro = (props: Props) => {
 
   const [productOrder, setProductOrder] = useState<any>([]); //lấy sản phẩm ko có kg
   const [valueWeight, setValueWeight] = useState<any>(); //lấy số lượng kg
-
   const apply = async () => {
-    const newSaveOrder = tablesOrder?.orders?.find(
+    const time = new Date()
+    const timeStart = `${String(time.getHours()).length == 1
+      ? `0${time.getHours()}`
+      : time.getHours()
+      }:${String(time.getMinutes()).length == 1
+        ? `0${time.getMinutes()}`
+        : time.getMinutes()
+      }`
+    const newSaveOrder = props?.data?.find(
       (item: any) =>
         item.id_pro == productOrder._id && item.weight == valueWeight,
     );
 
-    setValueWeight(undefined);
-    setModalVisible(false);
-    props?.showOrder(true);
-    props.loading(true);
-    if (newSaveOrder !== undefined) {
-      const newData = [];
-      tablesOrder?.orders?.map(itemOrder => {
-        if (itemOrder.id == newSaveOrder.id) {
-          newData.push({
-            ...itemOrder,
-            amount: +newSaveOrder.amount + +1,
-            weight: Number(valueWeight),
-          });
-        } else {
-          newData.push(itemOrder);
-        }
-      });
 
-      await dispatch(
-        addOrderTable({
-          data: newData,
-          id_table: props?.params?.table._id,
-        }),
-      );
+    if (isNaN(valueWeight) == true) {
+      Alert.alert('Cân nặng phải là số !')
     } else {
-      const newOrder = {
-        amount: 1,
-        id_pro: productOrder._id,
-        weight: Number(valueWeight),
-        name: productOrder.name,
-        photo: productOrder.photo,
-        price: productOrder.price,
-        dvt: productOrder.dvt,
-        id: Math.random().toString(36).substring(0, 20),
-      };
-      await dispatch(
-        // @ts-ignore
-        addOrderTable({
-          data:
-            tablesOrder?.orders?.length <= 0 || tablesOrder?.orders == undefined
-              ? newOrder
-              : [...tablesOrder?.orders, newOrder],
-          id_table: props?.params?.table._id,
-        }),
-      );
+      setValueWeight(undefined);
+      setModalVisible(false);
+      if (newSaveOrder !== undefined) {
+        const newData: any = [];
+        props?.data?.map((itemOrder: any) => {
+          if (itemOrder.id == newSaveOrder.id) {
+            newData.push({
+              ...itemOrder,
+              amount: +newSaveOrder.amount + +1,
+              weight: Number(valueWeight),
+            });
+          } else {
+            newData.push(itemOrder);
+          }
+        });
+        props?.order(newData)
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
+      } else {
+        const newOrder = {
+          amount: 1,
+          id_pro: productOrder._id,
+          weight: Number(valueWeight),
+          name: productOrder.name,
+          photo: productOrder.photo,
+          price: productOrder.price,
+          dvt: productOrder.dvt,
+          id: Math.random().toString(36).substring(0, 20),
+        };
+        props?.order([...props?.data, newOrder])
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
+
+      }
     }
-    props?.showOrder(false);
-    props.loading(false);
+
   };
 
   const selectProduct = async (pro: any) => {
-    props.loading(true);
-    const date = new Date();
+    const time = new Date();
+    const timeStart = `${String(time.getHours()).length == 1
+      ? `0${time.getHours()}`
+      : time.getHours()
+      }:${String(time.getMinutes()).length == 1
+        ? `0${time.getMinutes()}`
+        : time.getMinutes()
+      }`
     // lấy ra được sản phẩm vừa chọn
     // kiểm tra xem sp lựa chọn đã tồn lại ở bàn này hay chưa
-    const newSaveOrder = tablesOrder?.orders?.find(
-      item => item.id_pro == pro._id,
+    const newSaveOrder = props?.data?.find(
+      (item: any) => item.id_pro == pro._id,
     );
-
     // th1 nếu mà sp order mà cần có kg
     if (pro.check == true) {
       // nếu sp là sp theo cân thì hiện input nhập cân nặng
@@ -139,32 +143,11 @@ const ListPro = (props: Props) => {
           weight: 0,
           id: Math.random().toString(36).substring(0, 20),
         };
-        props?.showOrder(true);
-        // @ts-ignore
-        await dispatch(addSaveOrder(newOrder));
-        await dispatch(
-          addOrderTable({
-            data:
-              tablesOrder?.orders?.length <= 0 ||
-              tablesOrder?.orders == undefined
-                ? newOrder
-                : [...tablesOrder?.orders, newOrder],
-            id_table: props?.params?.table._id,
-            time_start: `${
-              String(date.getHours()).length == 1
-                ? `0${date.getHours()}`
-                : date.getHours()
-            }:${
-              String(date.getMinutes()).length == 1
-                ? `0${date.getMinutes()}`
-                : date.getMinutes()
-            }`,
-          }),
-        );
-        props?.showOrder(false);
+        props?.order([...props?.data, newOrder])
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
       } else {
         const newData: any = [];
-        tablesOrder?.orders?.map(itemOrder => {
+        props?.data?.map((itemOrder: any) => {
           if (itemOrder.id == newSaveOrder.id) {
             newData.push({
               ...itemOrder,
@@ -174,43 +157,37 @@ const ListPro = (props: Props) => {
             newData.push(itemOrder);
           }
         });
-        props?.showOrder(true);
-        await dispatch(
-          addOrderTable({
-            data: newData,
-            id_table: props?.params?.table._id,
-          }),
-        );
-        props?.showOrder(false);
+        props?.order(newData)
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
+
       }
     }
-    props.loading(false);
   };
 
   return (
     <>
-      <View style={{width: '100%', flex: 1}}>
+      <View style={{ width: '100%', flex: 1 }}>
         {products.length <= 0 ? (
           <View style={styles.loading}>
             <ActivityIndicator size="large" color={'blue'} />
           </View>
         ) : (
-          <View style={{flex: 1, marginBottom: width < 960 ? 80 : 0}}>
+          <View style={{ flex: 1, marginBottom: width < 960 ? 80 : 0 }}>
             <FlatGrid
               itemDimension={width < 960 ? (width < 960 ? 190 : 220) : 190}
               showsVerticalScrollIndicator={false}
               data={
                 props?.valueCate == undefined ||
-                String(props?.valueCate).length <= 0
+                  String(props?.valueCate).length <= 0
                   ? products
                   : props?.valueCate.pro
               }
-              renderItem={({item, index}: any) => (
+              renderItem={({ item, index }: any) => (
                 <TouchableOpacity
                   key={index}
                   style={[
                     styles.listPro,
-                    {height: width < 960 ? (width < 960 ? 280 : 290) : 230},
+                    { height: width < 960 ? (width < 960 ? 280 : 290) : 230 },
                   ]}
                   onPress={() => selectProduct(item)}>
                   <ImageBackground
@@ -221,11 +198,11 @@ const ListPro = (props: Props) => {
                     style={styles.image}></ImageBackground>
                   <View style={styles.listtt}>
                     <Text
-                      style={[styles.name, {fontSize: width < 960 ? 24 : 18}]}>
+                      style={[styles.name, { fontSize: width < 960 ? 24 : 18 }]}>
                       {item.name}
                     </Text>
                     <Text
-                      style={[styles.price, {fontSize: width < 960 ? 24 : 18}]}>
+                      style={[styles.price, { fontSize: width < 960 ? 24 : 18 }]}>
                       {item.price
                         .toString()
                         .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -257,11 +234,11 @@ const ListPro = (props: Props) => {
             <View
               style={[
                 styles.navigationContainer,
-                {width: width < 720 ? '100%' : '50%'},
+                { width: width < 720 ? '100%' : '50%' },
               ]}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                <View style={{flexDirection: 'column'}}>
+                <View style={{ flexDirection: 'column' }}>
                   <View
                     style={{
                       width: '100%',
@@ -273,10 +250,13 @@ const ListPro = (props: Props) => {
                         String(valueWeight).length <= 0
                           ? styles.inputActive
                           : styles.input,
-                        {fontSize: width < 720 ? 18 : 20},
+                        { fontSize: width < 720 ? 18 : 20 },
                       ]}
                       autoCapitalize="words"
-                      onChangeText={e => setValueWeight(e)}
+                      onChangeText={(e: number) => startTransition(() => {
+
+                        setValueWeight(e)
+                      })}
                       defaultValue={valueWeight}
                       placeholder="Cân nặng"
                       keyboardType="number-pad"

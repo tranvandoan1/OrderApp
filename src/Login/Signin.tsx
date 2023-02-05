@@ -17,8 +17,8 @@ import {Avatar, Button} from 'react-native-elements';
 import {Controller, useForm} from 'react-hook-form';
 import UserAPI from '../API/Users';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {checkUserAsyncStorage} from '../checkUser';
-import {Size} from './../size';
+import {checkUserAsyncStorage} from '../Component/checkUser';
+import {Size} from './../Component/size';
 type FormData = {
   email: string;
   password: string;

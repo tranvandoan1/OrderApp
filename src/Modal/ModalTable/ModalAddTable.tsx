@@ -20,7 +20,7 @@ import {
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
 import {addTable, editTable} from '../../Features/TableSlice';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 type Props = {
   dataEdit: any;

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -10,36 +10,41 @@ import {
   ScrollView,
   ToastAndroid,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {Size, SizeScale} from '../../size';
-import {TextInput} from 'react-native-gesture-handler';
-import {AppDispatch, RootState} from '../../App/Store';
-import {
-  editBookTable,
-  editMoveTable,
-  getAllTable,
-} from './../../Features/TableSlice';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { Size, SizeScale } from '../../Component/size';
+import { TextInput } from 'react-native-gesture-handler';
+import { AppDispatch, RootState } from '../../App/Store';
 import {
   changeTables,
-  removeSaveOrderAll,
-  getAllSaveOrder,
-} from '../../Features/SaveOrderSlice';
+  getAllTable,
+} from './../../Features/TableSlice';
+
 type Props = {
-  select: any;
-  checkSelect: any;
-  saveorderCheckChangeTable: any;
-  setCheckSelect: (e: any) => void;
-  hiddeSelect: (e: any) => void;
-  hiddeCheckSelect: (e: any) => void;
-  checkSaveOrder: any;
+  selectionTable: any;
+  removeOrderTable: () => void;
+  hiddeSelectTable: () => void;
+  
 };
 const CheckChangeTable = (props: Props) => {
   const width = Size().width;
   const sizeScale = SizeScale().width;
 
+  const [showListTables, setShowListTables] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectTableWantToMove, setSelectTableWantToMove] = useState<any>();
+  const [showMockUpMoveTable, setShowMockUpMoveTable] = useState<boolean>(false);
+
+  const dispatch = useDispatch<AppDispatch>();
+  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
+  const tables = useAppSelect((data: any) => data.tables.value);
+  useEffect(() => {
+    dispatch(getAllTable());
+  }, []);
+
   // tính tổng tiền
-  const prices = props?.saveorderCheckChangeTable?.map((item: any) => {
+  const prices = props?.selectionTable?.orders?.map((item: any) => {
     if (item.weight) {
       return Math.ceil(+item.price * item.weight * +item.amount);
     } else {
@@ -50,178 +55,39 @@ const CheckChangeTable = (props: Props) => {
   for (var i = 0; i < prices?.length; i++) {
     sum += +prices[i];
   }
-  const [checkSelectTable, setCheckSelectTable] = useState<boolean>(false);
-  const [checkChangeTable, setCheckChangeTable] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [checkDeleteTable, setCheckDeleteTable] = useState<boolean>(false);
-  const [cancelBookTable, setCancelBookTable] = useState<boolean>(false);
-  const [selectTable, setSelectTable] = useState<any>();
-  const saveorders = useSelector((data: any) => data.saveorders.value);
-
-  const dispatch = useDispatch<AppDispatch>();
-  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const tables = useAppSelect((data: any) => data.tables.value);
-  useEffect(() => {
-    dispatch(getAllTable());
-    dispatch(getAllSaveOrder());
-  }, []);
-
-  const tableFilter: any = [];
-  props?.checkSaveOrder.map((item: any) => {
-    tables.map((itemTabe: any) => {
-      if (itemTabe._id == item._id) {
-        if (itemTabe.timeBookTable == 'null' && item.data.length <= 0) {
-          tableFilter.push(itemTabe);
-        }
-      }
-    });
-  });
+  // lấy danh sách bàn còn trống
+  const tableFilter: any = tables?.filter((item: any) => item.timeBookTable == 'null' && (item?.orders?.length <= 0 || item?.orders == null));
   // chuyển bàn
   const save = async () => {
-    const id: any = [];
-    saveorders?.map((itemm: any) => {
-      if (itemm.id_table == props?.select._id) {
-        id.push(itemm._id);
-      }
-    });
-    if (selectTable == undefined) {
-      ToastAndroid.show('Chưa chọn bàn muốn chuyển !', ToastAndroid.SHORT);
+    if (selectTableWantToMove == undefined) {
+      Alert.alert('Chưa chọn bàn muốn chuyển !');
     } else {
-      if (props?.select?.timeBookTable == 'null') {
-        const data = {
-          id: id,
-          id_table: selectTable._id,
-        };
-        setLoading(true);
-        // @ts-ignore
-        await dispatch(changeTables(data));
-        ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
-        props?.hiddeSelect('');
-        setCheckSelectTable(false);
-        setSelectTable(undefined);
-        setCheckChangeTable(false);
-        setLoading(false);
-      } else {
-        const data = {
-          id: id,
-          id_table: selectTable._id,
-        };
-        const uploadTable = {
-          idStart: props.select._id,
-          idEnd: selectTable._id,
-          timeBookTableStart: 'null',
-          amountStart: 0,
-          nameUserStart: '',
-          timeBookTableEnd: props?.select.timeBookTable,
-          amountEnd: props?.select.amount,
-          nameUserEnd: props?.select.nameUser,
-        };
+      setLoading(true);
 
-        setLoading(true);
-        // @ts-ignore
-        await dispatch(changeTables(data));
-        // @ts-ignore
-        await dispatch(editMoveTable(uploadTable));
-        ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
-        props?.hiddeSelect('');
-        setCheckSelectTable(false);
-        setSelectTable(undefined);
-        setCheckChangeTable(false);
-        setLoading(false);
-      }
-    }
-  };
-  // xóa bàn
-  const deleteTable = async () => {
-    const id = props?.saveorderCheckChangeTable?.map((item: any) => {
-      return item._id;
-    });
-    setCheckChangeTable(true);
-
-    // @ts-ignore
-    await dispatch(removeSaveOrderAll(id));
-
-    ToastAndroid.show('Xóa bàn thành công', ToastAndroid.SHORT);
-    props?.hiddeSelect('');
-    setCheckDeleteTable(false);
-    setCheckSelectTable(false);
-    setSelectTable(undefined);
-
-    setCheckChangeTable(false);
-  };
-  // hủy bàn đặt
-  const cancelTable = async () => {
-    setCheckChangeTable(true);
-    if (
-      props?.select?.timeBookTable !== 'null' &&
-      props?.saveorderCheckChangeTable.length <= 0
-    ) {
-      await dispatch(
-        // @ts-ignore
-        editBookTable({
-          id: props?.select?._id,
-          nameUser: '',
-          timeBookTable: 'null',
-          amount: 0,
-        }),
-      );
-    } else {
-      const id = props?.saveorderCheckChangeTable?.map((item: any) => {
-        return item._id;
-      });
-      await dispatch(
-        // @ts-ignore
-        editBookTable({
-          id: props?.select?._id,
-          nameUser: '',
-          timeBookTable: 'null',
-          amount: 0,
-        }),
-      );
+      const uploadTable = {
+        table1: props.selectionTable,
+        table2: selectTableWantToMove._id,
+      };
       // @ts-ignore
-      await dispatch(removeSaveOrderAll(id));
+      await dispatch(changeTables(uploadTable));
+      ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
+      props?.hiddeSelectTable()
+      setSelectTableWantToMove(undefined);
+      setShowMockUpMoveTable(false)
+      setLoading(false);
     }
-
-    ToastAndroid.show(
-      `Hủy bàn ${
-        props?.select?.timeBookTable !== 'null' &&
-        props?.saveorderCheckChangeTable.length <= 0
-          ? 'đặt'
-          : ''
-      } thành công`,
-      ToastAndroid.SHORT,
-    );
-    props?.hiddeSelect('');
-    setCheckDeleteTable(false);
-    setCheckSelectTable(false);
-    setSelectTable(undefined);
-
-    setCheckChangeTable(false);
-    setCancelBookTable(false);
   };
-  const renderFloorTable = () => {
+  const renderTable = () => {
     return (
       <SafeAreaView>
         <ScrollView showsVerticalScrollIndicator={false}>
           {tableFilter?.map((item: any) => {
             return (
               <TouchableOpacity
-                style={{marginTop: 10}}
+                style={{ marginTop: 10 }}
                 onPress={() => {
-                  // checkSelectTable == 1
-                  //   ? (setCheckSelectTable(3),
-                  //     setIdFloorTable({
-                  //       floor_id: item,
-                  //       table_id:
-                  //         idFloorTable?.table_id == null
-                  //           ? null
-                  //           : idFloorTable?.table_id,
-                  //     }))
-                  //   : (setCheckSelectTable(3),
-                  setSelectTable(item);
-                  setCheckSelectTable(false);
-                  // )
-                  // console.log('first')
+                  setSelectTableWantToMove(item);
+                  setShowListTables(false);
                 }}>
                 <Text
                   style={{
@@ -241,10 +107,10 @@ const CheckChangeTable = (props: Props) => {
 
   return (
     <>
-      {props?.select !== undefined && (
+      {props?.selectionTable !== undefined && (
         <View style={styles.checkChange}>
           <Pressable
-            onPress={() => props.hiddeSelect(undefined)}
+            onPress={() => props.hiddeSelectTable()}
             style={{
               width: '100%',
               height: '100%',
@@ -272,9 +138,9 @@ const CheckChangeTable = (props: Props) => {
                 fontWeight: '500',
                 borderBottomWidth: 1,
               }}>
-              {props?.select?.name}
+              {props?.selectionTable?.name}
             </Text>
-            <TouchableOpacity onPress={() => props.setCheckSelect(1)}>
+            <TouchableOpacity onPress={() => setShowMockUpMoveTable(true)}>
               <Text
                 style={{
                   color: 'black',
@@ -286,7 +152,7 @@ const CheckChangeTable = (props: Props) => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => setCancelBookTable(true)}>
+            <TouchableOpacity onPress={() => props?.removeOrderTable()}>
               <Text
                 style={{
                   color: 'black',
@@ -295,10 +161,7 @@ const CheckChangeTable = (props: Props) => {
                   marginVertical: 10,
                   fontWeight: '500',
                 }}>
-                {props?.select?.timeBookTable !== 'null' &&
-                props?.saveorderCheckChangeTable.length <= 0
-                  ? ' Hủy bàn đặt'
-                  : 'Hủy bàn'}
+                Hủy bàn
               </Text>
             </TouchableOpacity>
           </View>
@@ -307,11 +170,11 @@ const CheckChangeTable = (props: Props) => {
       {/* Chuyển bàn */}
       <Modal
         transparent={true}
-        visible={props.checkSelect == undefined ? false : true}
+        visible={showMockUpMoveTable}
         animationType="slide">
         <View style={styles.centeredView}>
           <Pressable
-            onPress={() => props.hiddeCheckSelect(undefined)}
+            onPress={() => setShowMockUpMoveTable(false)}
             style={{
               width: '100%',
               height: '100%',
@@ -346,7 +209,7 @@ const CheckChangeTable = (props: Props) => {
                 paddingBottom: sizeScale * 20,
                 marginBottom: sizeScale * 20,
               }}>
-              Chuyển {props?.select?.name}
+              Chuyển {props?.selectionTable?.name}
             </Text>
             <View
               style={{
@@ -355,7 +218,7 @@ const CheckChangeTable = (props: Props) => {
                 alignItems: 'center',
                 paddingHorizontal: 50,
               }}>
-              {props?.select?.timeBookTable !== 'null' && (
+              {props?.selectionTable?.timeBookTable !== 'null' && (
                 <React.Fragment>
                   <View
                     style={[
@@ -380,7 +243,7 @@ const CheckChangeTable = (props: Props) => {
                         fontWeight: '500',
                         fontSize: 18,
                       }}>
-                      {props?.select?.nameUser}
+                      {props?.selectionTable?.nameUser}
                     </Text>
                   </View>
                   <View
@@ -406,7 +269,7 @@ const CheckChangeTable = (props: Props) => {
                         fontWeight: '500',
                         fontSize: 18,
                       }}>
-                      {props?.select?.timeBookTable}
+                      {props?.selectionTable?.timeBookTable}
                     </Text>
                   </View>
                 </React.Fragment>
@@ -425,7 +288,7 @@ const CheckChangeTable = (props: Props) => {
                     fontSize: 20,
                     fontWeight: '500',
                   }}>
-                  {props?.select?.name} :
+                  {props?.selectionTable?.name} :
                 </Text>
                 <Text
                   style={{
@@ -434,7 +297,7 @@ const CheckChangeTable = (props: Props) => {
                     fontWeight: '500',
                     fontSize: 18,
                   }}>
-                  {props?.saveorderCheckChangeTable?.length} sản phẩm
+                  {props?.selectionTable?.orders?.length} món ăn
                 </Text>
               </View>
               <View
@@ -488,17 +351,17 @@ const CheckChangeTable = (props: Props) => {
                   paddingHorizontal: sizeScale * 10,
                 }}>
                 <TouchableOpacity
-                  style={styles.floorTable}
-                  onPress={() => setCheckSelectTable(!checkSelectTable)}>
+                  style={styles.table}
+                  onPress={() => setShowListTables(!showListTables)}>
                   <TextInput
                     selectTextOnFocus={false}
                     editable={false}
-                    value={selectTable == null ? '' : selectTable?.name}
+                    value={selectTableWantToMove == null ? '' : selectTableWantToMove?.name}
                     style={styles.input}
                     placeholder="Chọn bàn"
                   />
                 </TouchableOpacity>
-                {checkSelectTable == true && (
+                {showListTables == true && (
                   <View
                     style={[
                       {
@@ -515,7 +378,7 @@ const CheckChangeTable = (props: Props) => {
                         left: sizeScale * 10,
                       },
                     ]}>
-                    {renderFloorTable()}
+                    {renderTable()}
                   </View>
                 )}
               </View>
@@ -555,7 +418,7 @@ const CheckChangeTable = (props: Props) => {
                   borderRadius: 5,
                   marginTop: 10,
                 }}
-                onPress={() => props?.hiddeSelect('')}>
+                onPress={() => setShowMockUpMoveTable(false)}>
                 {loading == true ? (
                   <ActivityIndicator size={25} color={'#fff'} />
                 ) : (
@@ -570,198 +433,6 @@ const CheckChangeTable = (props: Props) => {
                   </Text>
                 )}
               </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-      {/* hủy bàn */}
-      <Modal
-        transparent={true}
-        visible={checkDeleteTable}
-        animationType="slide">
-        <View
-          style={[
-            styles.centeredView,
-            {flexDirection: 'column', justifyContent: 'flex-end'},
-          ]}>
-          <Pressable
-            onPress={() => setCheckDeleteTable(false)}
-            style={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }}></Pressable>
-          <View
-            style={[
-              {
-                backgroundColor: '#fff',
-                paddingVertical: 10,
-                borderRadius: 2,
-                width: '100%',
-                borderTopLeftRadius: 3,
-                borderTopRightRadius: 3,
-              },
-            ]}>
-            <View>
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontSize: 18,
-                  fontWeight: '500',
-                  color: 'red',
-                }}>
-                Bạn có muốn xóa {props?.select?.name} không ?
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: 20,
-                }}>
-                <TouchableOpacity
-                  onPress={() => setCheckDeleteTable(false)}
-                  style={{
-                    backgroundColor: 'blue',
-                    borderRadius: 3,
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    marginRight: 10,
-                  }}>
-                  {checkChangeTable == true ? (
-                    <ActivityIndicator size={25} color={'#fff'} />
-                  ) : (
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontWeight: '500',
-                        color: '#fff',
-                      }}>
-                      Hủy
-                    </Text>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => deleteTable()}
-                  style={{
-                    backgroundColor: 'red',
-                    borderRadius: 3,
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    marginLeft: 10,
-                  }}>
-                  {checkChangeTable == true ? (
-                    <ActivityIndicator size={25} color={'#fff'} />
-                  ) : (
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontWeight: '500',
-                        color: '#fff',
-                      }}>
-                      Xóa
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
-      <Modal transparent={true} visible={cancelBookTable} animationType="slide">
-        <View
-          style={[
-            styles.centeredView,
-            {flexDirection: 'column', justifyContent: 'flex-end'},
-          ]}>
-          <Pressable
-            onPress={() => setCancelBookTable(false)}
-            style={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }}></Pressable>
-          <View
-            style={[
-              {
-                backgroundColor: '#fff',
-                paddingVertical: 10,
-                borderRadius: 2,
-                width: '100%',
-                borderTopLeftRadius: 3,
-                borderTopRightRadius: 3,
-              },
-            ]}>
-            <View>
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontSize: 18,
-                  fontWeight: '500',
-                  color: 'red',
-                }}>
-                Bạn có hủy bàn đặt này không ?
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: 20,
-                }}>
-                <TouchableOpacity
-                  onPress={() => setCancelBookTable(false)}
-                  style={{
-                    backgroundColor: 'blue',
-                    borderRadius: 3,
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    marginRight: 10,
-                  }}>
-                  {checkChangeTable == true ? (
-                    <ActivityIndicator size={25} color={'#fff'} />
-                  ) : (
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontWeight: '500',
-                        color: '#fff',
-                      }}>
-                      Đóng
-                    </Text>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => cancelTable()}
-                  style={{
-                    backgroundColor: 'red',
-                    borderRadius: 3,
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    marginLeft: 10,
-                  }}>
-                  {checkChangeTable == true ? (
-                    <ActivityIndicator size={25} color={'#fff'} />
-                  ) : (
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontWeight: '500',
-                        color: '#fff',
-                      }}>
-                      Hủy
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
             </View>
           </View>
         </View>
@@ -805,23 +476,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
-  floorTable: {
+  table: {
     borderWidth: 1,
     borderColor: '#0099FF',
     width: '100%',
     color: 'black',
     borderRadius: 5,
     textAlign: 'center',
-  },
-  selectFloor: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 100,
   },
   loading: {
     position: 'absolute',

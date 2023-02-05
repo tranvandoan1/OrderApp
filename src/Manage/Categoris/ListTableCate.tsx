@@ -11,7 +11,7 @@ import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
 import {getAll} from '../../Features/CateSlice';
 import ModalDelete from './../../Modal/ModalCategoris/ModalDelete';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 import {FlatGrid} from 'react-native-super-grid';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 type Props = {
