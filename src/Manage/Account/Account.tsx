@@ -9,7 +9,7 @@ import {
 import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 import AccountInfo from './AccountInfo';
 const Account = ({navigation}: any) => {
   const width = Size()?.width;

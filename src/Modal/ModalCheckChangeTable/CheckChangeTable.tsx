@@ -13,7 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { Size, SizeScale } from '../../size';
+import { Size, SizeScale } from '../../Component/size';
 import { TextInput } from 'react-native-gesture-handler';
 import { AppDispatch, RootState } from '../../App/Store';
 import {

@@ -9,7 +9,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 import {FlatGrid} from 'react-native-super-grid';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import { getAllTable } from '../../Features/TableSlice';

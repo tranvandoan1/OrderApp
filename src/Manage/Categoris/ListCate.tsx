@@ -10,7 +10,7 @@ import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ListTableCate from './ListTableCate';
 import ModalAddCategoris from '../../Modal/ModalCategoris/ModalAddCategoris';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 const ListCate = ({navigation}: any) => {
   const width = Size()?.width;
   const [checkSearch, setCheckSearch] = useState<any>(false);

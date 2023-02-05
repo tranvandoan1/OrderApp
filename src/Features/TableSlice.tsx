@@ -15,7 +15,6 @@ async function tableAll() {
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
   const dataTable = [];
-  const newData = [];
   for (let i = 0; i < tables.length; i++) {
     if (tables[i].user_id == user.data._id) {
       tables[i].name = tables[i].name.replace(/[^0-9]/g, '');
@@ -31,10 +30,9 @@ async function tableAll() {
     dataTable[i].name = `Bàn ${dataTable[i].name}`;
     dataTable[i].orders =
       dataTable[i].orders == null ? null : JSON.parse(dataTable[i].orders);
-    newData.push(dataTable[i]);
   }
 
-  return newData;
+  return dataTable;
 }
 export const getAllTable = createAsyncThunk('table/getAllTable', async () => {
   return tableAll();

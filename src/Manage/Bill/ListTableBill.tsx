@@ -6,89 +6,63 @@ import {
   ActivityIndicator,
   SafeAreaView,
   ScrollView,
-  TextInput,
   Modal,
   Pressable,
+  ToastAndroid,
+  FlatList,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../../App/Store';
-import {Size} from '../../size';
-import {getAllOrder, removeOrder} from './../../Features/OrderSlice';
-import moment from 'moment';
+import React, { useEffect, useState } from 'react';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../App/Store';
+import { Size } from '../../Component/size';
+import { getAllOrder, removeOrder } from './../../Features/OrderSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {Avatar} from 'react-native-elements';
+import { Avatar } from 'react-native-elements';
 
 import {
   Table,
   Row,
-  Rows,
   TableWrapper,
   Cell,
 } from 'react-native-table-component';
-import ModalSelectDate from '../../Modal/ModalSelectDate';
 type Props = {
-  onClickAddDataEdit: (e: any) => void;
-  onClickOpenModal: () => void;
+  orderToDay: any
 };
 const ListTableCate = (props: Props) => {
   const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
-  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const orders = useAppSelect((data: any) => data.orders.value);
   const [order, setOrder] = useState<any>([]);
   const [deleteOrder, setDeleteOrder] = useState<any>();
   const [modalVisible, setModalVisible] = useState(false);
   const [check, setCheck] = useState<Boolean>(false);
+  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
+  const orders = useAppSelect((data: any) => data.orders.value);
   useEffect(() => {
-    dispatch(getAllOrder());
-  }, []);
-
-  const [date, setDate] = useState<any>({
-    date:
-      String(moment().date()).length == 1
-        ? `0${moment().date()}`
-        : moment().date(),
-    month:
-      String(moment().month() + 1).length == 1
-        ? `0${moment().month() + 1}`
-        : moment().month() + 1,
-    year: moment().year(),
-  });
-  const [selectDate, setSelectDate] = useState<boolean>(false);
-  const orderToDay: any = [];
-  if (orders.length >= 1) {
-    orders?.filter((item: any) => {
-      const time = new Date(item.createdAt);
-      if (
-        time.getFullYear() == date.year &&
-        time.getMonth() + 1 == date.month &&
-        time.getDate() == date.date
-      ) {
-        orderToDay.push(item);
-      }
-    });
-  }
-
+    dispatch(getAllOrder())
+  }, [])
+  useEffect(() => {
+    setOrder([])
+  }, [props?.orderToDay])
   const tableData: any = [];
   order?.orders?.filter((item: any, index: any) => {
     tableData.push([
-      item.weight > 0 ? `${item.name_pro} (${item.weight}kg)` : item.name_pro,
+      item.weight > 0 ? `${item.name} (${item.weight}kg)` : item.name,
       item.amount,
       item.dvt,
     ]);
   });
-
   const delelteOrder = async () => {
     setCheck(true);
-    await dispatch(removeOrder(deleteOrder));
+    // @ts-ignore
+    await dispatch(removeOrder({ id: deleteOrder }));
     setDeleteOrder(undefined);
     setCheck(false);
     setModalVisible(false);
     setOrder([]);
+    ToastAndroid.show(`Xóa thành công`, ToastAndroid.SHORT);
   };
   return (
-    <View style={{flex: 1, backgroundColor: '#fff', position: 'relative'}}>
+    <View style={{ flex: 1, backgroundColor: '#fff', position: 'relative' }}>
       {orders.length <= 0 ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'blue'} />
@@ -100,38 +74,13 @@ const ListTableCate = (props: Props) => {
             justifyContent: 'space-between',
             flex: 1,
           }}>
-          <View style={{width: '40%'}}>
-            <View style={{flex: 1}}>
-              <View style={styles.header}>
-                <Text style={styles.title}>
-                  {date.date == moment().date() &&
-                  date.month == moment().month() + 1 &&
-                  date.year == moment().year()
-                    ? 'Hôm nay'
-                    : `Ngày ${date.date}/${date.month}/${date.year}`}
-                </Text>
-                <TouchableOpacity onPress={() => setSelectDate(true)}>
-                  <TextInput
-                    selectTextOnFocus={false}
-                    editable={false}
-                    defaultValue={`${date.date}/${date.month}/${date.year}`}
-                    style={{
-                      color: '#fff',
-                      borderColor: '#fff',
-                      borderWidth: 1,
-                      borderRadius: 2,
-                      paddingHorizontal: 10,
-                      paddingVertical: 0,
-                      margin: 0,
-                      fontWeight: '500',
-                    }}
-                  />
-                </TouchableOpacity>
-              </View>
+          <View style={{ width: '40%' }}>
+            <View style={{ flex: 1 }}>
+
               <SafeAreaView>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                  <View style={{flexDirection: 'column', padding: 5}}>
-                    {orderToDay?.length <= 0 ? (
+                  <View style={{ flexDirection: 'column', padding: 5 }}>
+                    {props?.orderToDay?.length <= 0 ? (
                       <Text
                         style={{
                           textAlign: 'center',
@@ -142,10 +91,12 @@ const ListTableCate = (props: Props) => {
                         Chưa có hóa đơn
                       </Text>
                     ) : (
-                      orderToDay
-                        ?.slice()
-                        .reverse()
-                        .map((item: any, index: any) => {
+                      <FlatList
+                        showsVerticalScrollIndicator={false}
+                        data={props?.orderToDay
+                          ?.slice()
+                          .reverse()}
+                        renderItem={({ item, index }) => {
                           const time = new Date(item.createdAt);
                           return (
                             <TouchableOpacity
@@ -159,7 +110,7 @@ const ListTableCate = (props: Props) => {
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
                                 backgroundColor:
-                                  item._id == order?._id ? '#009900' : '#fff',
+                                  item._id == order?._id ? 'blue' : '#fff',
                                 borderColor: '#BBBBBB',
                                 borderWidth: 1,
                                 alignItems: 'center',
@@ -187,7 +138,11 @@ const ListTableCate = (props: Props) => {
                               />
                             </TouchableOpacity>
                           );
-                        })
+                        }}
+                        keyExtractor={(item: any) => item._id}
+                      />
+
+
                     )}
                   </View>
                 </ScrollView>
@@ -232,7 +187,7 @@ const ListTableCate = (props: Props) => {
             ) : (
               <SafeAreaView>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                  <View style={{flex: 1}}>
+                  <View style={{ flex: 1 }}>
                     <Text
                       style={{
                         textAlign: 'center',
@@ -255,9 +210,9 @@ const ListTableCate = (props: Props) => {
                             color: 'black',
                             marginBottom: 10,
                           }}>
-                          Giờ vào :
-                          <Text style={{textTransform: 'capitalize'}}>
-                            {order?.start_time}
+                          Giờ vào :{' '}
+                          <Text style={{ textTransform: 'capitalize' }}>
+                            {order?.start_time == null ? 'Trống' : order?.start_time}
                           </Text>
                         </Text>
                         <Text
@@ -267,7 +222,7 @@ const ListTableCate = (props: Props) => {
                             marginBottom: 10,
                           }}>
                           Giờ ra :
-                          <Text style={{textTransform: 'capitalize'}}>
+                          <Text style={{ textTransform: 'capitalize' }}>
                             {order?.end_time}
                           </Text>
                         </Text>
@@ -279,7 +234,7 @@ const ListTableCate = (props: Props) => {
                           marginBottom: 10,
                         }}>
                         Người bán hàng :
-                        <Text style={{textTransform: 'capitalize'}}>
+                        <Text style={{ textTransform: 'capitalize' }}>
                           {' '}
                           {order?.seller_name}
                         </Text>
@@ -297,7 +252,7 @@ const ListTableCate = (props: Props) => {
                         style={styles.head}
                         textStyle={[
                           styles.text,
-                          {fontSize: 18, fontWeight: '600'},
+                          { fontSize: 18, fontWeight: '600' },
                         ]}
                         flexArr={[5, 1.5, 1.5, 3, 3]}
                       />
@@ -309,22 +264,22 @@ const ListTableCate = (props: Props) => {
                               data={cellData}
                               textStyle={[
                                 styles.text,
-                                {textTransform: 'capitalize', fontSize: 16},
+                                { textTransform: 'capitalize', fontSize: 16 },
                               ]}
                               style={{
                                 width:
                                   cellIndex == 0
                                     ? '62.4%'
                                     : cellIndex == 1
-                                    ? '18.70%'
-                                    : '18.9%',
+                                      ? '18.70%'
+                                      : '18.9%',
                               }}
                             />
                           ))}
                         </TableWrapper>
                       ))}
                     </Table>
-                    <View style={{marginTop: 20}}>
+                    <View style={{ marginTop: 20 }}>
                       <Text
                         style={{
                           fontSize: 18,
@@ -332,8 +287,8 @@ const ListTableCate = (props: Props) => {
                           textAlign: 'right',
                         }}>
                         Tổng tiền :{' '}
-                        <Text style={{color: 'red', fontWeight: '500'}}>
-                          {(order?.price == undefined ? 0 : order?.price)
+                        <Text style={{ color: 'red', fontWeight: '500' }}>
+                          {(order?.sumPrice)
                             .toString()
                             .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                           đ
@@ -346,7 +301,7 @@ const ListTableCate = (props: Props) => {
                           textAlign: 'right',
                         }}>
                         Khuyến mãi :{' '}
-                        <Text style={{color: 'red', fontWeight: '500'}}>
+                        <Text style={{ color: 'red', fontWeight: '500' }}>
                           {order?.sale}%
                         </Text>
                       </Text>
@@ -365,11 +320,11 @@ const ListTableCate = (props: Props) => {
                         fontWeight: '500',
                       }}>
                       Tổng tiền thanh toán :{' '}
-                      <Text style={{fontSize: 20, color: 'red'}}>
+                      <Text style={{ fontSize: 20, color: 'red' }}>
                         {' '}
                         {Math.ceil(
-                          (order?.price == undefined ? 0 : order?.price) *
-                            ((100 - order?.sale) / 100),
+                          (order?.sumPrice) *
+                          ((100 - order?.sale) / 100),
                         )
                           .toString()
                           .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -402,7 +357,7 @@ const ListTableCate = (props: Props) => {
                 justifyContent: 'center',
               }}>
               <Pressable
-                style={[styles.button, styles.buttonClose, {marginRight: 30}]}
+                style={[styles.button, styles.buttonClose, { marginRight: 30 }]}
                 onPress={() => setModalVisible(!modalVisible)}>
                 {/* <Text style={styles.textStyle}>Hủy</Text> */}
                 {check == true ? (
@@ -425,14 +380,7 @@ const ListTableCate = (props: Props) => {
           </View>
         </View>
       </Modal>
-      <ModalSelectDate
-        selectDate={selectDate}
-        hiddenSelectDate={(e: any) =>
-          String(e).length >= 1
-            ? (setDate(e), setSelectDate(false))
-            : setSelectDate(false)
-        }
-      />
+
     </View>
   );
 };
@@ -454,21 +402,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  title: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '500',
-  },
+
   time: {
     fontSize: 18,
     fontWeight: '400',
     padding: 10,
   },
-  head: {height: 40},
-  text: {margin: 6, color: 'black', textAlign: 'center'},
-  row: {flexDirection: 'row', backgroundColor: '#fff'},
-  btn: {width: 58, height: 18, backgroundColor: '#78B7BB', borderRadius: 2},
-  btnText: {textAlign: 'center', color: '#fff'},
+  head: { height: 40 },
+  text: { margin: 6, color: 'black', textAlign: 'center' },
+  row: { flexDirection: 'row', backgroundColor: '#fff' },
+  btn: { width: 58, height: 18, backgroundColor: '#78B7BB', borderRadius: 2 },
+  btnText: { textAlign: 'center', color: '#fff' },
   centeredView: {
     backgroundColor: 'rgba(0, 0, 0, .5)',
     position: 'absolute',

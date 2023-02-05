@@ -1,6 +1,9 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "java.compile.nullAnalysis.mode": "automatic",
     "diffEditor.wordWrap": "on",
-    "editor.wordWrap": "on"
+    "editor.wordWrap": "on",
+    "editor.tokenColorCustomizations": {
+    
+    }
 }

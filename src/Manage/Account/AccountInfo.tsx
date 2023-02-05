@@ -10,17 +10,17 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../../App/Store';
+import React, { useEffect, useState } from 'react';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../App/Store';
 
-import {Size} from '../../size';
-import {Avatar} from 'react-native-elements';
-import {checkUserAsyncStorage} from '../../checkUser';
+import { Size } from '../../Component/size';
+import { Avatar } from 'react-native-elements';
+import { checkUserAsyncStorage } from '../../Component/checkUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = {
-  logout:()=>void
+  logout: () => void
 };
 const AccountInfo = (props: Props) => {
   const width = Size()?.width;
@@ -59,7 +59,7 @@ const AccountInfo = (props: Props) => {
             <View style={styles.centeredView}>
               <TouchableWithoutFeedback
                 onPress={() => setModalVisible(!modalVisible)}>
-                <View style={{flex: 1, width: '100%'}}></View>
+                <View style={{ flex: 1, width: '100%' }}></View>
               </TouchableWithoutFeedback>
               <View style={styles.modalView}>
                 <Text style={styles.modalText}>
@@ -75,7 +75,7 @@ const AccountInfo = (props: Props) => {
                     style={[
                       styles.button,
                       styles.buttonClose,
-                      {marginRight: 30},
+                      { marginRight: 30 },
                     ]}
                     onPress={() => setModalVisible(!modalVisible)}>
                     <Text style={styles.textStyle}>Hủy</Text>
@@ -116,7 +116,7 @@ const AccountInfo = (props: Props) => {
                   <Avatar
                     rounded
                     source={{
-                      uri: `https://123design.org/wp-content/uploads/2020/07/LOGOLM0200-Chibi-%C4%90%E1%BB%87-nh%E1%BA%A5t-%C4%91%E1%BA%A7u-b%E1%BA%BFp-nh%C3%AD-Vua-%C4%91%E1%BA%A7u-b%E1%BA%BFp.jpg`,
+                      uri: `${checkUserStorage?.data?.avatarRestaurant}`,
                     }}
                     size={120}
                   />
@@ -127,8 +127,9 @@ const AccountInfo = (props: Props) => {
                     color: '#fff',
                     fontSize: width < 720 ? 18 : 23,
                     fontWeight: '500',
+                    textTransform:'capitalize'
                   }}>
-                  BOM BOM
+                  {checkUserStorage?.data?.nameRestaurant}
                 </Text>
                 <TouchableOpacity
                   style={{
@@ -149,8 +150,8 @@ const AccountInfo = (props: Props) => {
               </View>
             </View>
 
-            <View style={{marginTop: 10}}>
-              <View style={{flexDirection: 'row'}}>
+            <View style={{ marginTop: 10 }}>
+              <View style={{ flexDirection: 'row' }}>
                 <View
                   style={{
                     flexDirection: 'column',
@@ -177,7 +178,7 @@ const AccountInfo = (props: Props) => {
                       marginTop: 10,
                     }}>
                     <Text
-                      style={{color: 'black', fontWeight: '400', fontSize: 16}}>
+                      style={{ color: 'black', fontWeight: '400', fontSize: 16 }}>
                       Chọn ảnh
                     </Text>
                   </TouchableOpacity>
@@ -231,7 +232,7 @@ const AccountInfo = (props: Props) => {
                 marginTop: 70,
               }}
               onPress={() => setModalVisible(true)}>
-              <Text style={{color: '#fff', fontSize: 20, textAlign: 'center'}}>
+              <Text style={{ color: '#fff', fontSize: 20, textAlign: 'center' }}>
                 Đăng xuất
               </Text>
             </TouchableOpacity>

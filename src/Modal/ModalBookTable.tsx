@@ -17,7 +17,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../App/Store';
 import { editBookTable, getAllTable } from '../Features/TableSlice';
 import { Controller, useForm } from 'react-hook-form';
-import { validatePhone } from '../../Validate';
+import { validatePhone } from '../Component/Validate';
 
 type Props = {
   bookTable: any;

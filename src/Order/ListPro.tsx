@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Modal,
@@ -11,9 +12,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { Size } from '../size';
-import { checkUserAsyncStorage } from '../checkUser';
+import React, { startTransition, useEffect, useState } from 'react';
+import { Size } from '../Component/size';
+import { checkUserAsyncStorage } from '../Component/checkUser';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../App/Store';
 import {
@@ -29,11 +30,12 @@ import { addOrderTable, getAllTable } from '../Features/TableSlice';
 
 type Props = {
   params: any;
-  loading: (e: any) => void;
-  showOrder: (e: any) => void;
   hiddeViewCate: (e: any) => void;
+  order: (e: any) => void;
+  timeStartOrder: (e: any) => void;
   selectModalCate: any;
   valueCate: any;
+  data: any
 };
 const ListPro = (props: Props) => {
   const width = Size().width;
@@ -43,9 +45,10 @@ const ListPro = (props: Props) => {
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const products = useAppSelect((data: any) => data.products.value);
   const tables = useAppSelect((data: any) => data.tables.value);
-  const tablesOrder = tables?.find(
-    (item: any) => props?.params?.table._id == item._id,
-  );
+
+  // const tablesOrder = tables?.find(
+  //   (item: any) => props?.params?.table._id == item._id,
+  // );
   useEffect(() => {
     dispatch(getAllSaveOrder());
     dispatch(getProductAll());
@@ -55,72 +58,74 @@ const ListPro = (props: Props) => {
 
   const [productOrder, setProductOrder] = useState<any>([]); //lấy sản phẩm ko có kg
   const [valueWeight, setValueWeight] = useState<any>(); //lấy số lượng kg
-
   const apply = async () => {
-    const newSaveOrder = tablesOrder?.orders?.find(
+    const time = new Date()
+    const timeStart = `${String(time.getHours()).length == 1
+      ? `0${time.getHours()}`
+      : time.getHours()
+      }:${String(time.getMinutes()).length == 1
+        ? `0${time.getMinutes()}`
+        : time.getMinutes()
+      }`
+    const newSaveOrder = props?.data?.find(
       (item: any) =>
         item.id_pro == productOrder._id && item.weight == valueWeight,
     );
 
-    setValueWeight(undefined);
-    setModalVisible(false);
-    props?.showOrder(true);
-    props.loading(true);
-    if (newSaveOrder !== undefined) {
-      const newData = [];
-      tablesOrder?.orders?.map(itemOrder => {
-        if (itemOrder.id == newSaveOrder.id) {
-          newData.push({
-            ...itemOrder,
-            amount: +newSaveOrder.amount + +1,
-            weight: Number(valueWeight),
-          });
-        } else {
-          newData.push(itemOrder);
-        }
-      });
 
-      await dispatch(
-        addOrderTable({
-          data: newData,
-          id_table: props?.params?.table._id,
-        }),
-      );
+    if (isNaN(valueWeight) == true) {
+      Alert.alert('Cân nặng phải là số !')
     } else {
-      const newOrder = {
-        amount: 1,
-        id_pro: productOrder._id,
-        weight: Number(valueWeight),
-        name: productOrder.name,
-        photo: productOrder.photo,
-        price: productOrder.price,
-        dvt: productOrder.dvt,
-        id: Math.random().toString(36).substring(0, 20),
-      };
-      await dispatch(
-        // @ts-ignore
-        addOrderTable({
-          data:
-            tablesOrder?.orders?.length <= 0 || tablesOrder?.orders == undefined
-              ? newOrder
-              : [...tablesOrder?.orders, newOrder],
-          id_table: props?.params?.table._id,
-        }),
-      );
+      setValueWeight(undefined);
+      setModalVisible(false);
+      if (newSaveOrder !== undefined) {
+        const newData: any = [];
+        props?.data?.map((itemOrder: any) => {
+          if (itemOrder.id == newSaveOrder.id) {
+            newData.push({
+              ...itemOrder,
+              amount: +newSaveOrder.amount + +1,
+              weight: Number(valueWeight),
+            });
+          } else {
+            newData.push(itemOrder);
+          }
+        });
+        props?.order(newData)
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
+      } else {
+        const newOrder = {
+          amount: 1,
+          id_pro: productOrder._id,
+          weight: Number(valueWeight),
+          name: productOrder.name,
+          photo: productOrder.photo,
+          price: productOrder.price,
+          dvt: productOrder.dvt,
+          id: Math.random().toString(36).substring(0, 20),
+        };
+        props?.order([...props?.data, newOrder])
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
+
+      }
     }
-    props?.showOrder(false);
-    props.loading(false);
+
   };
 
   const selectProduct = async (pro: any) => {
-    props.loading(true);
-    const date = new Date();
+    const time = new Date();
+    const timeStart = `${String(time.getHours()).length == 1
+      ? `0${time.getHours()}`
+      : time.getHours()
+      }:${String(time.getMinutes()).length == 1
+        ? `0${time.getMinutes()}`
+        : time.getMinutes()
+      }`
     // lấy ra được sản phẩm vừa chọn
     // kiểm tra xem sp lựa chọn đã tồn lại ở bàn này hay chưa
-    const newSaveOrder = tablesOrder?.orders?.find(
-      item => item.id_pro == pro._id,
+    const newSaveOrder = props?.data?.find(
+      (item: any) => item.id_pro == pro._id,
     );
-
     // th1 nếu mà sp order mà cần có kg
     if (pro.check == true) {
       // nếu sp là sp theo cân thì hiện input nhập cân nặng
@@ -138,31 +143,11 @@ const ListPro = (props: Props) => {
           weight: 0,
           id: Math.random().toString(36).substring(0, 20),
         };
-        props?.showOrder(true);
-        // @ts-ignore
-        await dispatch(addSaveOrder(newOrder));
-        await dispatch(
-          // @ts-ignore
-          addOrderTable({
-            data:
-              tablesOrder?.orders?.length <= 0 ||
-                tablesOrder?.orders == undefined
-                ? newOrder
-                : [...tablesOrder?.orders, newOrder],
-            id_table: props?.params?.table._id,
-            time_start: `${String(date.getHours()).length == 1
-                ? `0${date.getHours()}`
-                : date.getHours()
-              }:${String(date.getMinutes()).length == 1
-                ? `0${date.getMinutes()}`
-                : date.getMinutes()
-              }`,
-          }),
-        );
-        props?.showOrder(false);
+        props?.order([...props?.data, newOrder])
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
       } else {
         const newData: any = [];
-        tablesOrder?.orders?.map((itemOrder: any) => {
+        props?.data?.map((itemOrder: any) => {
           if (itemOrder.id == newSaveOrder.id) {
             newData.push({
               ...itemOrder,
@@ -172,17 +157,11 @@ const ListPro = (props: Props) => {
             newData.push(itemOrder);
           }
         });
-        props?.showOrder(true);
-        await dispatch(
-          addOrderTable({
-            data: newData,
-            id_table: props?.params?.table._id,
-          }),
-        );
-        props?.showOrder(false);
+        props?.order(newData)
+        props?.data.length <= 0 && props?.timeStartOrder(timeStart)
+
       }
     }
-    props.loading(false);
   };
 
   return (
@@ -274,7 +253,10 @@ const ListPro = (props: Props) => {
                         { fontSize: width < 720 ? 18 : 20 },
                       ]}
                       autoCapitalize="words"
-                      onChangeText={e => setValueWeight(e)}
+                      onChangeText={(e: number) => startTransition(() => {
+
+                        setValueWeight(e)
+                      })}
                       defaultValue={valueWeight}
                       placeholder="Cân nặng"
                       keyboardType="number-pad"

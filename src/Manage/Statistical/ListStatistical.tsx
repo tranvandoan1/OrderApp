@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 // import VerticalBarGraph from '@chartiful/react-native-vertical-bar-graph';
 // import { ECharts } from 'react-native-echarts-wrapper';
 const ListStatistical = ({navigation}: any) => {
