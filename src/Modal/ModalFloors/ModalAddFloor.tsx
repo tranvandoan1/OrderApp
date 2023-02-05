@@ -18,7 +18,7 @@ import {
 import {useDispatch} from 'react-redux';
 import {AppDispatch} from '../../App/Store';
 import {addFloor, editFloor} from '../../Features/FloorSlice';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 type Props = {
   dataEdit: any;
   onCloseModal: () => void;

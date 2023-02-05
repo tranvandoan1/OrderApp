@@ -17,7 +17,7 @@ import {
 import {getAllPro} from '../../Features/ProductsSlice';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 
 const MyComponent = () => {
   const width = Size()?.width;

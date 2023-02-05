@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 import ListTablee from './ListTablee';
 import ModalAddTable from './../../Modal/ModalTable/ModalAddTable';
 const ListTable = ({navigation}: any) => {

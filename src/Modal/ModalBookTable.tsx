@@ -1,77 +1,48 @@
 import {
   ActivityIndicator,
-  Button,
+  Alert,
   FlatList,
+  Keyboard,
   Modal,
   Pressable,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {Size} from '../size';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
-import {editBookTable, editTable, getAllTable} from '../Features/TableSlice';
-import {getAllSaveOrder} from '../Features/SaveOrderSlice';
-import {Controller, useForm} from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
+import { editBookTable, getAllTable } from '../Features/TableSlice';
+import { Controller, useForm } from 'react-hook-form';
+import { validatePhone } from '../Component/Validate';
 
 type Props = {
   bookTable: any;
   hiddenBookTable: () => void;
+  loading: (e: boolean) => void;
 };
 const ModalBookTable = (props: Props) => {
-  const width = Size().width;
-
-  const [checkSelectFloorTable, setCheckSelectFloorTable] = useState<any>(0);
   const [showTable, setShowTable] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [valueName, setValueName] = useState<any>();
-  const [valueAmount, setValueAmount] = useState<any>();
-  const [valueTime, setValueTime] = useState<any>();
-  const [valuePhone, setValuePhone] = useState<any>();
   const [selectTable, setSelectTable] = useState<any>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const tables = useAppSelect((data: any) => data.tables.value);
-  const saveorders = useAppSelect((data: any) => data.saveorders.value);
   useEffect(() => {
     dispatch(getAllTable());
-    dispatch(getAllSaveOrder());
   }, []);
 
-  let checkSaveOrder: any = [];
-  tables?.map((element: any) => {
-    let arrFilter = saveorders?.filter((e: any) => {
-      return e.id_table === element._id;
-    });
-    checkSaveOrder.push({_id: element._id, data: arrFilter, sum: 0});
-  });
-
-  const tableFilter: any = [];
   // lấy những bàn trống
-  tables.filter((item: any) => {
-    if (item.timeBookTable == 'null') {
-      checkSaveOrder?.map((check: any, index: any) => {
-        if (check._id == item._id) {
-          if (check.data.length <= 0) {
-            tableFilter.push(item);
-          }
-        }
-      });
-    }
-  });
-
-  const renderTable = ({item}: any) => {
+  const tableFilter: any = tables?.filter((item: any) => item.timeBookTable == 'null' && (item?.orders?.length <= 0 || item?.orders == null));
+  const renderTable = ({ item }: any) => {
     return (
       <View>
         <TouchableOpacity
-          style={{marginTop: 10}}
+          style={{ marginTop: 10 }}
           onPress={() => (setSelectTable(item), setShowTable(false))}>
           <Text
             style={{
@@ -89,7 +60,7 @@ const ModalBookTable = (props: Props) => {
   const {
     control,
     handleSubmit,
-    formState: {errors},
+    formState: { errors },
     reset,
   } = useForm({
     defaultValues: {
@@ -101,22 +72,43 @@ const ModalBookTable = (props: Props) => {
   });
 
   const booxTable = async (values: any) => {
-    setLoading(true);
-    const newData: any = {
-      id: selectTable?._id,
-      ...values,
+    if (validatePhone(values.phone) == false) {
+      Alert.alert("Số điện thoại chưa đúng !");
+    } else if (Number.isFinite(Number(values.amount)) == false) {
+      Alert.alert("Số lượng phải là số !");
+    } else if (isNaN(values.nameUser) == false) {
+      Alert.alert("Tên khách phải là chữ !");
+    } else {
+      props?.loading(true);
+      props?.hiddenBookTable();
+      await dispatch(
+        // @ts-ignore
+        editBookTable({
+          id: selectTable?._id,
+          nameUser: values.nameUser,
+          timeBookTable: values.timeBookTable,
+          amount: values.amount,
+          phone: values.phone,
+        })
+      );
+      // `${
+      //   String(time.getHours()).length == 1
+      //     ? `0${time.getHours()}`
+      //     : `${time.getHours()}`
+      // }:${
+      //   String(time.getMinutes()).length == 1
+      //     ? `0${time.getMinutes()}`
+      //     : `${time.getMinutes()}`
+      // }`
+      reset({
+        phone: '',
+        amount: '',
+        timeBookTable: '',
+        nameUser: '',
+      });
+      Keyboard.dismiss()
+      props?.loading(false);
     };
-    // @ts-ignore
-    await dispatch(editBookTable(newData));
-
-    setLoading(false);
-    reset({
-      phone: '',
-      amount: '',
-      timeBookTable: '',
-      nameUser: '',
-    });
-    props?.hiddenBookTable();
   };
   const close = () => {
     setLoading(true);
@@ -135,10 +127,7 @@ const ModalBookTable = (props: Props) => {
         <Pressable
           onPress={() => (
             setLoading(false),
-            setValueAmount(undefined),
-            setValueName(undefined),
-            setValueTime(undefined),
-            setSelectTable({floor_id: null, table_id: null}),
+            setSelectTable({ floor_id: null, table_id: null }),
             props?.hiddenBookTable()
           )}
           style={{
@@ -158,7 +147,7 @@ const ModalBookTable = (props: Props) => {
               padding: 20,
               borderRadius: 4,
               shadowColor: 'red',
-              shadowOffset: {width: 10, height: 14},
+              shadowOffset: { width: 10, height: 14 },
               shadowOpacity: 0.2,
               shadowRadius: 3,
             },
@@ -174,8 +163,7 @@ const ModalBookTable = (props: Props) => {
               paddingVertical: 10,
               marginBottom: 10,
             }}>
-            Thông tin đặt bàn 
-            {/* {String(selectTable).length} */}
+            Thông tin đặt bàn
           </Text>
           <View style={styles.name}>
             <Controller
@@ -183,7 +171,7 @@ const ModalBookTable = (props: Props) => {
                 required: true,
               }}
               control={control}
-              render={({field: {onChange, onBlur, value}}) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[
                     styles.input,
@@ -201,7 +189,7 @@ const ModalBookTable = (props: Props) => {
               name="nameUser"
             />
             {errors.nameUser && (
-              <Text style={{color: 'red'}}>Chưa nhập tên !</Text>
+              <Text style={{ color: 'red' }}>Chưa nhập tên !</Text>
             )}
           </View>
           <View style={[styles.name]}>
@@ -210,7 +198,7 @@ const ModalBookTable = (props: Props) => {
                 required: true,
               }}
               control={control}
-              render={({field: {onChange, onBlur, value}}) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[
                     styles.input,
@@ -229,7 +217,7 @@ const ModalBookTable = (props: Props) => {
               name="phone"
             />
             {errors.phone && (
-              <Text style={{color: 'red'}}>Chưa nhập số điện thoại !</Text>
+              <Text style={{ color: 'red' }}>Chưa nhập số điện thoại !</Text>
             )}
           </View>
           <View style={styles.name}>
@@ -238,7 +226,7 @@ const ModalBookTable = (props: Props) => {
                 required: true,
               }}
               control={control}
-              render={({field: {onChange, onBlur, value}}) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[
                     styles.input,
@@ -257,17 +245,17 @@ const ModalBookTable = (props: Props) => {
               name="timeBookTable"
             />
             {errors.timeBookTable && (
-              <Text style={{color: 'red'}}>Chưa nhập thời gian !</Text>
+              <Text style={{ color: 'red' }}>Chưa nhập thời gian !</Text>
             )}
           </View>
 
-          <View style={[styles.name, {marginBottom: 10}]}>
+          <View style={[styles.name, { marginBottom: 10 }]}>
             <Controller
               rules={{
                 required: true,
               }}
               control={control}
-              render={({field: {onChange, onBlur, value}}) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[
                     styles.input,
@@ -286,7 +274,7 @@ const ModalBookTable = (props: Props) => {
               name="amount"
             />
             {errors.amount && (
-              <Text style={{color: 'red'}}>Chưa nhập số lượng khách !</Text>
+              <Text style={{ color: 'red' }}>Chưa nhập số lượng khách !</Text>
             )}
           </View>
 
@@ -308,17 +296,20 @@ const ModalBookTable = (props: Props) => {
               marginTop: 10,
               position: 'relative',
             }}>
-            <View style={{width: '100%', position: 'relative'}}>
+            <View style={{ width: '100%', position: 'relative' }}>
               <TouchableOpacity
                 style={styles.floorTable}
-                onPress={() => setShowTable(true)}>
+                onPress={() => {
+                  setShowTable(true)
+                  Keyboard.dismiss()
+                }}>
                 <TextInput
                   selectTextOnFocus={false}
                   editable={false}
                   value={selectTable == undefined ? '' : selectTable?.name}
                   style={[
                     styles.input,
-                    {textAlign: 'center', fontSize: 19, borderColor: '#0099FF'},
+                    { textAlign: 'center', fontSize: 19, borderColor: '#0099FF' },
                   ]}
                   placeholder="Chọn bàn"
                 />
@@ -351,9 +342,9 @@ const ModalBookTable = (props: Props) => {
             )}
           </View>
 
-          <View style={{marginTop: 20}}>
+          <View style={{ marginTop: 20 }}>
             <TouchableOpacity
-              style={{backgroundColor: '#0099FF', padding: 10, borderRadius: 5}}
+              style={{ backgroundColor: '#0099FF', padding: 10, borderRadius: 5 }}
               onPress={handleSubmit(booxTable)}>
               {loading == true ? (
                 <ActivityIndicator size={25} color={'#fff'} />
@@ -433,7 +424,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginVertical: 5,
     shadowColor: 'red',
-    shadowOffset: {width: 10, height: 14},
+    shadowOffset: { width: 10, height: 14 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
     fontWeight: '500',

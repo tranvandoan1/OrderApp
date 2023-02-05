@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {Component, useState} from 'react';
-import {Controller, useForm} from 'react-hook-form';
+import React, { Component, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   Alert,
   Modal,
@@ -16,10 +16,10 @@ import {
   ActivityIndicator,
   ToastAndroid,
 } from 'react-native';
-import {useDispatch} from 'react-redux';
-import {AppDispatch} from '../../App/Store';
-import {addCate, editCatee} from '../../Features/CateSlice';
-import {Size} from '../../size';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../App/Store';
+// import {addCate, editCatee} from '../../Features/CateSlice';
+import { Size } from '../../Component/size';
 type Props = {
   dataEdit: any;
   onCloseModal: () => void;
@@ -34,7 +34,7 @@ const ModalAddCategoris = (props: Props) => {
   const click = () => (
     <TouchableWithoutFeedback
       onPress={() => (props.onCloseModal(), setValue(undefined))}>
-      <View style={{flex: 1, width: '100%'}}></View>
+      <View style={{ flex: 1, width: '100%' }}></View>
     </TouchableWithoutFeedback>
   );
   const onSubmit = async () => {
@@ -43,7 +43,7 @@ const ModalAddCategoris = (props: Props) => {
       const user_id = JSON.parse(user).data._id;
       try {
         setCheck(true);
-        await dispatch(addCate({name: value, user_id: user_id}));
+        // await dispatch(addCate({name: value, user_id: user_id}));
         setCheck(false);
         setValue(undefined);
         props.onCloseModal();
@@ -55,12 +55,12 @@ const ModalAddCategoris = (props: Props) => {
       try {
         setCheck(true);
 
-        await dispatch(
-          editCatee({
-            id: props.dataEdit._id,
-            data: {name: value == undefined ? props.dataEdit.name : value},
-          }),
-        );
+        // await dispatch(
+        //   editCatee({
+        //     id: props.dataEdit._id,
+        //     data: {name: value == undefined ? props.dataEdit.name : value},
+        //   }),
+        // );
 
         setCheck(false);
         setValue(undefined);
@@ -81,9 +81,9 @@ const ModalAddCategoris = (props: Props) => {
         <View
           style={[
             styles.modalView,
-            width < 720 ? {width: '100%'} : {width: 600},
+            width < 720 ? { width: '100%' } : { width: 600 },
           ]}>
-          <Text style={[styles.title, {fontSize: width < 720 ? 20 : 25}]}>
+          <Text style={[styles.title, { fontSize: width < 720 ? 20 : 25 }]}>
             {props.dataEdit == undefined ? 'Thêm danh mục' : 'Sửa danh mục'}
           </Text>
           <KeyboardAvoidingView
@@ -91,7 +91,7 @@ const ModalAddCategoris = (props: Props) => {
             <TextInput
               style={[
                 String(value).length <= 0 ? styles.inputActive : styles.input,
-                {fontSize: width < 720 ? 18 : 20},
+                { fontSize: width < 720 ? 18 : 20 },
               ]}
               autoCapitalize="words"
               onChangeText={e => setValue(e)}
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff',
     fontWeight: '500',
-    fontSize:18
+    fontSize: 18
   },
   title: {
     textAlign: 'center',

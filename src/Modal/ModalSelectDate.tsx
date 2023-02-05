@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
-import {Size} from '../size';
+import React, { useState } from 'react';
+import { Size } from '../Component/size';
 import moment from 'moment';
 type Props = {
   selectDate: any;
@@ -33,16 +33,16 @@ const ModalSelectDate = (props: Props) => {
             ? `0${moment().date()}`
             : moment().date()
           : String(valueDate).length == 1
-          ? `0${valueDate}`
-          : valueDate,
+            ? `0${valueDate}`
+            : valueDate,
       month:
         valueMonth == undefined || String(valueMonth).length <= 0
           ? String(moment().month() + 1).length == 1
             ? `0${moment().month() + 1}`
             : moment().month() + 1
           : String(valueMonth).length == 1
-          ? `0${valueMonth}`
-          : valueMonth,
+            ? `0${valueMonth}`
+            : valueMonth,
       year:
         valueYear == undefined || String(valueYear).length <= 0
           ? moment().year()
@@ -50,20 +50,30 @@ const ModalSelectDate = (props: Props) => {
     };
     props.hiddenSelectDate(date);
   };
+  const today = () => {
+    const date = {
+      date:
+        String(moment().date()).length == 1
+          ? `0${moment().date()}`
+          : moment().date(),
+      month: String(moment().month() + 1).length == 1
+        ? `0${moment().month() + 1}`
+        : moment().month() + 1,
+      year: moment().year()
+    };
+    props.hiddenSelectDate(date);
+  };
   const monthFor = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const date = Array.from(
     {
       length: moment(
-        `${valueYear == undefined ? `${moment().year()}` : valueYear}-${
-          valueMonth == undefined
-            ? `${
-                String(moment().month() + 1).length == 1
-                  ? `0${moment().month() + 1}`
-                  : moment().month() + 1
-              }`
-            : `${
-                String(valueMonth).length == 1 ? `0${valueMonth}` : valueMonth
-              }`
+        `${valueYear == undefined ? `${moment().year()}` : valueYear}-${valueMonth == undefined
+          ? `${String(moment().month() + 1).length == 1
+            ? `0${moment().month() + 1}`
+            : moment().month() + 1
+          }`
+          : `${String(valueMonth).length == 1 ? `0${valueMonth}` : valueMonth
+          }`
         }`,
       ).daysInMonth(),
     },
@@ -88,17 +98,17 @@ const ModalSelectDate = (props: Props) => {
         <View
           style={[
             styles.navigationContainer,
-            {width: width < 720 ? '100%' : '50%'},
+            { width: width < 720 ? '100%' : '30%' },
           ]}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View style={{flexDirection: 'column'}}>
+            <View style={{ flexDirection: 'column' }}>
               <Text
                 style={{
                   textAlign: 'center',
                   color: 'black',
                   marginVertical: 10,
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: '600',
                 }}>
                 Chọn ngày
@@ -121,7 +131,7 @@ const ModalSelectDate = (props: Props) => {
                       String(valueYear).length <= 0
                         ? styles.inputActive
                         : styles.input,
-                      {fontSize: width < 720 ? 18 : 16, marginLeft: 10},
+                      { fontSize: width < 720 ? 22 : 20, marginLeft: 10 },
                     ]}
                     autoCapitalize="words"
                     onChangeText={e => setValueYear(e)}
@@ -134,7 +144,7 @@ const ModalSelectDate = (props: Props) => {
                       String(valueYear).length <= 0 ? 'red' : ''
                     }
                   />
-                  <Text style={{fontWeight: '600'}}>/</Text>
+                  <Text style={{ fontWeight: '600' }}>/</Text>
 
                   <TouchableOpacity onPress={() => setListMonthModal(true)}>
                     <TextInput
@@ -142,22 +152,20 @@ const ModalSelectDate = (props: Props) => {
                         String(valueMonth).length <= 0
                           ? styles.inputActive
                           : styles.input,
-                        {fontSize: width < 720 ? 18 : 16, marginHorizontal: 10},
+                        { fontSize: width < 720 ? 22 : 20, marginHorizontal: 10 },
                       ]}
                       autoCapitalize="words"
                       onChangeText={e => setValueMonth(e)}
                       defaultValue={
                         valueMonth == undefined
-                          ? `${
-                              String(moment().month() + 1).length == 1
-                                ? `0${moment().month() + 1}`
-                                : moment().month() + 1
-                            }`
-                          : `${
-                              String(valueMonth).length == 1
-                                ? `0${valueMonth}`
-                                : valueMonth
-                            }`
+                          ? `${String(moment().month() + 1).length == 1
+                            ? `0${moment().month() + 1}`
+                            : moment().month() + 1
+                          }`
+                          : `${String(valueMonth).length == 1
+                            ? `0${valueMonth}`
+                            : valueMonth
+                          }`
                       }
                       placeholder="Tháng"
                       keyboardType="number-pad"
@@ -168,29 +176,27 @@ const ModalSelectDate = (props: Props) => {
                       editable={false}
                     />
                   </TouchableOpacity>
-                  <Text style={{fontWeight: '600'}}>/</Text>
+                  <Text style={{ fontWeight: '600' }}>/</Text>
                   <TouchableOpacity onPress={() => setListDateModal(true)}>
                     <TextInput
                       style={[
                         String(valueDate).length <= 0
                           ? styles.inputActive
                           : styles.input,
-                        {fontSize: width < 720 ? 18 : 16, marginRight: 10},
+                        { fontSize: width < 720 ? 22 : 20, marginRight: 10 },
                       ]}
                       autoCapitalize="words"
                       onChangeText={e => setValueDate(e)}
                       defaultValue={
                         valueDate == undefined
-                          ? `${
-                              String(moment().date()).length == 1
-                                ? `0${moment().date()}`
-                                : moment().date()
-                            }`
-                          : `${
-                              String(valueDate).length == 1
-                                ? `0${valueDate}`
-                                : valueDate
-                            }`
+                          ? `${String(moment().date()).length == 1
+                            ? `0${moment().date()}`
+                            : moment().date()
+                          }`
+                          : `${String(valueDate).length == 1
+                            ? `0${valueDate}`
+                            : valueDate
+                          }`
                       }
                       placeholder="Ngày"
                       keyboardType="number-pad"
@@ -203,26 +209,45 @@ const ModalSelectDate = (props: Props) => {
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity
-                  onPress={() => apply()}
-                  style={{
-                    backgroundColor: 'blue',
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    marginLeft: 5,
-                    marginTop: 20,
-                    width: '100%',
-                  }}>
-                  <Text
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
+                  <TouchableOpacity
+                    onPress={() => today()}
                     style={{
-                      fontSize: 18,
-                      fontWeight: '500',
-                      color: '#fff',
-                      textAlign: 'center',
+                      backgroundColor: '#009900',
+                      paddingVertical: 5,
+                      marginLeft: 5,
+                      width: '50%',
                     }}>
-                    Chọn
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      style={{
+                        fontSize: 22,
+                        fontWeight: '500',
+                        color: '#fff',
+                        textAlign: 'center',
+                      }}>
+                      Hôm nay
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => apply()}
+                    style={{
+                      backgroundColor: 'blue',
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      marginLeft: 5,
+                      width: '50%',
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 22,
+                        fontWeight: '500',
+                        color: '#fff',
+                        textAlign: 'center',
+                      }}>
+                      Chọn
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </KeyboardAvoidingView>
@@ -268,8 +293,8 @@ const ModalSelectDate = (props: Props) => {
                               ? 'blue'
                               : '#fff'
                             : item == valueMonth
-                            ? 'blue'
-                            : '#fff',
+                              ? 'blue'
+                              : '#fff',
                         width: 80,
                       }}>
                       <Text
@@ -280,8 +305,8 @@ const ModalSelectDate = (props: Props) => {
                                 ? '#fff'
                                 : 'black'
                               : item == valueMonth
-                              ? '#fff'
-                              : 'black',
+                                ? '#fff'
+                                : 'black',
                           fontSize: 20,
                           textAlign: 'center',
                         }}>
@@ -336,8 +361,8 @@ const ModalSelectDate = (props: Props) => {
                               ? 'blue'
                               : '#fff'
                             : item == valueDate
-                            ? 'blue'
-                            : '#fff',
+                              ? 'blue'
+                              : '#fff',
                         width: 80,
                       }}>
                       <Text
@@ -348,8 +373,8 @@ const ModalSelectDate = (props: Props) => {
                                 ? '#fff'
                                 : 'black'
                               : item == valueDate
-                              ? '#fff'
-                              : 'black',
+                                ? '#fff'
+                                : 'black',
                           fontSize: 20,
                           textAlign: 'center',
                         }}>

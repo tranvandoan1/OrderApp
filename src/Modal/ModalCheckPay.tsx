@@ -10,11 +10,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {Size} from '../size';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
-import {editBookTable, getAllTable} from '../Features/TableSlice';
+import React, { useEffect, useState } from 'react';
+import { Size } from '../Component/size';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
+import { editBookTable, getAllTable } from '../Features/TableSlice';
 import moment from 'moment';
 import {
   Table,
@@ -23,8 +23,9 @@ import {
   TableWrapper,
   Cell,
 } from 'react-native-table-component';
-import {addOrder} from '../Features/OrderSlice';
-import {removeSaveOrderAll} from '../Features/SaveOrderSlice';
+import { addOrder } from '../Features/OrderSlice';
+import { removeSaveOrderAll } from '../Features/SaveOrderSlice';
+import { removeOrderTable } from './../API/TableAPI';
 type Props = {
   hiidenCheckPay: (e: any) => void;
   checkPay: any;
@@ -32,6 +33,9 @@ type Props = {
   params: any;
   saveorders: any;
   sum: any;
+  data: any;
+  table: any;
+  timeStart: any;
 };
 const ModalCheckPay = (props: Props) => {
   const width = Size().width;
@@ -51,7 +55,7 @@ const ModalCheckPay = (props: Props) => {
   useEffect(() => {
     dispatch(getAllTable());
     const persons: any = [];
-    props?.saveorders?.filter((item: any, index: any) => {
+    props?.data?.filter((item: any, index: any) => {
       persons.push([
         item.weight > 0 ? `${item.name} (${item.weight}kg)` : item.name,
         item.amount,
@@ -59,95 +63,57 @@ const ModalCheckPay = (props: Props) => {
         item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
         item.weight > 0
           ? (item.amount * item.price * item.weight)
-              .toString()
-              .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
           : (item.amount * item.price)
-              .toString()
-              .replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
       ]);
     });
 
     setTableData(persons);
   }, []);
-  const date = new Date(props?.saveorders[0]?.createdAt);
   const pay = async () => {
-    const order: any = [];
-    props.saveorders.map((item: any) =>
-      order.push({
-        _id: item._id,
-        name_pro: item.name,
-        amount: item.amount,
-        weight: item.weight == undefined ? 0 : item.weight,
-        dvt: item.dvt,
-      }),
-    );
     const data = {
       seller_name: valueName == undefined ? 'Admin' : valueName,
-      user_id: props.saveorders[0].id_user,
-      orders: order,
+      user_id: props?.table.user_id,
+      orders: props?.data,
       bookTable: {
-        nameUser: props?.params.table?.nameUser,
-        timeBookTable: props?.params.table?.timeBookTable,
-        phone: props?.params.table?.phone,
-        amount: props?.params.table?.amount,
+        nameUser: props?.table?.nameUser,
+        timeBookTable: props?.table?.timeBookTable,
+        phone: props?.table?.phone,
+        amount: props?.table?.amount,
       },
       sale: props?.valueSale == undefined ? 0 : props.valueSale,
       sumPrice: props?.sum,
-      table_id: props?.params.table._id,
-      start_time: `${
-        String(date.getHours()).length == 1
-          ? `0${date.getHours()}`
-          : date.getHours()
-      }:${
-        String(date.getMinutes()).length == 1
-          ? `0${date.getMinutes()}`
-          : date.getMinutes()
-      }`,
-      end_time: `${
-        String(moment().hours()).length == 1
-          ? `0${moment().hours()}`
-          : moment().hours()
-      }:${
-        String(moment().minutes()).length == 1
+      table_id: props?.table._id,
+      start_time: props?.table?.time_start,
+      end_time: `${String(moment().hours()).length == 1
+        ? `0${moment().hours()}`
+        : moment().hours()
+        }:${String(moment().minutes()).length == 1
           ? `0${moment().minutes()}`
           : moment().minutes()
-      }`,
+        }`,
     };
-    const id: any = [];
-    order.map((item: any) => id.push(item._id));
     setLoading(true);
-    // @ts-ignore
-
-    await dispatch(addOrder(data));
-    // @ts-ignore
-    await dispatch(removeSaveOrderAll(id));
-    if (props?.params.table.timeBookTable !== 'null') {
-      await dispatch(
-        // @ts-ignore
-        editBookTable({
-          id: props?.params.table._id,
-          nameUser: '',
-          timeBookTable: 'null',
-          amount: 0,
-        }),
-      );
-    }
-
+  
     setLoading(false);
-    props?.hiidenCheckPay({name: valueName, check: true});
+    props?.hiidenCheckPay(data);
   };
   const close = () => {
     setLoading(true);
-    props?.hiidenCheckPay({name: valueName, check: true});
+    props?.hiidenCheckPay(0);
     setTableData([]);
     setValueName(undefined);
     setLoading(false);
   };
+
   return (
     <Modal transparent={true} visible={props?.checkPay} animationType="slide">
       <View style={styles.centeredView}>
         <Pressable
-          onPress={() => props?.hiidenCheckPay({name: undefined, check: false})}
+          onPress={() => props?.hiidenCheckPay(0)}
           style={{
             width: '100%',
             height: '100%',
@@ -161,11 +127,11 @@ const ModalCheckPay = (props: Props) => {
         <View
           style={[
             styles.navigationContainer,
-            {width: width < 960 ? '80%' : '50%'},
+            { width: width < 960 ? '80%' : '50%' },
           ]}>
           <SafeAreaView>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={{flexDirection: 'column', width: '100%'}}>
+              <View style={{ flexDirection: 'column', width: '100%' }}>
                 <View>
                   <Text style={styles.name}>Thông tin bán hàng</Text>
                   <Text style={styles.nametablefloor}>
@@ -188,10 +154,16 @@ const ModalCheckPay = (props: Props) => {
                 </View>
                 <View style={styles.flex}>
                   <Text style={styles.date}>
-                    Giờ vào : {date.getHours()}:{date.getMinutes()}
+                    Giờ vào :{props?.table.time_start == null ? props?.timeStart : props?.table.time_start}
                   </Text>
                   <Text style={styles.date}>
-                    Giờ ra : {moment().hours()}:{moment().minutes()}
+                    Giờ ra : {`${String(moment().hours()).length == 1
+                      ? `0${moment().hours()}`
+                      : moment().hours()
+                      }:${String(moment().minutes()).length == 1
+                        ? `0${moment().minutes()}`
+                        : moment().minutes()
+                      }`}
                   </Text>
                 </View>
                 {props?.params?.table.timeBookTable !== 'null' && (
@@ -204,8 +176,8 @@ const ModalCheckPay = (props: Props) => {
                     </Text>
                   </View>
                 )}
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <Text style={[styles.date, {marginVertical: 10}]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={[styles.date, { marginVertical: 10 }]}>
                     Thu ngân :
                   </Text>
                   <TextInput
@@ -217,7 +189,7 @@ const ModalCheckPay = (props: Props) => {
                       valueName == '' ||
                       (String(valueName).length <= 0 && 'red')
                     }
-                    style={{marginTop: 5}}
+                    style={{ marginTop: 5 }}
                   />
                 </View>
               </View>
@@ -231,7 +203,7 @@ const ModalCheckPay = (props: Props) => {
                   <Row
                     data={tableHead}
                     style={styles.head}
-                    textStyle={[styles.text, {fontSize: 18, fontWeight: '600'}]}
+                    textStyle={[styles.text, { fontSize: 18, fontWeight: '600' }]}
                     flexArr={[5, 1.5, 1.5, 3, 3]}
                   />
                   {tableData.map((rowData: any, index: any) => (
@@ -242,19 +214,19 @@ const ModalCheckPay = (props: Props) => {
                           data={cellData}
                           textStyle={[
                             styles.text,
-                            {textTransform: 'capitalize', fontSize: 16},
+                            { textTransform: 'capitalize', fontSize: 16 },
                           ]}
                           style={{
                             width:
                               cellIndex == 0
                                 ? '35.55%'
                                 : cellIndex == 1
-                                ? '10.90%'
-                                : cellIndex == 2
-                                ? '10.70%'
-                                : cellIndex == 3
-                                ? '21.30%'
-                                : '21.65%',
+                                  ? '10.90%'
+                                  : cellIndex == 2
+                                    ? '10.70%'
+                                    : cellIndex == 3
+                                      ? '21.30%'
+                                      : '21.65%',
                           }}
                         />
                       ))}
@@ -262,18 +234,18 @@ const ModalCheckPay = (props: Props) => {
                   ))}
                 </Table>
               </View>
-              <View style={[styles.flexx, {marginTop: 10}]}>
+              <View style={[styles.flexx, { marginTop: 10 }]}>
                 <Text style={styles.tt}>Thành tiền</Text>
                 <Text style={styles.tt}>
                   {props.sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
                 </Text>
               </View>
-              <View style={[styles.flexx, {marginVertical: 10}]}>
-                <Text style={[styles.tt, {fontWeight: '400'}]}>Giảm</Text>
+              <View style={[styles.flexx, { marginVertical: 10 }]}>
+                <Text style={[styles.tt, { fontWeight: '400' }]}>Giảm</Text>
                 <Text style={styles.tt}>
                   {props?.valueSale == 0 ||
-                  String(props.valueSale).length <= 0 ||
-                  props.valueSale == undefined
+                    String(props.valueSale).length <= 0 ||
+                    props.valueSale == undefined
                     ? 0
                     : props.valueSale}
                   %
@@ -284,16 +256,16 @@ const ModalCheckPay = (props: Props) => {
                   borderColor: 'rgb(219,219,219)',
                   borderWidth: 1,
                 }}></View>
-              <View style={[styles.flexx, {marginTop: 10}]}>
-                <Text style={[styles.tt, {fontSize: 23}]}>
+              <View style={[styles.flexx, { marginTop: 10 }]}>
+                <Text style={[styles.tt, { fontSize: 23 }]}>
                   Tổng tiền thanh toán
                 </Text>
-                <Text style={[styles.tt, {color: 'red', fontSize: 23}]}>
+                <Text style={[styles.tt, { color: 'red', fontSize: 23 }]}>
                   {Math.ceil(
                     props.sum *
-                      ((100 -
-                        (props.valueSale == undefined ? 0 : props.valueSale)) /
-                        100),
+                    ((100 -
+                      (props.valueSale == undefined ? 0 : props.valueSale)) /
+                      100),
                   )
                     .toString()
                     .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -337,7 +309,7 @@ const ModalCheckPay = (props: Props) => {
                     style={{
                       textAlign: 'center',
                       color: '#fff',
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: '500',
                     }}>
                     Hủy
@@ -407,11 +379,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   container: {},
-  head: {height: 40},
-  text: {margin: 6, color: 'black', textAlign: 'center'},
-  row: {flexDirection: 'row', backgroundColor: '#fff'},
-  btn: {width: 58, height: 18, backgroundColor: '#78B7BB', borderRadius: 2},
-  btnText: {textAlign: 'center', color: '#fff'},
+  head: { height: 40 },
+  text: { margin: 6, color: 'black', textAlign: 'center' },
+  row: { flexDirection: 'row', backgroundColor: '#fff' },
+  btn: { width: 58, height: 18, backgroundColor: '#78B7BB', borderRadius: 2 },
+  btnText: { textAlign: 'center', color: '#fff' },
   flexx: {
     flexDirection: 'row',
     justifyContent: 'space-between',

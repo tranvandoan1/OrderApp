@@ -23,7 +23,7 @@ import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
 import {getAll} from '../../Features/CateSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {Size} from '../../size';
+import {Size} from '../../Component/size';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 type Props = {
