@@ -18,6 +18,7 @@ import { AppDispatch, RootState } from '../App/Store';
 import { editBookTable, getAllTable } from '../Features/TableSlice';
 import { Controller, useForm } from 'react-hook-form';
 import { validatePhone } from '../Component/Validate';
+import { Size } from '../Component/size';
 
 type Props = {
   bookTable: any;
@@ -25,6 +26,8 @@ type Props = {
   loading: (e: boolean) => void;
 };
 const ModalBookTable = (props: Props) => {
+  const sizes = Size()
+  console.log(sizes, 'sizes')
   const [showTable, setShowTable] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectTable, setSelectTable] = useState<any>(null);
@@ -142,7 +145,7 @@ const ModalBookTable = (props: Props) => {
         <View
           style={[
             {
-              width: '35%',
+              width: sizes?.width < 900 ? '40' : '50%',
               backgroundColor: '#fff',
               padding: 20,
               borderRadius: 4,
@@ -326,7 +329,7 @@ const ModalBookTable = (props: Props) => {
                     backgroundColor: '#fff',
                     borderRadius: 2,
                     overflow: 'visible',
-                    zIndex: 1000,
+                    zIndex: 10,
                     borderColor: '#AAAAAA',
                     borderWidth: 1,
                   },
@@ -342,7 +345,7 @@ const ModalBookTable = (props: Props) => {
             )}
           </View>
 
-          <View style={{ marginTop: 20 }}>
+          <View style={{ marginTop: 20,zIndex:1 }}>
             <TouchableOpacity
               style={{ backgroundColor: '#0099FF', padding: 10, borderRadius: 5 }}
               onPress={handleSubmit(booxTable)}>
@@ -446,7 +449,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100,
+    zIndex: 1,
   },
   name: {
     flexDirection: 'column',

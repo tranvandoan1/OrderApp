@@ -36,6 +36,7 @@
     "react-native-elements": "^3.4.3",
     "react-native-fast-image": "^8.6.3",
     "react-native-gesture-handler": "^2.9.0",
+    "react-native-gradle-plugin": "^0.71.14",
     "react-native-gridview": "^0.1.2",
     "react-native-image-modal": "2.0.4",
     "react-native-modal-datetime-picker": "^14.0.1",

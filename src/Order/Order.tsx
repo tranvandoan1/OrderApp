@@ -14,7 +14,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { startTransition, useEffect, useRef, useState } from 'react';
+import React, {
+  startTransition,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -29,35 +35,65 @@ import { addOrder } from '../Features/OrderSlice';
 import { removeOrderTable } from '../API/TableAPI';
 import { removeOrder } from './../Features/TableSlice';
 import { add } from './../API/Order';
+import ShowInfoBookTable from './ShowInfoBookTable';
+import ListOrderMobile from './ListOrderMobile';
 type Props = {
   route: any;
   navigation: any;
 };
-
+type State = {
+  loading: boolean;
+  value: string | undefined;
+  valueAmount: any | undefined;
+  valueSale: string | undefined | number;
+  checkPayy: boolean;
+  checkAnimated: boolean;
+  valueCate: string | undefined;
+  showInforBookTable: boolean;
+  timeStartOrder: string | undefined;
+  tableOrder: any;
+  selectModalCate: boolean
+};
 const Order = (props: Props) => {
-
   const width = Size().width;
-  const widthScale = SizeScale().width;
   const dispatch = useDispatch<AppDispatch>();
   const propParams = props?.route?.params;
 
-  const [loading, setLoading] = useState<boolean>(false);
-  const [value, setValue] = useState<any>();//lấy value khi nhập mã giảm giá
-  const [valueAmount, setValueMount] = useState<any>();//lấy số lượng khi nhập số lượng
-  const [valueSale, setValueSale] = useState<any>();//lấy giá trị giảm giá khi ấn áp dụng
-  const [checkPayy, setCheckPayy] = useState<boolean>(false);
-  const [checkAnimated, setCheckAnimated] = useState<boolean>(false);
-  const [valueCate, setValueCate] = useState<any>();
-  const [selectModalCate, setSelectModalCate] = useState<boolean>(false);
-  const [infor, setInfor] = useState(false);
-  const [timeStartOrder, setTimeStartOrder] = useState<any>();
-  const [tableOrder, setTableOrder] = useState<any>(propParams?.table?.orders)
-  console.log(valueSale, 'valueSale')
+  // const [loading, setLoading] = useState<boolean>(false);
+  // const [value, setValue] = useState<any>();//lấy value khi nhập mã giảm giá
+  // const [valueAmount, setValueMount] = useState<any>();//lấy số lượng khi nhập số lượng
+  // const [valueSale, setValueSale] = useState<any>();//lấy giá trị giảm giá khi ấn áp dụng
+  // const [checkPayy, setCheckPayy] = useState<boolean>(false);
+  // const [checkAnimated, setCheckAnimated] = useState<boolean>(false);
+  // const [valueCate, setValueCate] = useState<any>();
+  // const [selectModalCate, setSelectModalCate] = useState<boolean>(false);
+  // const [infor, setInfor] = useState(false);
+  // const [timeStartOrder, setTimeStartOrder] = useState<any>();
+  // const [tableOrder, setTableOrder] = useState<any>(propParams?.table?.orders)
+  const [state, setState] = useReducer(
+    (state: State, newState: Partial<State>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      loading: false,
+      value: undefined, //lấy value khi nhập mã giảm giá
+      valueAmount: { value: undefined, id: null }, //lấy số lượng khi nhập số lượng
+      valueSale: undefined, //lấy giá trị giảm giá khi ấn áp dụng
+      checkPayy: false,
+      checkAnimated: false,
+      valueCate: undefined,
+      showInforBookTable: false,
+      timeStartOrder: undefined,
+      tableOrder: propParams?.table?.orders,
+      selectModalCate: false
+    },
+  );
   useEffect(() => {
     dispatch(getProductAll());
   }, []);
   // tính tổng tiền
-  const prices = tableOrder?.map((item: any) => {
+  const prices = state?.tableOrder?.map((item: any) => {
     if (item?.weight) {
       return Math.ceil(+item?.price * item?.weight * +item?.amount);
     } else {
@@ -70,15 +106,14 @@ const Order = (props: Props) => {
   }
   // xóa món ăn
   const deleteOrder = async (id: any) => {
-    const dataNew = tableOrder?.filter((item: any) => item.id !== id);
-    setLoading(true);
-    setValueMount(undefined);
-    setTableOrder(dataNew)
-    setLoading(false);
+    const dataNew = state?.tableOrder?.filter((item: any) => item.id !== id);
+    setState({ loading: true, valueAmount: undefined, tableOrder: dataNew });
+    setState({ loading: false });
   };
+
   const onSubmit = async (itemm: any) => {
-    width < 960 && setLoading(true);
-    const dataOrder = tableOrder?.find(
+    width < 960 && setState({ loading: true });
+    const dataOrder = state?.tableOrder?.find(
       (item: any) => item.id == itemm.data.id,
     );
     if (
@@ -86,7 +121,7 @@ const Order = (props: Props) => {
       (dataOrder.amount > 1 && itemm.check == 'decrease')
     ) {
       const dataNew: any = [];
-      tableOrder?.map((itemOrder: any) => {
+      state?.tableOrder?.map((itemOrder: any) => {
         if (itemOrder.id == itemm.data.id) {
           dataNew.push({
             ...itemOrder,
@@ -99,64 +134,52 @@ const Order = (props: Props) => {
           dataNew.push(itemOrder);
         }
       });
-
-      setLoading(true);
-      setTableOrder(dataNew)
-
-      setLoading(false);
+      setState({ loading: true, tableOrder: dataNew });
+      setState({ loading: false });
     } else if (dataOrder.amount <= 1 && itemm.check == 'decrease') {
       deleteOrder(itemm.data.id);
     }
-    width < 960 && setLoading(false);
+    width < 960 && setState({ loading: false });
   };
   const uploadAmount = async (item: any) => {
     // @ts-ignore
     const dataNew: any = [];
-    tableOrder?.map((itemOrder: any) => {
+    state?.tableOrder?.map((itemOrder: any) => {
       if (itemOrder.id == item.id) {
         dataNew.push({
           ...itemOrder,
           amount:
-            valueAmount == undefined
+            state?.valueAmount == undefined
               ? item.amount
-              : valueAmount.value,
+              : state?.valueAmount.value,
         });
       } else {
         dataNew.push(itemOrder);
       }
     });
-    setLoading(true);
-    setValueMount(undefined);
-    setTableOrder(dataNew)
-    setLoading(false);
+
+    setState({ loading: true, valueAmount: undefined, tableOrder: dataNew });
+    setState({ loading: false });
   };
 
-  const fadeAnim = useRef(new Animated.Value(100 * widthScale)).current;
 
-  checkAnimated == true
-    ? // @ts-ignore
-    Animated.timing(fadeAnim, {
-      toValue: 1000 * widthScale,
-      duration: 1100,
-    }).start()
-    : // @ts-ignore
-    Animated.timing(fadeAnim, {
-      toValue: 100 * widthScale,
-      duration: 1100,
-    }).start();
+
   // lưu lại những món ăn vừa order khi tắt ứng dụng
-  AppState.addEventListener('change', async (e) => {
-
-    if ((JSON.stringify(tableOrder) == JSON.stringify(propParams?.table?.orders)) == false) {
+  AppState.addEventListener('change', async e => {
+    if (
+      (JSON.stringify(state?.tableOrder) ==
+        JSON.stringify(propParams?.table?.orders)) ==
+      false
+    ) {
       await dispatch(
         // @ts-ignore
         addOrderTable({
-          data: tableOrder,
+          data: state?.tableOrder,
           id_table: propParams?.table._id,
-          time_start: timeStartOrder,
+          time_start: state?.timeStartOrder,
         }),
       );
-      setTableOrder([])
+      setState({ tableOrder: [] });
     }
   });
   return (
@@ -174,7 +197,7 @@ const Order = (props: Props) => {
           backgroundColor: 'blue',
           justifyContent: 'space-between',
           alignItems: 'center',
-          height: '10%'
+          height: '10%',
         }}>
         <View
           style={{
@@ -187,21 +210,30 @@ const Order = (props: Props) => {
           <View style={[styles.header, { width: '50%' }]}>
             <TouchableOpacity
               onPress={async () => {
-                props.navigation?.navigate('home')
-                if ((JSON.stringify(tableOrder) == JSON.stringify(propParams?.table?.orders)) == false) {
-                  props.navigation?.navigate('home', { loading: true, id: propParams?.table?._id })
+                props.navigation?.navigate('home');
+                if (
+                  (JSON.stringify(state?.tableOrder) ==
+                    JSON.stringify(propParams?.table?.orders)) ==
+                  false
+                ) {
+                  props.navigation?.navigate('home', {
+                    loading: true,
+                    id: propParams?.table?._id,
+                  });
                   await dispatch(
                     // @ts-ignore
                     addOrderTable({
-                      data: tableOrder,
+                      data: state?.tableOrder,
                       id_table: propParams?.table._id,
-                      time_start: timeStartOrder,
+                      time_start: state?.timeStartOrder,
                     }),
                   );
-                  setTableOrder([])
-                  props.navigation?.navigate('home', { loading: false, id: propParams?.table?._id })
+                  setState({ tableOrder: [] })
+                  props.navigation?.navigate('home', {
+                    loading: false,
+                    id: propParams?.table?._id,
+                  });
                 }
-
               }}>
               <AntDesign
                 name="left"
@@ -227,7 +259,7 @@ const Order = (props: Props) => {
               width: '50%',
               justifyContent: 'flex-end',
             }}>
-            <TouchableOpacity onPress={() => setSelectModalCate(true)}>
+            <TouchableOpacity onPress={() => setState({ selectModalCate: true })}>
               <View
                 style={{
                   position: 'relative',
@@ -240,9 +272,9 @@ const Order = (props: Props) => {
                 }}>
                 <TextInput
                   value={
-                    valueCate == undefined || String(valueCate).length <= 0
+                    state?.valueCate == undefined || String(state?.valueCate).length <= 0
                       ? ''
-                      : valueCate.name
+                      : state?.valueCate.name
                   }
                   style={[
                     styles.inputSelect,
@@ -255,7 +287,7 @@ const Order = (props: Props) => {
                   selectTextOnFocus={false}
                   placeholder="Danh mục"
                 />
-                {valueCate == undefined || String(valueCate).length <= 0 ? (
+                {state?.valueCate == undefined || String(state?.valueCate).length <= 0 ? (
                   <AntDesign
                     name="down"
                     size={18}
@@ -264,7 +296,7 @@ const Order = (props: Props) => {
                   />
                 ) : (
                   <TouchableOpacity
-                    onPress={() => setValueCate(undefined)}
+                    onPress={() => setState({ valueCate: undefined })}
                     style={{ position: 'absolute', top: 10, right: 10 }}>
                     <AntDesign name="close" size={18} color={'red'} />
                   </TouchableOpacity>
@@ -272,7 +304,7 @@ const Order = (props: Props) => {
               </View>
             </TouchableOpacity>
             {propParams?.table.timeBookTable !== 'null' && (
-              <TouchableOpacity onPress={() => setInfor(true)}>
+              <TouchableOpacity onPress={() => setState({ showInforBookTable: true })}>
                 <AntDesign
                   name="infocirlceo"
                   size={21}
@@ -302,53 +334,48 @@ const Order = (props: Props) => {
         <View style={{ width: width < 960 ? '100%' : '65%' }}>
           <ListPro
             params={propParams}
-            valueCate={valueCate}
-            selectModalCate={selectModalCate}
+            valueCate={state?.valueCate}
+            selectModalCate={state?.selectModalCate}
             hiddeViewCate={(e: any) => (
-              setSelectModalCate(false), setValueCate(e)
+              setState({ selectModalCate: false, valueCate: e })
             )}
             order={(e: any) => {
-              setLoading(true)
-              setTableOrder(e)
-              setLoading(false)
+              setState({ loading: true, tableOrder: e })
+              setState({ loading: false })
 
             }}
-            timeStartOrder={(e: any) => setTimeStartOrder(e)}
-            data={tableOrder}
+            timeStartOrder={(e: any) => setState({ timeStartOrder: e })}
+            data={state?.tableOrder}
           />
         </View>
 
         <View style={[styles.right, { width: width < 960 ? '0%' : '35%' }]}>
           <View style={{ flex: 1 }}>
-            <View style={{ padding: 5, height: '70%' }}
-            >
+            <View style={{ padding: 5, height: '70%' }}>
               <SafeAreaView>
-                <ScrollView showsVerticalScrollIndicator={false}
-                >
-                  {(tableOrder?.length <= 0 ||
-                    tableOrder == undefined) && (
-                      <View
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {(state?.tableOrder?.length <= 0 || state?.tableOrder == undefined) && (
+                    <View
+                      style={{
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                        flex: 1,
+                      }}>
+                      <Text
                         style={{
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          height: '100%',
-                          flex: 1,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            textAlign: 'center',
-                            fontSize: 25,
-                          }}>
-                          Chưa có sản phẩm
-                        </Text>
-                      </View>
-                    )}
-                  {loading == true && (
+                          textAlign: 'center',
+                          fontSize: 25,
+                        }}>
+                        Chưa có sản phẩm
+                      </Text>
+                    </View>
+                  )}
+                  {state?.loading == true && (
                     <ActivityIndicator size="large" color={'blue'} />
                   )}
-                  {tableOrder
+                  {state?.tableOrder
                     ?.slice()
                     .reverse()
                     ?.map((item: any, index: any) => {
@@ -356,13 +383,12 @@ const Order = (props: Props) => {
                         <View
                           style={[
                             styles.listOrder,
-                            tableOrder?.length - 1 !== index && {
+                            state?.tableOrder?.length - 1 !== index && {
                               borderBottomWidth: 0.5,
                             },
                           ]}
                           key={item}
-                          onTouchEnd={() => console.log('dâsdasdads')}
-                        >
+                          onTouchEnd={() => console.log('dâsdasdads')}>
                           <View
                             style={{
                               flexDirection: 'row',
@@ -407,16 +433,20 @@ const Order = (props: Props) => {
                               />
                             </TouchableOpacity>
                             <TextInput
-                              value={`${valueAmount == undefined
+                              value={`${state?.valueAmount == undefined
                                 ? item.amount
-                                : item.id == valueAmount.id
-                                  ? valueAmount.value
+                                : item.id == state?.valueAmount.id
+                                  ? state?.valueAmount.value
                                   : item.amount
                                 }`}
                               style={styles.text}
                               keyboardType="numeric"
-                              onChangeText={e => setValueMount({ value: e, id: item.id })}
-                              onBlur={() => uploadAmount({ value: item, id: item.id })}
+                              onChangeText={e =>
+                                setState({ valueAmount: { value: e, id: item.id } })
+                              }
+                              onBlur={() =>
+                                uploadAmount({ value: item, id: item.id })
+                              }
                             />
                             <TouchableOpacity
                               onPress={() =>
@@ -444,10 +474,10 @@ const Order = (props: Props) => {
                   justifyContent: 'space-between',
                 }}>
                 <TextInput
-                  value={value}
+                  value={state?.value}
                   onChangeText={e =>
                     startTransition(() => {
-                      setValue(e);
+                      setState({ value: e })
                     })
                   }
                   placeholder="Nhập mã giảm giá"
@@ -462,16 +492,22 @@ const Order = (props: Props) => {
                   }}
                 />
                 <TouchableOpacity
-                  onPress={() => (setValueSale(value), setValue(undefined), Keyboard.dismiss())}>
+                  onPress={() => (
+                    setState({ valueSale: state?.value, value: undefined }), Keyboard.dismiss()
+                  )}>
                   <Text style={styles.xn}>Áp dụng</Text>
                 </TouchableOpacity>
-                {
-                  valueSale !== undefined &&
+                {state?.valueSale !== undefined && (
                   <TouchableOpacity
-                    onPress={() => (setValueSale(undefined), setValue(undefined), Keyboard.dismiss())}>
-                    <Text style={[styles.xn, { backgroundColor: 'red' }]}>Hủy</Text>
+                    onPress={() => (
+
+                      setState({ valueSale: undefined, value: undefined }), Keyboard.dismiss()
+                    )}>
+                    <Text style={[styles.xn, { backgroundColor: 'red' }]}>
+                      Hủy
+                    </Text>
                   </TouchableOpacity>
-                }
+                )}
               </View>
 
               <View>
@@ -485,14 +521,18 @@ const Order = (props: Props) => {
                         paddingHorizontal: 5,
                       },
                     ]}>
-                    <View style={[styles.flex, {
-                      width: '100%'
-                    }]}>
+                    <View
+                      style={[
+                        styles.flex,
+                        {
+                          width: '100%',
+                        },
+                      ]}>
                       <View
                         style={{
                           flexDirection: 'row',
                           justifyContent:
-                            valueSale !== undefined && valueSale !== 0
+                            state?.valueSale !== undefined && state?.valueSale !== 0
                               ? 'space-between'
                               : 'flex-end',
                           alignItems: 'center',
@@ -500,16 +540,16 @@ const Order = (props: Props) => {
                         <Text
                           style={[
                             styles.price,
-                            valueSale !== undefined && valueSale !== 0
+                            state?.valueSale !== undefined && state?.valueSale !== 0
                               ? { fontSize: 19 }
                               : { fontSize: 25 },
                           ]}>
-                          Tổng tiền : {' '}
+                          Tổng tiền :{' '}
                         </Text>
                         <Text
                           style={[
                             styles.priceRed,
-                            valueSale !== undefined && valueSale !== 0
+                            state?.valueSale !== undefined && state?.valueSale !== 0
                               ? { fontSize: 21 }
                               : { fontSize: 27 },
                           ]}>
@@ -517,9 +557,9 @@ const Order = (props: Props) => {
                           đ
                         </Text>
                       </View>
-                      {valueSale !== undefined &&
-                        valueSale !== 0 &&
-                        String(valueSale).length >= 1 ? (
+                      {state?.valueSale !== undefined &&
+                        state?.valueSale !== 0 &&
+                        String(state?.valueSale).length >= 1 ? (
                         <View
                           style={{
                             flexDirection: 'column',
@@ -546,7 +586,7 @@ const Order = (props: Props) => {
                                 styles.priceRed,
                                 { marginVertical: 10, fontSize: 20 },
                               ]}>
-                              -{valueSale}%
+                              -{state?.valueSale}%
                             </Text>
                           </View>
                           <View
@@ -562,7 +602,7 @@ const Order = (props: Props) => {
                               Tổng tiền thanh toán :{' '}
                             </Text>
                             <Text style={[styles.priceRed, { fontSize: 25 }]}>
-                              {Math.ceil(sum * ((100 - valueSale) / 100))
+                              {Math.ceil(sum * ((100 - state?.valueSale) / 100))
                                 .toString()
                                 .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                               đ
@@ -574,7 +614,7 @@ const Order = (props: Props) => {
                   </View>
                 </View>
 
-                <TouchableOpacity onPress={() => setCheckPayy(true)}>
+                <TouchableOpacity onPress={() => setState({ checkPayy: true })}>
                   <Text style={styles.tt}>Thanh toán</Text>
                 </TouchableOpacity>
               </View>
@@ -583,379 +623,66 @@ const Order = (props: Props) => {
         </View>
       </View>
       {width < 960 && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            left: 0,
-            right: 0,
-          }}>
-          <View style={styles.tab}>
-            <SafeAreaView>
-              <Animated.View
-                style={[
-                  {
-                    height: fadeAnim,
-                  },
-                ]}>
-                {checkAnimated == true && (
-                  <ScrollView>
-                    <TouchableOpacity
-                      onPress={() => setCheckAnimated(!checkAnimated)}>
-                      <Text style={styles.proOrder}>Sản phẩm đã chọn</Text>
-                    </TouchableOpacity>
-                    <View>
-                      {tableOrder
-                        ?.slice()
-                        .reverse()
-                        ?.map((item: any, index: any) => {
-                          return (
-                            <View
-                              style={[
-                                styles.listOrder,
-                                { paddingVertical: 10 },
-                                tableOrder?.length - 1 !== index && {
-                                  borderBottomWidth: 0.5,
-                                },
-                              ]}
-                              key={index}>
-                              <View
-                                style={{
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  width: '70%',
-                                  overflow: 'hidden',
-                                }}>
-                                <TouchableOpacity
-                                  onPress={() => deleteOrder(item.id)}>
-                                  <AntDesign
-                                    name="closecircle"
-                                    color={'tomato'}
-                                    size={33}
-                                    style={{ marginRight: 15 }}
-                                  />
-                                </TouchableOpacity>
+        <ListOrderMobile
+          tableOrder={state?.tableOrder}
+          valueAmount={state?.valueAmount}
+          saveValueAmount={(e: any) =>
+            setState({ valueAmount: { value: e.value, id: e.id } })
+          }
+          uploadAmount={(e: any) => uploadAmount(e)}
+          sum={sum}
+          valueSale={state?.valueSale}
+          value={state?.value}
+          setState={() => setState({ valueSale: undefined })}
+          setValue={(e: any) => setState({ value: e })}
+          setValueSale={() =>
+            setState({ valueSale: state?.value, value: undefined })
+          }
+          onSubmit={(e:any)=>onSubmit(e)}
 
-                                <View style={{ flexDirection: 'column' }}>
-                                  <Text
-                                    style={[styles.proname, { fontSize: 28 }]}
-                                    numberOfLines={2}>
-                                    {item.name}
-                                  </Text>
-                                  {item?.weight > 0 ? (
-                                    <Text>{item?.weight}kg</Text>
-                                  ) : null}
-                                </View>
-                              </View>
-                              <View
-                                style={{
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  width: '30%',
-                                  justifyContent: 'flex-end',
-                                }}>
-                                <TouchableOpacity
-                                  onPress={() =>
-                                    onSubmit({ data: item, check: 'decrease' })
-                                  }>
-                                  <Entypo
-                                    name="circle-with-minus"
-                                    color={'#FF6633'}
-                                    size={40}
-                                  />
-                                </TouchableOpacity>
-                                <TextInput
-                                  value={`${valueAmount == undefined
-                                    ? item.amount
-                                    : item._id == valueAmount.id
-                                      ? valueAmount.value
-                                      : item.amount
-                                    }`}
-                                  style={[
-                                    styles.text,
-                                    { fontSize: 28, paddingHorizontal: 10 },
-                                  ]}
-                                  keyboardType="numeric"
-                                  onChangeText={e => setValueMount({ value: e, id: item.id })}
-                                  onBlur={() => uploadAmount({ value: item, id: item.id })}
-                                />
-                                <TouchableOpacity
-                                  onPress={() =>
-                                    onSubmit({ data: item, check: 'add' })
-                                  }>
-                                  <AntDesign
-                                    name="pluscircle"
-                                    color={'#FF6633'}
-                                    size={35}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          );
-                        })}
-                    </View>
-                  </ScrollView>
-                  // </View>
-                )}
-                <TouchableOpacity
-                  onPress={() => setCheckAnimated(!checkAnimated)}>
-                  {checkAnimated !== true && (
-                    <View
-                      style={[
-                        styles.showOrder,
-                        { height: width < 960 ? 80 : 100 },
-                      ]}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                        }}>
-                        <Text
-                          style={[
-                            styles.price,
-                            {
-                              fontSize: 30,
-                              color: 'blue',
-                            },
-                          ]}>
-                          Tổng tiền :
-                        </Text>
-                        <Text style={[styles.priceRed, { fontSize: 30 }]}>
-                          {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-                          đ
-                        </Text>
-                      </View>
-
-                      <View
-                        style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        {loading == true && (
-                          <ActivityIndicator size={40} color={'blue'} />
-                        )}
-                        <View
-                          style={[
-                            styles.cart,
-                            {
-                              borderColor: 'blue',
-                            },
-                          ]}>
-                          <Ionicons
-                            name="cart"
-                            style={{
-                              fontSize: 40,
-                              color: 'blue',
-                            }}
-                          />
-                          <Text
-                            style={{
-                              fontSize: 30,
-                              color: 'red',
-                              fontWeight: '500',
-                              marginLeft: 10,
-                            }}>
-                            {tableOrder?.length}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <View>
-                  <View style={{ width: '100%' }}>
-                    <View style={styles.ttmb}>
-                      <Text
-                        style={[
-                          styles.price,
-                          { fontSize: 30, textAlign: 'center' },
-                        ]}>
-                        Tổng tiền thanh toán :
-                      </Text>
-                      <Text
-                        style={[
-                          styles.priceRed,
-                          { fontSize: 30, textAlign: 'center' },
-                        ]}>
-                        {(valueSale !== undefined &&
-                          valueSale !== 0 &&
-                          String(valueSale).length > 1
-                          ? Math.ceil(sum * ((100 - valueSale) / 100))
-                          : sum
-                        )
-                          .toString()
-                          .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-                        đ
-                      </Text>
-                    </View>
-                    {valueSale !== undefined &&
-                      valueSale !== 0 &&
-                      String(valueSale).length > 1 && (
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            width: '100%',
-                            justifyContent: 'center',
-                            marginBottom: 10,
-                          }}>
-                          <Text style={{ fontSize: 25, color: 'blue' }}>
-                            Giảm giá :
-                          </Text>
-                          <Text style={{ fontSize: 25, color: 'red' }}>
-                            {valueSale}%
-                          </Text>
-                        </View>
-                      )}
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}>
-                    <View
-                      style={{
-                        width: '50%',
-                      }}>
-                      <View
-                        style={{
-                          width: '100%',
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}>
-                        <TextInput
-                          value={value}
-                          onChangeText={e => setValue(e)}
-                          placeholder="Nhập mã giảm giá"
-                          keyboardType="number-pad"
-                          style={{
-                            borderWidth: 1,
-                            borderColor: '#EEEEEE',
-                            fontSize: 20,
-                            paddingLeft: 5,
-                            paddingVertical: 0,
-                            width: '60%',
-                          }}
-                        />
-                        <TouchableOpacity
-                          style={{ width: '40%' }}
-                          onPress={() => (
-                            setValueSale(value), setValue(undefined)
-                          )}>
-                          <Text
-                            style={[
-                              styles.xn,
-                              { fontSize: 25, paddingVertical: 10 },
-                            ]}>
-                            Áp dụng
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => setCheckPayy(true)}
-                      style={{ width: '50%' }}>
-                      <Text style={styles.tt}>Thanh toán</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Animated.View>
-            </SafeAreaView>
-          </View>
-        </View>
+        />
       )}
 
-      {tableOrder?.length > 0 && checkPayy == true ? (
+      {state?.tableOrder?.length > 0 && state?.checkPayy == true ? (
         <ModalCheckPay
-          checkPay={checkPayy}
+          checkPay={state?.checkPayy}
           hiidenCheckPay={async (e: any) => {
-
             // setCheckPayy(false)
             if (e !== 0) {
-              props.navigation?.navigate('home', { loading: true, id: propParams?.table?._id })
+              props.navigation?.navigate('home', {
+                loading: true,
+                id: propParams?.table?._id,
+              });
 
               // @ts-ignore
               await dispatch(removeOrder({ id: e?.table_id }));
-              props.navigation?.navigate('home', { loading: false, id: propParams?.table?._id })
+              props.navigation?.navigate('home', {
+                loading: false,
+                id: propParams?.table?._id,
+              });
               ToastAndroid.show(`Thanh toán thành công`, ToastAndroid.SHORT);
               // @ts-ignore
               await add(e);
             } else {
-              setCheckPayy(false)
-
+              setState({ checkPayy: false })
             }
           }}
-          valueSale={valueSale}
+          valueSale={state?.valueSale}
           params={propParams}
-          saveorders={tableOrder}
+          saveorders={state?.tableOrder}
           sum={sum}
-          data={tableOrder}
+          data={state?.tableOrder}
           table={propParams?.table}
-          timeStart={timeStartOrder}
+          timeStart={state?.timeStartOrder}
         />
       ) : null}
-      {infor == true && (
-        <View
-          onTouchEndCapture={() => setInfor(false)}
-          style={{
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            left: 0,
-            bottom: 0,
-            zIndex: 100,
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-          <View
-            style={{
-              width: widthScale * 400,
-              height: 200,
-              backgroundColor: '#fff',
-              elevation: 20,
-              shadowColor: 'blue',
-              borderRadius: 5,
-              padding: 20,
-            }}>
-            <Text
-              style={{
-                color: 'black',
-                fontWeight: '500',
-                fontSize: 21,
-                textAlign: 'center',
-                marginVertical: 10,
-              }}>
-              {propParams?.table.name}
-            </Text>
-            <Text style={{ color: 'black', fontWeight: '500', fontSize: 18 }}>
-              Khách hàng :
-              <Text style={{ color: 'red', fontWeight: '500', fontSize: 20 }}>
-                {propParams?.table.nameUser}
-              </Text>
-            </Text>
-            <Text
-              style={{
-                color: 'black',
-                fontWeight: '500',
-                fontSize: 18,
-                marginVertical: 10,
-              }}>
-              Thời gian đặt :
-              <Text style={{ color: 'red', fontWeight: '500', fontSize: 20 }}>
-                {propParams?.table.timeBookTable}
-              </Text>
-            </Text>
-            <Text style={{ color: 'black', fontWeight: '500', fontSize: 18 }}>
-              Số lượng :
-              <Text style={{ color: 'red', fontWeight: '500', fontSize: 20 }}>
-                {propParams?.table.amount}
-              </Text>
-            </Text>
-          </View>
-        </View>
+
+      {/* hiện thông tin đặt bàn nếu có */}
+      {state?.showInforBookTable == true && (
+        <ShowInfoBookTable
+          togger={(e: boolean) => setState({ showInforBookTable: e })}
+          infoData={propParams?.table}
+        />
       )}
     </KeyboardAvoidingView>
   );
@@ -1136,5 +863,18 @@ const styles = StyleSheet.create({
     color: 'red',
     fontWeight: '600',
     textTransform: 'capitalize',
+  },
+  removeSale: {
+    backgroundColor: 'red',
+    borderRadius: 100,
+    width: 30,
+    height: 30,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeSale_text: {
+    color: '#fff',
+    fontSize: 20,
   },
 });
