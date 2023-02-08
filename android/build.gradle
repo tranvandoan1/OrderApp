@@ -8,6 +8,7 @@ buildscript {
         minSdkVersion = 21
         compileSdkVersion = 31
         targetSdkVersion = 31
+        googlePlayServicesVersion = "17.0.0"
 
         if (System.properties['os.arch'] == "aarch64") {
             // For M1 Users we need to use the NDK 24 which added support for aarch64
@@ -54,26 +55,14 @@ allprojects {
        jcenter()
        maven { url 'https://maven.google.com' }
        maven { url "https://jitpack.io" }
+           maven {
+    url "https://dl.bintray.com/android/android-tools/"
+}
+maven {
+    url 'https://maven.google.com/'
+    name 'Google'
+}
    }
-   maven {
-        url "https://maven.google.com"
-}
-maven {
-        url 'https://jitpack.io'
-}
-mavenCentral()
-maven {
-        url "https://clojars.org/repo/"
-}
- configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.getRequested().getGroup() == 'com.facebook.react'
-                    && details.getRequested().getName() == 'react-android') {
-
-                details.useVersion '<PHIÊN BẢN REACT ANDROID>'
-            }
-        }
-    }
-    }
-    
-}
+   }
+   }
+   
