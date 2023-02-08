@@ -13,9 +13,8 @@ import {
 import React, {useState} from 'react';
 import {Avatar} from 'react-native-elements';
 import {useForm, Controller} from 'react-hook-form';
-import ImageCropPicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/AntDesign';
-import ImagePicker from 'react-native-image-crop-picker'
+// import ImagePicker from 'react-native-image-crop-picker'
 type FormData = {
   email: string;
   password: string;
@@ -62,19 +61,19 @@ const SignUp = ({navigation}: any) => {
     // }).then(images => {
     //   setAvatar(images);
     // });
-    ImagePicker.openPicker({ 
-      cropping:true,
-      height:300,
-      width:300
-    }).then((result:any)=>{ 
-     console.log(result)
-      // if (!result.cancelled) {
-      //   // User picked an image
-      //   const {height, width, type, uri} = result;
-      //   return uriToBlob(uri); // will follow later
-      // }
+    // ImagePicker.openPicker({ 
+    //   cropping:true,
+    //   height:300,
+    //   width:300
+    // }).then((result:any)=>{ 
+    //  console.log(result)
+    //   // if (!result.cancelled) {
+    //   //   // User picked an image
+    //   //   const {height, width, type, uri} = result;
+    //   //   return uriToBlob(uri); // will follow later
+    //   // }
      
-    })
+    // })
     
   };
   return (
@@ -221,7 +220,7 @@ const SignUp = ({navigation}: any) => {
               <View style={{flexDirection: 'row', justifyContent: 'center'}}>
                 <Text>Bạn đã có tài khoản ?</Text>
                 <TouchableOpacity
-                  onPress={() => navigation?.navigate('Signin')}>
+                  onPress={() => navigation?.navigate('signin')}>
                   <Text style={{color: 'blue'}}> Đăng nhập</Text>
                 </TouchableOpacity>
               </View>

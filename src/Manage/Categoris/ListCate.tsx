@@ -10,20 +10,29 @@ import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ListTableCate from './ListTableCate';
 import ModalAddCategoris from '../../Modal/ModalCategoris/ModalAddCategoris';
-
+import {Size} from '../../Component/size';
 const ListCate = ({navigation}: any) => {
+  const width = Size()?.width;
   const [checkSearch, setCheckSearch] = useState<any>(false);
   const [modalAddVisible, setModalAddVisible] = useState(false);
   const [dataEdit, setDataEdit] = useState();
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{flex: 1 ,width:'100%'}}>
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <TouchableOpacity onPress={() => navigation.navigate('manage')}>
             <AntDesign name="left" style={styles.iconBack} />
           </TouchableOpacity>
-          <Text style={styles.titlePro}>Danh mục</Text>
+          <Text
+            style={[
+              styles.titlePro,
+              {
+                fontSize: width < 720 ? 20 : 23,
+              },
+            ]}>
+            Danh mục
+          </Text>
         </View>
         <View style={styles.iconRight}>
           <TouchableOpacity onPress={() => setCheckSearch(!checkSearch)}>

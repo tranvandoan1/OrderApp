@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {Component, useState} from 'react';
-import {Controller, useForm} from 'react-hook-form';
+import React, { Component, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   Alert,
   Modal,
@@ -14,16 +14,19 @@ import {
   Platform,
   TextInput,
   ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
-import {useDispatch} from 'react-redux';
-import {AppDispatch} from '../../App/Store';
-import {addCate, editCatee} from '../../Features/CateSlice';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../App/Store';
+// import {addCate, editCatee} from '../../Features/CateSlice';
+import { Size } from '../../Component/size';
 type Props = {
   dataEdit: any;
   onCloseModal: () => void;
   modalVisible: any;
 };
 const ModalAddCategoris = (props: Props) => {
+  const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const [check, setCheck] = useState<Boolean>(false);
   const [value, setValue] = useState<any>();
@@ -31,7 +34,7 @@ const ModalAddCategoris = (props: Props) => {
   const click = () => (
     <TouchableWithoutFeedback
       onPress={() => (props.onCloseModal(), setValue(undefined))}>
-      <View style={{flex: 1, width: '100%'}}></View>
+      <View style={{ flex: 1, width: '100%' }}></View>
     </TouchableWithoutFeedback>
   );
   const onSubmit = async () => {
@@ -40,26 +43,29 @@ const ModalAddCategoris = (props: Props) => {
       const user_id = JSON.parse(user).data._id;
       try {
         setCheck(true);
-        await dispatch(addCate({name: value, user_id: user_id}));
+        // await dispatch(addCate({name: value, user_id: user_id}));
         setCheck(false);
         setValue(undefined);
         props.onCloseModal();
+        ToastAndroid.show('Thêm thành công', ToastAndroid.SHORT);
       } catch (error: any) {
         Alert.alert(error.response.data.error);
       }
     } else {
       try {
         setCheck(true);
-        let formData = new FormData();
-        formData.append(
-          'name',
-          value == undefined ? props.dataEdit.name : value,
-        );
-        await dispatch(editCatee({id: props.dataEdit._id, data: formData}));
+
+        // await dispatch(
+        //   editCatee({
+        //     id: props.dataEdit._id,
+        //     data: {name: value == undefined ? props.dataEdit.name : value},
+        //   }),
+        // );
 
         setCheck(false);
         setValue(undefined);
         props.onCloseModal();
+        ToastAndroid.show('Sửa thành công', ToastAndroid.SHORT);
       } catch (error: any) {
         Alert.alert(error.response.data.error);
       }
@@ -72,16 +78,21 @@ const ModalAddCategoris = (props: Props) => {
       visible={props.modalVisible}>
       <View style={styles.centeredView}>
         {click()}
-        <View style={styles.modalView}>
-          <Text style={styles.title}>
+        <View
+          style={[
+            styles.modalView,
+            width < 720 ? { width: '100%' } : { width: 600 },
+          ]}>
+          <Text style={[styles.title, { fontSize: width < 720 ? 20 : 25 }]}>
             {props.dataEdit == undefined ? 'Thêm danh mục' : 'Sửa danh mục'}
           </Text>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <TextInput
-              style={
-                String(value).length <= 0 ? styles.inputActive : styles.input
-              }
+              style={[
+                String(value).length <= 0 ? styles.inputActive : styles.input,
+                { fontSize: width < 720 ? 18 : 20 },
+              ]}
               autoCapitalize="words"
               onChangeText={e => setValue(e)}
               defaultValue={
@@ -158,10 +169,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff',
     fontWeight: '500',
+    fontSize: 18
   },
   title: {
     textAlign: 'center',
-    fontSize: 20,
     fontWeight: '600',
   },
 });

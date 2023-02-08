@@ -1,11 +1,8 @@
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  SafeAreaView,
-  ScrollView,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -13,13 +10,16 @@ import React, {useEffect, useState} from 'react';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../App/Store';
 import {getAll} from '../../Features/CateSlice';
-import {removeCate} from './../../Features/CateSlice';
 import ModalDelete from './../../Modal/ModalCategoris/ModalDelete';
+import {Size} from '../../Component/size';
+import {FlatGrid} from 'react-native-super-grid';
+import Fontisto from 'react-native-vector-icons/Fontisto';
 type Props = {
   onClickAddDataEdit: (e: any) => void;
   onClickOpenModal: () => void;
 };
 const ListTableCate = (props: Props) => {
+  const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const categoris = useAppSelect((data: any) => data.categoris.value);
@@ -30,48 +30,44 @@ const ListTableCate = (props: Props) => {
   }, []);
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
       {categoris.length <= 0 ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={'blue'} />
         </View>
       ) : (
-        <SafeAreaView>
-          <ScrollView>
-            {categoris
-              .slice()
-              .reverse()
-              .map((item: any, index: number) => {
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.list}
-                    onLongPress={() => (
-                      props.onClickAddDataEdit(item), props.onClickOpenModal()
-                    )}>
-                    <Text
-                      style={{
-                        textTransform: 'capitalize',
-                        color: 'black',
-                        fontWeight: '400',
-                        fontSize: 16,
-                        fontFamily:
-                          Platform.OS == 'android'
-                            ? 'Roboto-Light'
-                            : 'Roboto-Bold',
-                        fontStyle: 'normal',
-                      }}>
-                      {item.name}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => (setModalVisible(true), setId(item._id))}>
-                      <Text>Xóa</Text>
-                    </TouchableOpacity>
-                  </TouchableOpacity>
-                );
-              })}
-          </ScrollView>
-        </SafeAreaView>
+        <View style={{paddingTop: 10}}>
+          <FlatGrid
+            itemDimension={400}
+            data={categoris.slice().reverse()}
+            renderItem={({item, index}) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.list}
+                onLongPress={() => (
+                  props.onClickAddDataEdit(item), props.onClickOpenModal()
+                )}>
+                <Text
+                  style={{
+                    textTransform: 'capitalize',
+                    color: 'black',
+                    fontWeight: '400',
+                    fontSize: width < 720 ? 16 : 23,
+                    fontFamily:
+                      Platform.OS == 'android' ? 'Roboto-Light' : 'Roboto-Bold',
+                    fontStyle: 'normal',
+                  }}>
+                  {item.name}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => (setModalVisible(true), setId(item._id))}
+                  style={{position: 'absolute', top: 13, right: 11}}>
+                  <Fontisto name="close" size={20} color={'red'} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
       )}
       <ModalDelete
         modalVisible={modalVisible}
@@ -95,14 +91,18 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   list: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignContent: 'center',
     backgroundColor: '#fff',
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginBottom: 5,
-    alignItems: 'center',
+    borderColor: 'rgb(219,219,219)',
+    borderWidth: 0.5,
+    margin: 10,
+    position: 'relative',
+    borderRadius: 2,
+    flexDirection: 'row',
+    elevation: 5,
+    shadowColor: 'tomato',
   },
   loading: {
     flexDirection: 'row',

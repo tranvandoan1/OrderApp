@@ -7,6 +7,7 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
   ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
 import {useDispatch} from 'react-redux';
 import {AppDispatch} from '../../App/Store';
@@ -30,6 +31,7 @@ const ModalDelete = (props: Props) => {
     await dispatch(removeCate(props.id));
     setCheck(false);
     props.onCloseModal();
+    ToastAndroid.show('Xóa thành công', ToastAndroid.SHORT);
   };
   return (
     <Modal
@@ -46,7 +48,7 @@ const ModalDelete = (props: Props) => {
               justifyContent: 'space-around',
               marginTop: 20,
               marginBottom: 10,
-              paddingHorizontal: 80,
+              width: 200,
             }}>
             <TouchableOpacity
               style={styles.close}
@@ -85,6 +87,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 5,
     padding: 15,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   titleCheck: {

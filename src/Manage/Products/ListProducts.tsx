@@ -45,11 +45,8 @@ const ListProducts = ({navigation}: any) => {
         onCloseModal={() => (setModalAddEditPro(false), setDataEdit(undefined))}
         dataEdit={dataEdit}
       />
-      <SafeAreaView style={{flex: 1}}>
-        <ScrollView>
-          <ListTableProduct />
-        </ScrollView>
-      </SafeAreaView>
+
+      <ListTableProduct />
     </View>
   );
 };
@@ -67,17 +64,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'blue',
   },
   titlePro: {
-    fontSize: 18,
-    fontWeight: '500',
+    fontSize: 23,
     color: '#fff',
     fontFamily: Platform.OS == 'android' ? 'Roboto-Light' : 'Roboto-Bold',
     fontStyle: 'normal',
+    fontWeight: '600',
   },
   iconBack: {
-    fontSize: 20,
+    fontSize: 25,
     color: '#fff',
     marginRight: 10,
-    fontWeight: '600',
   },
   iconRight: {
     flexDirection: 'row',
