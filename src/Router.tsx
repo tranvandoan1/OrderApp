@@ -1,6 +1,6 @@
 // In App.js in a new project
-import {ActivityIndicator, LogBox, StyleSheet, Text, View} from 'react-native';
-import React, {useEffect} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import React, {lazy, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icons from 'react-native-vector-icons/Feather';
@@ -12,19 +12,25 @@ import SignUp from './Login/SignUp';
 
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ListProducts from './Manage/Products/ListProducts';
-import {store} from './App/Store';
-import {Provider} from 'react-redux';
+import {AppDispatch, RootState, store} from './App/Store';
+import {
+  Provider,
+  TypedUseSelectorHook,
+  useDispatch,
+  useSelector,
+} from 'react-redux';
 import ListCate from './Manage/Categoris/ListCate';
 import {Size} from './Component/size';
-import Home from './Order/Home';
-import Order from './Order/Order';
 import {checkUserAsyncStorage} from './Component/checkUser';
 import ListTable from './Manage/Table/ListTable';
 import ListBill from './Manage/Bill/ListBill';
 import ListStatistical from './Manage/Statistical/ListStatistical';
 import Account from './Manage/Account/Account';
+import {getCategori} from './Features/CateSlice';
+import Loading from './Component/Loading';
 const Tab = createBottomTabNavigator();
-
+const Home = lazy(() => import('./Home/Home'));
+const Order = lazy(() => import('./Orders/Order'));
 function Router() {
   const width = Size().width;
   return (
@@ -108,27 +114,21 @@ function Router() {
 }
 const Stack = createNativeStackNavigator();
 function App() {
-  const X = checkUserAsyncStorage();
-  const checkUserStorage = Object.values(X)[2];
-
   return (
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator>
-          {checkUserStorage?.data == undefined && (
-            <Stack.Screen
-              name="signin"
-              component={Signin}
-              options={{headerShown: false}}
-            />
-          )}
-          {checkUserStorage?.data == undefined && (
-            <Stack.Screen
-              name="signup"
-              component={SignUp}
-              options={{headerShown: false}}
-            />
-          )}
+          <Stack.Screen
+            name="loading"
+            component={Loading}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="signin"
+            component={Signin}
+            options={{headerShown: false}}
+          />
+
           <Stack.Screen
             name="home"
             component={Home}

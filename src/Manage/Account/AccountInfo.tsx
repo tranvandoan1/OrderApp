@@ -32,6 +32,7 @@ const AccountInfo = (props: Props) => {
     setCheckLognout(true);
     setModalVisible(false);
     await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('checklogin');
     setCheckLognout(false);
     props?.logout()
   };

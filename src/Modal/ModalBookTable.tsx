@@ -27,7 +27,6 @@ type Props = {
 };
 const ModalBookTable = (props: Props) => {
   const sizes = Size()
-  console.log(sizes, 'sizes')
   const [showTable, setShowTable] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectTable, setSelectTable] = useState<any>(null);

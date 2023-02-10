@@ -27,14 +27,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import ListPro from './ListPro';
 import {useDispatch} from 'react-redux';
 import {AppDispatch} from '../App/Store';
-import {getProductAll} from './../Features/ProductsSlice';
-import ModalCheckPay from './../Modal/ModalCheckPay';
+import {getProductAll} from '../Features/ProductsSlice';
+import ModalCheckPay from '../Modal/ModalCheckPay';
 import {Size, SizeScale} from '../Component/size';
 import {addOrderTable, getAllTable} from '../Features/TableSlice';
 import {addOrder} from '../Features/OrderSlice';
 import {removeOrderTable} from '../API/TableAPI';
-import {removeOrder} from './../Features/TableSlice';
-import {add} from './../API/Order';
+import {removeOrder} from '../Features/TableSlice';
+import {add} from '../API/Order';
 import ShowInfoBookTable from './ShowInfoBookTable';
 type Props = {
   tableOrder: any;

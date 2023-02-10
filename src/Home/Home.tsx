@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -12,6 +12,7 @@ import {
   Alert,
   SafeAreaView,
   FlatList,
+  Animated,
 } from 'react-native';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../App/Store';
@@ -19,14 +20,15 @@ import { getAllTable } from '../Features/TableSlice';
 import { FlatGrid } from 'react-native-super-grid';
 import { Size, SizeScale } from '../Component/size';
 import CheckChangeTable from '../Modal/ModalCheckChangeTable/CheckChangeTable';
-import Feather from 'react-native-vector-icons/Feather';
 import { Avatar } from 'react-native-elements';
 import ModalBookTable from '../Modal/ModalBookTable';
-import { getUser } from './../Features/UserSlice';
-import { removeOrder } from './../Features/TableSlice';
+import { getUser } from '../Features/UserSlice';
+import { removeOrder } from '../Features/TableSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 // @ts-ignore
 import ImageError from '../Component/image/error.png';
+import HeaderTitle from './HeaderTitle';
+import { checkUserAsyncStorage } from '../Component/checkUser';
 type Props = {
   route: any;
   navigation: any;
@@ -34,11 +36,11 @@ type Props = {
 const Home = ({ navigation, route }: Props) => {
   const propParams = route?.params;
   const width = Size().width;
-  const width1 = SizeScale();
+  const X = checkUserAsyncStorage();
+  const checkUserStorage = Object.values(X)[2];
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const tables = useAppSelect((data: any) => data.tables.value);
-  const users = useAppSelect((data: any) => data.users.value);
   const [bookTable, setBookTable] = useState<boolean>(false);
   const [tableFilter, setTableFilter] = useState<boolean>(false);
   const [selectionTable, setSelectionTable] = useState<any>();
@@ -46,8 +48,8 @@ const Home = ({ navigation, route }: Props) => {
   const [selectTable, setSelectTable] = useState<any>();
   useEffect(() => {
     dispatch(getAllTable());
-    dispatch(getUser());
   }, []);
+ 
 
   const order = (item: any) => {
     if (
@@ -108,7 +110,6 @@ const Home = ({ navigation, route }: Props) => {
       },
     ]);
   };
-  // const selectTableStatus = () => {
   const statusTable = tables?.filter((item: any) =>
     selectTable == undefined
       ? item
@@ -120,9 +121,7 @@ const Home = ({ navigation, route }: Props) => {
           item?.orders?.length > 0
           : item.timeBookTable !== 'null',
   );
-  //   setDataStatusTable(statusTable)
-  // }
-  console.log(selectTable, 'selectTable');
+  console.log(tables.length, 'tables.length');
   const renderTable = ({ item }: any) => {
     return (
       <View>
@@ -142,6 +141,19 @@ const Home = ({ navigation, route }: Props) => {
       </View>
     );
   };
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [toggerMenu, setToggerMenu] = useState<boolean>(false);
+  toggerMenu == true
+    ? // @ts-ignore
+    Animated.timing(fadeAnim, {
+      toValue: 800,
+      duration: 2500,
+    }).start()
+    : // @ts-ignore
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 1500,
+    }).start();
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {loading == true && (
@@ -156,127 +168,47 @@ const Home = ({ navigation, route }: Props) => {
       ) : (
         <View style={{ flex: 1 }}>
           <View style={styles.header}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Avatar
-                rounded
-                source={{
-                  uri: users?.avatarRestaurant,
-                }}
-                size={60}
-              />
-              {width < 960 ? (
-                <View></View>
-              ) : (
-                <Text
-                  style={[
-                    styles.titlePro,
-                    { fontSize: width < 960 ? 18 : 23, marginLeft: 10 },
-                  ]}>
-                  {users?.nameRestaurant}
-                </Text>
-              )}
-            </View>
-
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                position: 'relative',
-              }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginRight: 20,
-                }}>
-                <View
-                  style={{
-                    width: 15,
-                    height: 15,
-                    borderRadius: 100,
-                    backgroundColor: 'red',
-                  }}></View>
-                <Text style={{ color: '#fff', fontSize: 18, marginLeft: 10 }}>
-                  Bàn đặt
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginRight: 20,
-                }}>
-                <View
-                  style={{
-                    width: 15,
-                    height: 15,
-                    borderRadius: 100,
-                    backgroundColor: '#00FF00',
-                  }}></View>
-                <Text style={{ color: '#fff', fontSize: 18, marginLeft: 10 }}>
-                  Có khách
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.bookTable}
-                onPress={() => setBookTable(true)}>
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '500' }}>
-                  Đặt bàn
-                </Text>
-              </TouchableOpacity>
-              <View
-                style={[
-                  styles.bookTable,
-                  {
-                    backgroundColor: '#00CC00',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  },
-                ]}>
-                <TouchableOpacity onPress={() => setTableFilter(true)}>
+            <Suspense
+              fallback={<ActivityIndicator size="large" color="#fff" />}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Avatar
+                  rounded
+                  source={{
+                    uri: checkUserStorage?.data?.avatarRestaurant,
+                  }}
+                  size={60}
+                />
+                {width < 960 ? (
+                  <View></View>
+                ) : (
                   <Text
-                    style={{ color: '#fff', fontSize: 16, fontWeight: '500' }}>
-                    {selectTable == undefined
-                      ? 'Lọc'
-                      : tableFilter == true
-                        ? 'Lọc'
-                        : selectTable?.name}
+                    style={[
+                      styles.titlePro,
+                      { fontSize: width < 960 ? 18 : 23, marginLeft: 10 },
+                    ]}>
+                    {checkUserStorage?.data?.nameRestaurant}
                   </Text>
-                </TouchableOpacity>
-                {selectTable !== undefined && (
-                  <TouchableOpacity onPress={() => setSelectTable(undefined)}>
-                    <AntDesign
-                      name="closecircle"
-                      style={{
-                        color: 'red',
-                        fontSize: 18,
-                        marginLeft: 10,
-                        backgroundColor: '#fff',
-                        borderRadius: 100,
-                      }}
-                    />
-                  </TouchableOpacity>
                 )}
               </View>
+            </Suspense>
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate('manage')}
-                style={{
-                  borderWidth: 1.5,
-                  borderColor: '#fff',
-                  borderRadius: 100,
-                  padding: 3,
-                  marginRight: 5,
-                }}>
-                <Feather
-                  name="user"
-                  style={{
-                    color: '#fff',
-                    fontSize: 25,
-                  }}
+            {width < 539 ? (
+              <TouchableOpacity onPress={() => setToggerMenu(true)}>
+                <AntDesign
+                  name="menufold"
+                  style={{ color: '#fff', fontSize: 25 }}
                 />
               </TouchableOpacity>
-            </View>
+            ) : (
+              <HeaderTitle
+                setTableFilter={() => setTableFilter(!tableFilter)}
+                selectTable={selectTable}
+                setSelectTable={() => setSelectTable(undefined)}
+                tableFilter={tableFilter}
+                navigation={navigation}
+                setBookTable={() => setBookTable(true)}
+              />
+            )}
           </View>
           <View
             style={{
@@ -337,7 +269,7 @@ const Home = ({ navigation, route }: Props) => {
                   borderLeftWidth: 1,
                 }}>
                 <FlatGrid
-                  itemDimension={200}
+                  itemDimension={width < 960 ? (width < 539 ? 150 : 150) : 200}
                   data={selectTable == undefined ? tables : statusTable}
                   showsVerticalScrollIndicator={false}
                   renderItem={({ item, index }) => {
@@ -349,8 +281,11 @@ const Home = ({ navigation, route }: Props) => {
                           onLongPress={() => {
                             // check xem bàn đó đã gọi món chưa nếu rồi hiện mockup chọn chuyển bàn hoặc hủy
                             if (
-                              item?.orders?.length > 0 &&
-                              (item?.timeBookTable == 'null' ||
+                              (item?.orders?.length > 0 &&
+                                item?.timeBookTable == 'null') ||
+                              ((item?.orders?.length > 0 ||
+                                item?.orders?.length <= 0 ||
+                                item?.orders == null) &&
                                 item?.timeBookTable !== 'null')
                             ) {
                               setSelectionTable(item);
@@ -487,15 +422,13 @@ const Home = ({ navigation, route }: Props) => {
           />
         </View>
       )}
-      {
-        bookTable == true &&
-
+      {bookTable == true && (
         <ModalBookTable
           bookTable={bookTable}
           hiddenBookTable={() => setBookTable(false)}
           loading={(e: boolean) => setLoading(e)}
         />
-      }
+      )}
       <Modal
         transparent={true}
         style={{ zIndex: 1 }}
@@ -641,6 +574,40 @@ const Home = ({ navigation, route }: Props) => {
           </View>
         </View>
       </Modal>
+      {toggerMenu == true && (
+        <View style={[styles.menumobi]}>
+          <SafeAreaView>
+            <Animated.View
+              style={[
+                {
+                  width: fadeAnim,
+                  height: '100%',
+                  right: 0,
+                },
+              ]}>
+              <View style={styles.bodyMenu}>
+                <TouchableOpacity
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 100,
+                    backgroundColor: 'red',
+                  }}
+                  onPress={() => setToggerMenu(false)}>
+                  <Text style={{ color: '#fff', fontSize: 30 }}>x</Text>
+                </TouchableOpacity>
+                <HeaderTitle
+                  setTableFilter={() => setTableFilter(!tableFilter)}
+                  selectTable={selectTable}
+                  setSelectTable={() => setSelectTable(undefined)}
+                  tableFilter={tableFilter}
+                  setBookTable={() => setBookTable(true)}
+                />
+              </View>
+            </Animated.View>
+          </SafeAreaView>
+        </View>
+      )}
     </View>
   );
 };
@@ -749,6 +716,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
+  },
+  menumobi: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: '100%',
+    height: '100%',
+  },
+  bodyMenu: {
+    position: 'absolute',
+    backgroundColor: '#fff',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });
 
