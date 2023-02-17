@@ -11,7 +11,7 @@ import {
   ToastAndroid,
   FlatList,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../App/Store';
 import { Size } from '../../Component/size';
@@ -19,34 +19,25 @@ import { getAllOrder, removeOrder } from './../../Features/OrderSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { Avatar } from 'react-native-elements';
 
-import {
-  Table,
-  Row,
-  TableWrapper,
-  Cell,
-} from 'react-native-table-component';
+import { Table, Row, TableWrapper, Cell } from 'react-native-table-component';
 type Props = {
-  orderToDay: any
+  orderToDay: any;
 };
-const ListTableCate = (props: Props) => {
+const ListTableCate: React.FC<Props> = ({ orderToDay }) => {
   const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const [order, setOrder] = useState<any>([]);
   const [deleteOrder, setDeleteOrder] = useState<any>();
   const [modalVisible, setModalVisible] = useState(false);
   const [check, setCheck] = useState<Boolean>(false);
-  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const orders = useAppSelect((data: any) => data.orders.value);
+
   useEffect(() => {
-    dispatch(getAllOrder())
-  }, [])
-  useEffect(() => {
-    setOrder([])
-  }, [props?.orderToDay])
+    setOrder([]);
+  }, [orderToDay]);
   const tableData: any = [];
   order?.orders?.filter((item: any, index: any) => {
     tableData.push([
-      item.weight > 0 ? `${item.name} (${item.weight}kg)` : item.name,
+      item.weight > 0 ? `${item.name || item.name_pro} (${item.weight}kg)` : item.name || item.name_pro,
       item.amount,
       item.dvt,
     ]);
@@ -63,11 +54,12 @@ const ListTableCate = (props: Props) => {
   };
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', position: 'relative' }}>
-      {orders.length <= 0 ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={'blue'} />
-        </View>
-      ) : (
+      {/* <Suspense
+        fallback={
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={'blue'} />
+          </View>
+        }> */}
         <View
           style={{
             flexDirection: 'row',
@@ -76,11 +68,10 @@ const ListTableCate = (props: Props) => {
           }}>
           <View style={{ width: '40%' }}>
             <View style={{ flex: 1 }}>
-
               <SafeAreaView>
                 <ScrollView showsVerticalScrollIndicator={false}>
                   <View style={{ flexDirection: 'column', padding: 5 }}>
-                    {props?.orderToDay?.length <= 0 ? (
+                    {orderToDay?.length <= 0 ? (
                       <Text
                         style={{
                           textAlign: 'center',
@@ -93,9 +84,7 @@ const ListTableCate = (props: Props) => {
                     ) : (
                       <FlatList
                         showsVerticalScrollIndicator={false}
-                        data={props?.orderToDay
-                          ?.slice()
-                          .reverse()}
+                        data={orderToDay?.slice().reverse()}
                         renderItem={({ item, index }) => {
                           const time = new Date(item.createdAt);
                           return (
@@ -141,8 +130,6 @@ const ListTableCate = (props: Props) => {
                         }}
                         keyExtractor={(item: any) => item._id}
                       />
-
-
                     )}
                   </View>
                 </ScrollView>
@@ -155,7 +142,7 @@ const ListTableCate = (props: Props) => {
               width: '60%',
               height: '100%',
               borderColor: '#808000',
-              borderLeftWidth: 1,
+              borderLeftWidth: 0.5,
               padding: 10,
             }}>
             {order.length <= 0 ? (
@@ -212,7 +199,9 @@ const ListTableCate = (props: Props) => {
                           }}>
                           Giờ vào :{' '}
                           <Text style={{ textTransform: 'capitalize' }}>
-                            {order?.start_time == null ? 'Trống' : order?.start_time}
+                            {order?.start_time == null
+                              ? 'Trống'
+                              : order?.start_time}
                           </Text>
                         </Text>
                         <Text
@@ -323,8 +312,7 @@ const ListTableCate = (props: Props) => {
                       <Text style={{ fontSize: 20, color: 'red' }}>
                         {' '}
                         {Math.ceil(
-                          (order?.sumPrice) *
-                          ((100 - order?.sale) / 100),
+                          order?.sumPrice * ((100 - order?.sale) / 100),
                         )
                           .toString()
                           .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -337,8 +325,7 @@ const ListTableCate = (props: Props) => {
             )}
           </View>
         </View>
-      )}
-
+      {/* </Suspense> */}
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <View style={styles.centeredView}>
           <Pressable
@@ -380,7 +367,6 @@ const ListTableCate = (props: Props) => {
           </View>
         </View>
       </Modal>
-
     </View>
   );
 };

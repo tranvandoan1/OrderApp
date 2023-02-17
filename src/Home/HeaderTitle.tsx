@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, StyleSheet, View, TouchableOpacity} from 'react-native';
+import {Text, StyleSheet, View, TouchableOpacity, StatusBar} from 'react-native';
 
 import Feather from 'react-native-vector-icons/Feather';
 
@@ -7,19 +7,19 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 // @ts-ignore
 type Props = {
   route?: any;
-  selectTable: boolean;
+  selectTable: any;
   navigation?: any;
   setSelectTable: () => void;
   setBookTable: () => void;
   setTableFilter: () => void;
-  tableFilter: boolean;
+  showTableFilter: boolean;
 };
 const HeaderTitle = ({
   navigation,
   route,
   setSelectTable,
   selectTable,
-  tableFilter,
+  showTableFilter,
   setTableFilter,
   setBookTable,
 }: Props) => {
@@ -29,8 +29,10 @@ const HeaderTitle = ({
         flexDirection: 'row',
         alignItems: 'center',
         position: 'relative',
+        justifyContent:'flex-end',
+        width:'100%'
       }}>
-      <View
+      {/* <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -63,13 +65,13 @@ const HeaderTitle = ({
         <Text style={{color: '#fff', fontSize: 18, marginLeft: 10}}>
           Có khách
         </Text>
-      </View>
-      <TouchableOpacity style={styles.bookTable} onPress={() => setBookTable()}>
+      </View> */}
+      {/* <TouchableOpacity style={styles.bookTable} onPress={() => setBookTable()}>
         <Text style={{color: '#fff', fontSize: 16, fontWeight: '500'}}>
           Đặt bàn
         </Text>
-      </TouchableOpacity>
-      <View
+      </TouchableOpacity> */}
+      {/* <View
         style={[
           styles.bookTable,
           {
@@ -85,7 +87,7 @@ const HeaderTitle = ({
           <Text style={{color: '#fff', fontSize: 16, fontWeight: '500'}}>
             {selectTable == undefined
               ? 'Lọc'
-              : tableFilter == true
+              : showTableFilter == true
               ? 'Lọc'
               : selectTable?.name}
           </Text>
@@ -104,7 +106,7 @@ const HeaderTitle = ({
             />
           </TouchableOpacity>
         )}
-      </View>
+      </View> */}
 
       <TouchableOpacity
         onPress={() => navigation.navigate('manage')}

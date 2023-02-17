@@ -15,7 +15,6 @@ import {
   View,
 } from 'react-native';
 import React, {
-  startTransition,
   useEffect,
   useReducer,
   useRef,

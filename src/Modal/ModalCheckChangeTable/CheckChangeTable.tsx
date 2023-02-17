@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -11,30 +11,49 @@ import {
   ToastAndroid,
   ActivityIndicator,
   Alert,
+  TextInput
 } from 'react-native';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { Size, SizeScale } from '../../Component/size';
-import { TextInput } from 'react-native-gesture-handler';
 import { AppDispatch, RootState } from '../../App/Store';
 import {
   changeTables,
   getAllTable,
+  removeOrder,
 } from './../../Features/TableSlice';
+import ModalConfim from '../../Component/ModalConfim';
 
 type Props = {
   selectionTable: any;
-  removeOrderTable: () => void;
+  showModalConfim: () => void;
   hiddeSelectTable: () => void;
-  
 };
-const CheckChangeTable = (props: Props) => {
+type State = {
+  showListTables: boolean;
+  loading: boolean;
+  selectTableWantToMove: any;
+  showMockUpMoveTable: boolean;
+};
+const CheckChangeTable: React.FC<Props> = ({
+  selectionTable,
+  showModalConfim,
+  hiddeSelectTable
+}) => {
   const width = Size().width;
   const sizeScale = SizeScale().width;
 
-  const [showListTables, setShowListTables] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [selectTableWantToMove, setSelectTableWantToMove] = useState<any>();
-  const [showMockUpMoveTable, setShowMockUpMoveTable] = useState<boolean>(false);
+  const [state, setState] = useReducer(
+    (state: State, newState: Partial<State>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      showListTables: false,
+      loading: false,
+      selectTableWantToMove: undefined,
+      showMockUpMoveTable: false,
+    },
+  );
 
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
@@ -44,7 +63,7 @@ const CheckChangeTable = (props: Props) => {
   }, []);
 
   // tính tổng tiền
-  const prices = props?.selectionTable?.orders?.map((item: any) => {
+  const prices = selectionTable?.orders?.map((item: any) => {
     if (item.weight) {
       return Math.ceil(+item.price * item.weight * +item.amount);
     } else {
@@ -56,38 +75,45 @@ const CheckChangeTable = (props: Props) => {
     sum += +prices[i];
   }
   // lấy danh sách bàn còn trống
-  const tableFilter: any = tables?.filter((item: any) => item.timeBookTable == 'null' && (item?.orders?.length <= 0 || item?.orders == null));
+  const tableFilter: any = tables?.filter(
+    (item: any) =>
+      item.timeBookTable == 'null' &&
+      (item?.orders?.length <= 0 || item?.orders == null),
+  );
   // chuyển bàn
   const save = async () => {
-    if (selectTableWantToMove == undefined) {
+    if (state?.selectTableWantToMove == undefined) {
       Alert.alert('Chưa chọn bàn muốn chuyển !');
     } else {
-      setLoading(true);
-
+      hiddeSelectTable()
+      setState({ loading: true });
       const uploadTable = {
-        table1: props.selectionTable,
-        table2: selectTableWantToMove._id,
+        table1: selectionTable,
+        table2: state?.selectTableWantToMove._id,
       };
       // @ts-ignore
       await dispatch(changeTables(uploadTable));
       ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
-      props?.hiddeSelectTable()
-      setSelectTableWantToMove(undefined);
-      setShowMockUpMoveTable(false)
-      setLoading(false);
+      setState({
+        loading: false,
+        showMockUpMoveTable: false,
+        selectTableWantToMove: undefined,
+      });
     }
   };
   const renderTable = () => {
     return (
-      <SafeAreaView>
+      <SafeAreaView >
         <ScrollView showsVerticalScrollIndicator={false}>
           {tableFilter?.map((item: any) => {
             return (
               <TouchableOpacity
-                style={{ marginTop: 10 }}
+                style={{ marginTop: 10, zIndex: 100 }}
                 onPress={() => {
-                  setSelectTableWantToMove(item);
-                  setShowListTables(false);
+                  setState({
+                    selectTableWantToMove: item,
+                    showListTables: false,
+                  });
                 }}>
                 <Text
                   style={{
@@ -107,10 +133,15 @@ const CheckChangeTable = (props: Props) => {
 
   return (
     <>
-      {props?.selectionTable !== undefined && (
+      {state?.loading == true && (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      )}
+      {selectionTable !== undefined && (
         <View style={styles.checkChange}>
           <Pressable
-            onPress={() => props.hiddeSelectTable()}
+            onPress={() => hiddeSelectTable()}
             style={{
               width: '100%',
               height: '100%',
@@ -138,9 +169,10 @@ const CheckChangeTable = (props: Props) => {
                 fontWeight: '500',
                 borderBottomWidth: 1,
               }}>
-              {props?.selectionTable?.name}
+              {selectionTable?.name}
             </Text>
-            <TouchableOpacity onPress={() => setShowMockUpMoveTable(true)}>
+            <TouchableOpacity
+              onPress={() => setState({ showMockUpMoveTable: true })}>
               <Text
                 style={{
                   color: 'black',
@@ -152,7 +184,9 @@ const CheckChangeTable = (props: Props) => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => props?.removeOrderTable()}>
+            <TouchableOpacity onPress={() => {
+              showModalConfim()
+            }}>
               <Text
                 style={{
                   color: 'black',
@@ -170,11 +204,11 @@ const CheckChangeTable = (props: Props) => {
       {/* Chuyển bàn */}
       <Modal
         transparent={true}
-        visible={showMockUpMoveTable}
+        visible={state?.showMockUpMoveTable}
         animationType="slide">
         <View style={styles.centeredView}>
           <Pressable
-            onPress={() => setShowMockUpMoveTable(false)}
+            onPress={() => setState({ showMockUpMoveTable: false })}
             style={{
               width: '100%',
               height: '100%',
@@ -184,11 +218,7 @@ const CheckChangeTable = (props: Props) => {
               left: 0,
               right: 0,
             }}></Pressable>
-          {loading == true && (
-            <View style={styles.loading}>
-              <ActivityIndicator size="large" color="#fff" />
-            </View>
-          )}
+
           <View
             style={[
               {
@@ -209,7 +239,7 @@ const CheckChangeTable = (props: Props) => {
                 paddingBottom: sizeScale * 20,
                 marginBottom: sizeScale * 20,
               }}>
-              Chuyển {props?.selectionTable?.name}
+              Chuyển {selectionTable?.name}
             </Text>
             <View
               style={{
@@ -218,7 +248,7 @@ const CheckChangeTable = (props: Props) => {
                 alignItems: 'center',
                 paddingHorizontal: 50,
               }}>
-              {props?.selectionTable?.timeBookTable !== 'null' && (
+              {selectionTable?.timeBookTable !== 'null' && (
                 <React.Fragment>
                   <View
                     style={[
@@ -243,7 +273,7 @@ const CheckChangeTable = (props: Props) => {
                         fontWeight: '500',
                         fontSize: 18,
                       }}>
-                      {props?.selectionTable?.nameUser}
+                      {selectionTable?.nameUser}
                     </Text>
                   </View>
                   <View
@@ -269,7 +299,7 @@ const CheckChangeTable = (props: Props) => {
                         fontWeight: '500',
                         fontSize: 18,
                       }}>
-                      {props?.selectionTable?.timeBookTable}
+                      {selectionTable?.timeBookTable}
                     </Text>
                   </View>
                 </React.Fragment>
@@ -288,7 +318,7 @@ const CheckChangeTable = (props: Props) => {
                     fontSize: 20,
                     fontWeight: '500',
                   }}>
-                  {props?.selectionTable?.name} :
+                  {selectionTable?.name} :
                 </Text>
                 <Text
                   style={{
@@ -297,7 +327,7 @@ const CheckChangeTable = (props: Props) => {
                     fontWeight: '500',
                     fontSize: 18,
                   }}>
-                  {props?.selectionTable?.orders?.length} món ăn
+                  {selectionTable?.orders?.length} món ăn
                 </Text>
               </View>
               <View
@@ -352,16 +382,22 @@ const CheckChangeTable = (props: Props) => {
                 }}>
                 <TouchableOpacity
                   style={styles.table}
-                  onPress={() => setShowListTables(!showListTables)}>
+                  onPress={() =>
+                    setState({ showListTables: !state?.showListTables })
+                  }>
                   <TextInput
                     selectTextOnFocus={false}
                     editable={false}
-                    value={selectTableWantToMove == null ? '' : selectTableWantToMove?.name}
+                    value={
+                      state?.selectTableWantToMove == null
+                        ? ''
+                        : state?.selectTableWantToMove?.name
+                    }
                     style={styles.input}
                     placeholder="Chọn bàn"
                   />
                 </TouchableOpacity>
-                {showListTables == true && (
+                {state?.showListTables == true && (
                   <View
                     style={[
                       {
@@ -372,7 +408,7 @@ const CheckChangeTable = (props: Props) => {
                         backgroundColor: '#fff',
                         paddingVertical: 10,
                         borderRadius: 2,
-                        zIndex: 1000,
+                        zIndex: 10,
                         borderColor: '#AAAAAA',
                         borderWidth: 1,
                         left: sizeScale * 10,
@@ -389,6 +425,7 @@ const CheckChangeTable = (props: Props) => {
                 marginTop: sizeScale * 30,
                 paddingHorizontal: sizeScale * 20,
                 zIndex: 1,
+                display: state?.showListTables || state?.selectTableWantToMove == undefined ? 'none' : 'flex'
               }}>
               <TouchableOpacity
                 style={{
@@ -397,7 +434,7 @@ const CheckChangeTable = (props: Props) => {
                   borderRadius: 5,
                 }}
                 onPress={() => save()}>
-                {loading == true ? (
+                {state?.loading == true ? (
                   <ActivityIndicator size={25} color={'#fff'} />
                 ) : (
                   <Text
@@ -418,8 +455,8 @@ const CheckChangeTable = (props: Props) => {
                   borderRadius: 5,
                   marginTop: 10,
                 }}
-                onPress={() => setShowMockUpMoveTable(false)}>
-                {loading == true ? (
+                onPress={() => setState({ showMockUpMoveTable: false })}>
+                {state?.loading == true ? (
                   <ActivityIndicator size={25} color={'#fff'} />
                 ) : (
                   <Text
@@ -437,6 +474,28 @@ const CheckChangeTable = (props: Props) => {
           </View>
         </View>
       </Modal>
+      {/* hiện modal confil hủy bàn */}
+      {/* <ModalConfim
+        modalVisible={state?.showModalConfim}
+        btnAccept={async () => {
+          setState({ loading: true, showModalConfim: false });
+          hiddeSelectTable();
+          await dispatch(
+            // @ts-ignore
+            removeOrder({
+              id: selectionTable?._id,
+            }),
+          );
+          setState({ loading: false });
+        }}
+        btnCancel={() => {
+          setState({ showModalConfim: false });
+        }}
+        titile={'Thông báo'}
+        content={'Bạn có muốn hủy không ?'}
+        textBtnAccept={'Có'}
+        textBtnCancel={'Không'}
+      /> */}
     </>
   );
 };

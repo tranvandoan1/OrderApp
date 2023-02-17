@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Modal, StatusBar } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Modal, StatusBar, Pressable } from 'react-native';
 import React, { useState } from 'react';
 import { Size } from './../size';
 type Props = {
@@ -23,7 +23,22 @@ const ModalConfim: React.FC<Props> = ({
   return (
     <Modal animationType="slide" transparent={true} visible={modalVisible}>
       <View style={styles.centeredView}>
-        <View style={[styles.modalView, { width: width < 960 ? (width < 593 ? 400 : 450) : 500 }]}>
+        <Pressable
+          onPress={() => btnCancel()}
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }}>
+      <StatusBar translucent hidden={true} />
+
+          </Pressable>
+
+        <View style={[styles.modalView, { width: width < 960 ? (width < 593 ? 400 : 450) : 330 }]}>
           <View>
             <Text style={styles.title}>{titile}</Text>
             <Text style={styles.content}>{content}</Text>
@@ -86,10 +101,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   content: {
-    fontSize: 22,
+    fontSize: 20,
     textAlign: 'center',
     color: 'black',
-    marginBottom: 20
   },
   button: {
     flexDirection: 'row',
@@ -105,7 +119,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   textBtnAccept: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '500',
     color: '#fff',
   },
@@ -117,7 +131,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   textBtnCancel: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '500',
     color: '#fff',
   },

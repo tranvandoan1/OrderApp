@@ -6,10 +6,10 @@ import {
   Text,
   TouchableOpacity,
   View,
+  TextInput
 } from 'react-native';
 import React, {useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {TextInput} from 'react-native-gesture-handler';
 import ListTableProduct from './ListTableProduct';
 import ModalAddEditPro from './../../Modal/ModalAddEditPro/ModalAddEditPro';
 const ListProducts = ({navigation}: any) => {

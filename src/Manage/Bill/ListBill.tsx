@@ -5,55 +5,85 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ListTableBill from './ListTableBill';
-import { Size } from '../../Component/size';
+import {Size} from '../../Component/size';
 import moment from 'moment';
 import ModalSelectDate from '../../Modal/ModalSelectDate';
-import { TypedUseSelectorHook, useSelector, useDispatch } from 'react-redux';
-import { AppDispatch, RootState } from '../../App/Store';
-import { getAllOrder } from './../../Features/OrderSlice';
-const ListBill = ({ navigation }: any) => {
+import {TypedUseSelectorHook, useSelector, useDispatch} from 'react-redux';
+import {AppDispatch, RootState} from '../../App/Store';
+import {getAllOrder} from './../../Features/OrderSlice';
+type Props = {
+  checkUserStorage: any;
+  navigation?: any;
+  background: any;
+  language: any;
+};
+const ListBill: React.FC<Props> = ({
+  language,
+  navigation,
+  background,
+  checkUserStorage,
+}) => {
   const width = Size()?.width;
   const [selectDate, setSelectDate] = useState<boolean>(false);
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const orders = useAppSelect((data: any) => data.orders.value);
+  const orders = useAppSelect((data: any) => data.orders);
+  const monthConvert = `${
+    String(moment().month() + 1).length == 1
+      ? `0${moment().month() + 1}`
+      : moment().month() + 1
+  }`;
+  const dateConvert = `${
+    String(moment().date()).length == 1
+      ? `0${moment().date()}`
+      : moment().date()
+  }`;
   useEffect(() => {
-    dispatch(getAllOrder())
-  }, [])
-  const [date, setDate] = useState<any>({
-    date:
-      String(moment().date()).length == 1
-        ? `0${moment().date()}`
-        : moment().date(),
-    month:
-      String(moment().month() + 1).length == 1
-        ? `0${moment().month() + 1}`
-        : moment().month() + 1,
-    year: moment().year(),
-  });
-  // lọc order
-  const orderToDay = orders?.filter((item: any) => {
-    console.log(item, 'đáasdasd')
-    const time = new Date(item.createdAt);
-    if (
-      time.getFullYear() == date.year &&
-      (String(time.getMonth() + 1).length <= 1 ? `0${time.getMonth() + 1}` : time.getMonth() + 1) == date.month &&
-      (String(time.getDate()).length <= 1 ? `0${time.getDate()}` : time.getDate()) == date.date
-    ) {
-      return item;
+    dispatch(getAllOrder());
+  }, []);
+  const [data, setData] = useState<any>();
+  const getOrder = () => {
+    const dataProps: any = [];
+    orders?.value?.map((item: any) => {
+      const time: any = new Date(item.updatedAt);
+      if (
+        time.getDate() == dateConvert &&
+        time.getMonth() + 1 == monthConvert &&
+        time.getFullYear() == moment().year()
+      ) {
+        dataProps.push(item);
+      }
+    });
+    // tính tổng tiền
+    let sum = 0;
+    for (let i = 0; i < dataProps.length; i++) {
+      sum += Math.ceil(
+        dataProps[i].sumPrice * ((100 - dataProps[i].sale) / 100),
+      );
     }
-  });
+    setData({
+      sum: sum,
+      data: dataProps,
+      date: {
+        date: dateConvert,
+        month: monthConvert,
+        year: moment().year(),
+      },
+      filter: 1,
+    });
+  };
+  useEffect(() => {
+    getOrder();
+  }, [language, orders?.value]);
   return (
-    <View style={{ flex: 1, width: '100%' }}>
+    <View style={{flex: 1, width: '100%'}}>
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => navigation.navigate('manage')}>
-            <AntDesign name="left" style={styles.iconBack} />
-          </TouchableOpacity>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Text
             style={[
               styles.titlePro,
@@ -65,24 +95,37 @@ const ListBill = ({ navigation }: any) => {
           </Text>
         </View>
         <View style={styles.date}>
+          <View style={styles.date}>
+            <Text style={{fontSize: 22, fontWeight: '500', color: 'red'}}>
+              Tổng :{' '}
+            </Text>
+            <Text style={{fontSize: 24, fontWeight: '500', color: 'tomato'}}>
+              {data?.sum?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
+            </Text>
+          </View>
           <TouchableOpacity onPress={() => setSelectDate(true)}>
-
             <TextInput
               selectTextOnFocus={false}
               editable={false}
               defaultValue={
-                (((String(moment().date()).length == 1
-                  ? `0${moment().date()}`
-                  : moment().date()) == date.date) &&
-                  ((String(moment().month() + 1).length == 1
-                    ? `0${moment().month() + 1}`
-                    : moment().month() + 1) == date.month) &&
-                  (moment().year() == date.year)) ? 'Hôm nay' :
-                  `${date.date}/${date.month}/${date.year}`
+                data?.filter == 1
+                  ? data?.date?.date == moment().date() &&
+                    data?.date?.month == moment().month() + 1 &&
+                    data?.date?.year == moment().year()
+                    ? 'Hôm nay'
+                    : `${data?.date?.date}-${data?.date?.month}-${data?.date?.year}`
+                  : data?.filter == 2
+                  ? data?.date?.month == moment().month() + 1 &&
+                    data?.date?.year == moment().year()
+                    ? 'Tháng này'
+                    : `${data?.date?.month}-${data?.date?.year}`
+                  : data?.date?.year == moment().year()
+                  ? 'Năm nay'
+                  : data?.date?.year
               }
               style={{
-                color: '#fff',
-                borderColor: '#fff',
+                color: 'blue',
+                borderColor: 'blue',
                 borderWidth: 1,
                 borderRadius: 2,
                 paddingHorizontal: 10,
@@ -95,18 +138,26 @@ const ListBill = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
       </View>
-
-      <ListTableBill
-        orderToDay={orderToDay}
-      />
-      <ModalSelectDate
-        selectDate={selectDate}
-        hiddenSelectDate={(e: any) =>
-          String(e).length >= 1
-            ? (setDate(e), setSelectDate(false))
-            : setSelectDate(false)
-        }
-      />
+      {/* {orders?.value?.length <= 0 && orders?.loading == true ? (
+        <View style={styles.loading_g}>
+          <ActivityIndicator size="large" color="blue" />
+        </View>
+      ) : ( */}
+        <ListTableBill orderToDay={data?.data} />
+      {/* )} */}
+      {selectDate == true && (
+        <ModalSelectDate
+          selectDateProps={selectDate}
+          hiddenSelectDate={
+            (e: any) =>
+              String(e).length >= 1
+                ? (setData(e), setSelectDate(false))
+                : setSelectDate(false)
+            // console.log(e,'3e2wd')
+          }
+          dataOrders={orders?.value}
+        />
+      )}
     </View>
   );
 };
@@ -121,28 +172,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'blue',
+    // backgroundColor: 'blue',
     borderColor: 'rgb(219,219,219)',
     borderBottomWidth: 1,
   },
   date: {
     padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   titlePro: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#fff',
+    color: 'blue',
     fontFamily: Platform.OS == 'android' ? 'Roboto-Light' : 'Roboto-Bold',
     fontStyle: 'normal',
   },
   iconBack: {
     fontSize: 20,
-    color: '#fff',
+    color: 'blue',
     marginRight: 10,
     fontWeight: '600',
   },
   title: {
-    color: '#fff',
+    color: 'blue',
     fontSize: 22,
     fontWeight: '500',
   },
@@ -152,5 +205,18 @@ const styles = StyleSheet.create({
     marginTop: 5,
     paddingLeft: 10,
     paddingVertical: 5,
+  },
+  loading_g: {
+    position: 'absolute',
+    backgroundColor: '#fff',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
   },
 });

@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {startTransition, useEffect, useState} from 'react';
+import React, { useEffect, useState} from 'react';
 import {Size} from '../Component/size';
 import {checkUserAsyncStorage} from '../Component/checkUser';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
@@ -258,10 +258,10 @@ const ListPro = (props: Props) => {
                         {fontSize: width < 720 ? 18 : 20},
                       ]}
                       autoCapitalize="words"
-                      onChangeText={(e: number) =>
-                        startTransition(() => {
-                          setValueWeight(e);
-                        })
+                      onChangeText={(e: number) =>{
+                        setValueWeight(e)
+
+                      }
                       }
                       defaultValue={valueWeight}
                       placeholder="Cân nặng"

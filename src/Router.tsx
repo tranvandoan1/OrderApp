@@ -1,5 +1,5 @@
 // In App.js in a new project
-import {StyleSheet, Text, View} from 'react-native';
+import {StatusBar, StyleSheet, Text, View} from 'react-native';
 import React, {lazy, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -24,13 +24,13 @@ import {Size} from './Component/size';
 import {checkUserAsyncStorage} from './Component/checkUser';
 import ListTable from './Manage/Table/ListTable';
 import ListBill from './Manage/Bill/ListBill';
-import ListStatistical from './Manage/Statistical/ListStatistical';
 import Account from './Manage/Account/Account';
 import {getCategori} from './Features/CateSlice';
 import Loading from './Component/Loading';
+import Home from './Home/Home';
+import Order from './Orders/Order';
+import Setting from './Manage/Setting';
 const Tab = createBottomTabNavigator();
-const Home = lazy(() => import('./Home/Home'));
-const Order = lazy(() => import('./Orders/Order'));
 function Router() {
   const width = Size().width;
   return (
@@ -116,6 +116,7 @@ const Stack = createNativeStackNavigator();
 function App() {
   return (
     <Provider store={store}>
+      <StatusBar hidden={true} />
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen
@@ -160,11 +161,11 @@ function App() {
             component={ListBill}
             options={{headerShown: false}}
           />
-          <Stack.Screen
-            name="statistical"
-            component={ListStatistical}
+          {/* <Stack.Screen
+            name="setting"
+            component={Setting}
             options={{headerShown: false}}
-          />
+          /> */}
           <Stack.Screen
             name="account"
             component={Account}

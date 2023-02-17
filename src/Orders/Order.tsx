@@ -15,7 +15,6 @@ import {
   View,
 } from 'react-native';
 import React, {
-  startTransition,
   useEffect,
   useReducer,
   useRef,
@@ -25,16 +24,16 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ListPro from './ListPro';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../App/Store';
-import { getProductAll } from '../Features/ProductsSlice';
+import {useDispatch} from 'react-redux';
+import {AppDispatch} from '../App/Store';
+import {getProductAll} from '../Features/ProductsSlice';
 import ModalCheckPay from '../Modal/ModalCheckPay';
-import { Size, SizeScale } from '../Component/size';
-import { addOrderTable, getAllTable } from '../Features/TableSlice';
-import { addOrder } from '../Features/OrderSlice';
-import { removeOrderTable } from '../API/TableAPI';
-import { removeOrder } from '../Features/TableSlice';
-import { add } from '../API/Order';
+import {Size, SizeScale} from '../Component/size';
+import {addOrderTable, getAllTable} from '../Features/TableSlice';
+import {addOrder} from '../Features/OrderSlice';
+import {removeOrderTable} from '../API/TableAPI';
+import {removeOrder} from '../Features/TableSlice';
+import {add} from '../API/Order';
 import ShowInfoBookTable from './ShowInfoBookTable';
 import ListOrderMobile from './ListOrderMobile';
 type Props = {
@@ -52,7 +51,7 @@ type State = {
   showInforBookTable: boolean;
   timeStartOrder: string | undefined;
   tableOrder: any;
-  selectModalCate: boolean
+  selectModalCate: boolean;
 };
 const Order = (props: Props) => {
   const width = Size().width;
@@ -78,7 +77,7 @@ const Order = (props: Props) => {
     {
       loading: false,
       value: undefined, //lấy value khi nhập mã giảm giá
-      valueAmount: { value: undefined, id: null }, //lấy số lượng khi nhập số lượng
+      valueAmount: {value: undefined, id: null}, //lấy số lượng khi nhập số lượng
       valueSale: undefined, //lấy giá trị giảm giá khi ấn áp dụng
       checkPayy: false,
       checkAnimated: false,
@@ -86,7 +85,7 @@ const Order = (props: Props) => {
       showInforBookTable: false,
       timeStartOrder: undefined,
       tableOrder: propParams?.table?.orders,
-      selectModalCate: false
+      selectModalCate: false,
     },
   );
   useEffect(() => {
@@ -107,12 +106,12 @@ const Order = (props: Props) => {
   // xóa món ăn
   const deleteOrder = async (id: any) => {
     const dataNew = state?.tableOrder?.filter((item: any) => item.id !== id);
-    setState({ loading: true, valueAmount: undefined, tableOrder: dataNew });
-    setState({ loading: false });
+    setState({loading: true, valueAmount: undefined, tableOrder: dataNew});
+    setState({loading: false});
   };
 
   const onSubmit = async (itemm: any) => {
-    width < 960 && setState({ loading: true });
+    width < 960 && setState({loading: true});
     const dataOrder = state?.tableOrder?.find(
       (item: any) => item.id == itemm.data.id,
     );
@@ -134,12 +133,12 @@ const Order = (props: Props) => {
           dataNew.push(itemOrder);
         }
       });
-      setState({ loading: true, tableOrder: dataNew });
-      setState({ loading: false });
+      setState({loading: true, tableOrder: dataNew});
+      setState({loading: false});
     } else if (dataOrder.amount <= 1 && itemm.check == 'decrease') {
       deleteOrder(itemm.data.id);
     }
-    width < 960 && setState({ loading: false });
+    width < 960 && setState({loading: false});
   };
   const uploadAmount = async (item: any) => {
     // @ts-ignore
@@ -158,11 +157,9 @@ const Order = (props: Props) => {
       }
     });
 
-    setState({ loading: true, valueAmount: undefined, tableOrder: dataNew });
-    setState({ loading: false });
+    setState({loading: true, valueAmount: undefined, tableOrder: dataNew});
+    setState({loading: false});
   };
-
-
 
   // lưu lại những món ăn vừa order khi tắt ứng dụng
   AppState.addEventListener('change', async e => {
@@ -179,7 +176,7 @@ const Order = (props: Props) => {
           time_start: state?.timeStartOrder,
         }),
       );
-      setState({ tableOrder: [] });
+      setState({tableOrder: []});
     }
   });
   return (
@@ -207,19 +204,19 @@ const Order = (props: Props) => {
             alignItems: 'center',
             width: width < 960 ? '100%' : '65%',
           }}>
-          <View style={[styles.header, { width: '50%' }]}>
+          <View style={[styles.header, {width: '50%'}]}>
             <TouchableOpacity
               onPress={async () => {
-                props.navigation?.navigate('home');
-                // if (
-                //   (JSON.stringify(state?.tableOrder) ==
-                //     JSON.stringify(propParams?.table?.orders)) ==
-                //   false
-                // ) {
-                  // props.navigation?.navigate('home', {
-                  //   loading: true,
-                  //   id: propParams?.table?._id,
-                  // });
+                if (
+                  (JSON.stringify(state?.tableOrder) ==
+                    JSON.stringify(propParams?.table?.orders)) ==
+                  false
+                ) {
+                  props.navigation?.navigate('home', {
+                    data: state?.tableOrder,
+                    id_table: propParams?.table._id,
+                    time_start: state?.timeStartOrder,
+                  });
                   await dispatch(
                     // @ts-ignore
                     addOrderTable({
@@ -228,15 +225,11 @@ const Order = (props: Props) => {
                       time_start: state?.timeStartOrder,
                     }),
                   );
-                  setState({ tableOrder: [] })
-                  // props.navigation?.navigate('home', {
-                  //   loading: false,
-                  //   id: propParams?.table?._id,
-                  // });
-                // }
-              }}
-              
-              >
+                  setState({tableOrder: []});
+                } else {
+                  props.navigation?.navigate('home');
+                }
+              }}>
               <AntDesign
                 name="left"
                 size={width < 960 ? 30 : 23}
@@ -261,7 +254,7 @@ const Order = (props: Props) => {
               width: '50%',
               justifyContent: 'flex-end',
             }}>
-            <TouchableOpacity onPress={() => setState({ selectModalCate: true })}>
+            <TouchableOpacity onPress={() => setState({selectModalCate: true})}>
               <View
                 style={{
                   position: 'relative',
@@ -274,7 +267,8 @@ const Order = (props: Props) => {
                 }}>
                 <TextInput
                   value={
-                    state?.valueCate == undefined || String(state?.valueCate).length <= 0
+                    state?.valueCate == undefined ||
+                    String(state?.valueCate).length <= 0
                       ? ''
                       : state?.valueCate.name
                   }
@@ -289,29 +283,31 @@ const Order = (props: Props) => {
                   selectTextOnFocus={false}
                   placeholder="Danh mục"
                 />
-                {state?.valueCate == undefined || String(state?.valueCate).length <= 0 ? (
+                {state?.valueCate == undefined ||
+                String(state?.valueCate).length <= 0 ? (
                   <AntDesign
                     name="down"
                     size={18}
                     color={'blue'}
-                    style={{ position: 'absolute', top: 10, right: 10 }}
+                    style={{position: 'absolute', top: 10, right: 10}}
                   />
                 ) : (
                   <TouchableOpacity
-                    onPress={() => setState({ valueCate: undefined })}
-                    style={{ position: 'absolute', top: 10, right: 10 }}>
+                    onPress={() => setState({valueCate: undefined})}
+                    style={{position: 'absolute', top: 10, right: 10}}>
                     <AntDesign name="close" size={18} color={'red'} />
                   </TouchableOpacity>
                 )}
               </View>
             </TouchableOpacity>
             {propParams?.table.timeBookTable !== 'null' && (
-              <TouchableOpacity onPress={() => setState({ showInforBookTable: true })}>
+              <TouchableOpacity
+                onPress={() => setState({showInforBookTable: true})}>
                 <AntDesign
                   name="infocirlceo"
                   size={21}
                   color={'#fff'}
-                  style={{ marginRight: 20 }}
+                  style={{marginRight: 20}}
                 />
               </TouchableOpacity>
             )}
@@ -333,30 +329,30 @@ const Order = (props: Props) => {
           width: '100%',
           alignItems: 'center',
         }}>
-        <View style={{ width: width < 960 ? '100%' : '65%' }}>
+        <View style={{width: width < 960 ? '100%' : '65%'}}>
           <ListPro
             params={propParams}
             valueCate={state?.valueCate}
             selectModalCate={state?.selectModalCate}
-            hiddeViewCate={(e: any) => (
-              setState({ selectModalCate: false, valueCate: e })
-            )}
+            hiddeViewCate={(e: any) =>
+              setState({selectModalCate: false, valueCate: e})
+            }
             order={(e: any) => {
-              setState({ loading: true, tableOrder: e })
-              setState({ loading: false })
-
+              setState({loading: true, tableOrder: e});
+              setState({loading: false});
             }}
-            timeStartOrder={(e: any) => setState({ timeStartOrder: e })}
+            timeStartOrder={(e: any) => setState({timeStartOrder: e})}
             data={state?.tableOrder}
           />
         </View>
 
-        <View style={[styles.right, { width: width < 960 ? '0%' : '35%' }]}>
-          <View style={{ flex: 1 }}>
-            <View style={{ padding: 5, height: '70%' }}>
+        <View style={[styles.right, {width: width < 960 ? '0%' : '35%'}]}>
+          <View style={{flex: 1}}>
+            <View style={{padding: 5, height: '70%'}}>
               <SafeAreaView>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                  {(state?.tableOrder?.length <= 0 || state?.tableOrder == undefined) && (
+                  {(state?.tableOrder?.length <= 0 ||
+                    state?.tableOrder == undefined) && (
                     <View
                       style={{
                         flexDirection: 'column',
@@ -404,11 +400,11 @@ const Order = (props: Props) => {
                                 name="closecircle"
                                 color={'tomato'}
                                 size={22}
-                                style={{ marginRight: 15 }}
+                                style={{marginRight: 15}}
                               />
                             </TouchableOpacity>
 
-                            <View style={{ flexDirection: 'column' }}>
+                            <View style={{flexDirection: 'column'}}>
                               <Text style={styles.proname} numberOfLines={2}>
                                 {item.name}
                               </Text>
@@ -426,7 +422,7 @@ const Order = (props: Props) => {
                             }}>
                             <TouchableOpacity
                               onPress={() =>
-                                onSubmit({ data: item, check: 'decrease' })
+                                onSubmit({data: item, check: 'decrease'})
                               }>
                               <Entypo
                                 name="circle-with-minus"
@@ -435,24 +431,25 @@ const Order = (props: Props) => {
                               />
                             </TouchableOpacity>
                             <TextInput
-                              value={`${state?.valueAmount == undefined
-                                ? item.amount
-                                : item.id == state?.valueAmount.id
+                              value={`${
+                                state?.valueAmount == undefined
+                                  ? item.amount
+                                  : item.id == state?.valueAmount.id
                                   ? state?.valueAmount.value
                                   : item.amount
-                                }`}
+                              }`}
                               style={styles.text}
                               keyboardType="numeric"
                               onChangeText={e =>
-                                setState({ valueAmount: { value: e, id: item.id } })
+                                setState({valueAmount: {value: e, id: item.id}})
                               }
                               onBlur={() =>
-                                uploadAmount({ value: item, id: item.id })
+                                uploadAmount({value: item, id: item.id})
                               }
                             />
                             <TouchableOpacity
                               onPress={() =>
-                                onSubmit({ data: item, check: 'add' })
+                                onSubmit({data: item, check: 'add'})
                               }>
                               <AntDesign
                                 name="pluscircle"
@@ -467,7 +464,7 @@ const Order = (props: Props) => {
                 </ScrollView>
               </SafeAreaView>
             </View>
-            <View style={[styles.bott, { height: '30%' }]}>
+            <View style={[styles.bott, {height: '30%'}]}>
               <View
                 style={{
                   flexDirection: 'row',
@@ -478,9 +475,7 @@ const Order = (props: Props) => {
                 <TextInput
                   value={state?.value}
                   onChangeText={e =>
-                    startTransition(() => {
-                      setState({ value: e })
-                    })
+                      setState({value: e})
                   }
                   placeholder="Nhập mã giảm giá"
                   keyboardType="number-pad"
@@ -495,17 +490,18 @@ const Order = (props: Props) => {
                 />
                 <TouchableOpacity
                   onPress={() => (
-                    setState({ valueSale: state?.value, value: undefined }), Keyboard.dismiss()
+                    setState({valueSale: state?.value, value: undefined}),
+                    Keyboard.dismiss()
                   )}>
                   <Text style={styles.xn}>Áp dụng</Text>
                 </TouchableOpacity>
                 {state?.valueSale !== undefined && (
                   <TouchableOpacity
                     onPress={() => (
-
-                      setState({ valueSale: undefined, value: undefined }), Keyboard.dismiss()
+                      setState({valueSale: undefined, value: undefined}),
+                      Keyboard.dismiss()
                     )}>
-                    <Text style={[styles.xn, { backgroundColor: 'red' }]}>
+                    <Text style={[styles.xn, {backgroundColor: 'red'}]}>
                       Hủy
                     </Text>
                   </TouchableOpacity>
@@ -534,7 +530,8 @@ const Order = (props: Props) => {
                         style={{
                           flexDirection: 'row',
                           justifyContent:
-                            state?.valueSale !== undefined && state?.valueSale !== 0
+                            state?.valueSale !== undefined &&
+                            state?.valueSale !== 0
                               ? 'space-between'
                               : 'flex-end',
                           alignItems: 'center',
@@ -542,26 +539,28 @@ const Order = (props: Props) => {
                         <Text
                           style={[
                             styles.price,
-                            state?.valueSale !== undefined && state?.valueSale !== 0
-                              ? { fontSize: 19 }
-                              : { fontSize: 25 },
+                            state?.valueSale !== undefined &&
+                            state?.valueSale !== 0
+                              ? {fontSize: 19}
+                              : {fontSize: 25},
                           ]}>
                           Tổng tiền :{' '}
                         </Text>
                         <Text
                           style={[
                             styles.priceRed,
-                            state?.valueSale !== undefined && state?.valueSale !== 0
-                              ? { fontSize: 21 }
-                              : { fontSize: 27 },
+                            state?.valueSale !== undefined &&
+                            state?.valueSale !== 0
+                              ? {fontSize: 21}
+                              : {fontSize: 27},
                           ]}>
                           {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                           đ
                         </Text>
                       </View>
                       {state?.valueSale !== undefined &&
-                        state?.valueSale !== 0 &&
-                        String(state?.valueSale).length >= 1 ? (
+                      state?.valueSale !== 0 &&
+                      String(state?.valueSale).length >= 1 ? (
                         <View
                           style={{
                             flexDirection: 'column',
@@ -579,14 +578,14 @@ const Order = (props: Props) => {
                             <Text
                               style={[
                                 styles.price,
-                                { marginVertical: 10, fontSize: 20 },
+                                {marginVertical: 10, fontSize: 20},
                               ]}>
                               Giảm giá :
                             </Text>
                             <Text
                               style={[
                                 styles.priceRed,
-                                { marginVertical: 10, fontSize: 20 },
+                                {marginVertical: 10, fontSize: 20},
                               ]}>
                               -{state?.valueSale}%
                             </Text>
@@ -600,10 +599,10 @@ const Order = (props: Props) => {
                                 paddingLeft: 10,
                               },
                             ]}>
-                            <Text style={[styles.price, { fontSize: 23 }]}>
+                            <Text style={[styles.price, {fontSize: 23}]}>
                               Tổng tiền thanh toán :{' '}
                             </Text>
-                            <Text style={[styles.priceRed, { fontSize: 25 }]}>
+                            <Text style={[styles.priceRed, {fontSize: 25}]}>
                               {Math.ceil(sum * ((100 - state?.valueSale) / 100))
                                 .toString()
                                 .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -616,7 +615,7 @@ const Order = (props: Props) => {
                   </View>
                 </View>
 
-                <TouchableOpacity onPress={() => setState({ checkPayy: true })}>
+                <TouchableOpacity onPress={() => setState({checkPayy: true})}>
                   <Text style={styles.tt}>Thanh toán</Text>
                 </TouchableOpacity>
               </View>
@@ -629,19 +628,18 @@ const Order = (props: Props) => {
           tableOrder={state?.tableOrder}
           valueAmount={state?.valueAmount}
           saveValueAmount={(e: any) =>
-            setState({ valueAmount: { value: e.value, id: e.id } })
+            setState({valueAmount: {value: e.value, id: e.id}})
           }
           uploadAmount={(e: any) => uploadAmount(e)}
           sum={sum}
           valueSale={state?.valueSale}
           value={state?.value}
-          setState={() => setState({ valueSale: undefined })}
-          setValue={(e: any) => setState({ value: e })}
+          setState={() => setState({valueSale: undefined})}
+          setValue={(e: any) => setState({value: e})}
           setValueSale={() =>
-            setState({ valueSale: state?.value, value: undefined })
+            setState({valueSale: state?.value, value: undefined})
           }
-          onSubmit={(e:any)=>onSubmit(e)}
-
+          onSubmit={(e: any) => onSubmit(e)}
         />
       )}
 
@@ -657,7 +655,7 @@ const Order = (props: Props) => {
               });
 
               // @ts-ignore
-              await dispatch(removeOrder({ id: e?.table_id }));
+              await dispatch(removeOrder({id: e?.table_id}));
               props.navigation?.navigate('home', {
                 loading: false,
                 id: propParams?.table?._id,
@@ -666,7 +664,7 @@ const Order = (props: Props) => {
               // @ts-ignore
               await add(e);
             } else {
-              setState({ checkPayy: false })
+              setState({checkPayy: false});
             }
           }}
           valueSale={state?.valueSale}
@@ -682,7 +680,7 @@ const Order = (props: Props) => {
       {/* hiện thông tin đặt bàn nếu có */}
       {state?.showInforBookTable == true && (
         <ShowInfoBookTable
-          togger={(e: boolean) => setState({ showInforBookTable: e })}
+          togger={(e: boolean) => setState({showInforBookTable: e})}
           infoData={propParams?.table}
         />
       )}

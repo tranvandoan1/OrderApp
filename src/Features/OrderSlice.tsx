@@ -36,15 +36,13 @@ const orderSlice = createSlice({
   name: 'order',
   initialState: {
     value: [],
-    checkData: false,
+    loading: true,
   },
   reducers: {},
   extraReducers: builder => {
     builder.addCase(getAllOrder.fulfilled, (state: any, action) => {
-      if (action.payload.length <= 0) {
-        state.checkData = true;
-      }
-      state.value = action.payload;
+        state.checkData = false;
+        state.value = action.payload;
     });
     builder.addCase(addOrder.fulfilled, (state: any, action) => {
       state.value = action.payload;

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
   Linking,
+  NativeModules,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { Avatar, Button } from 'react-native-elements';
@@ -21,6 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkUserAsyncStorage } from '../Component/checkUser';
 import { Size } from './../Component/size';
 import ModalConfim from '../Component/ModalConfim';
+import DeviceInfo from 'react-native-device-info';
 type FormData = {
   email: string;
   password: string;
@@ -77,6 +79,7 @@ const Signin = ({ navigation }: any) => {
     }
   };
 
+  console.log("Device Locale", DeviceInfo.getDeviceName()); 
   return (
     <View style={{ flex: 1 }}>
       <StatusBar hidden={true} />
@@ -234,26 +237,26 @@ const Signin = ({ navigation }: any) => {
         </ScrollView>
         {(modalVisible?.status == true || confimSignUp == true) && (
           <ModalConfim
-            modalVisible={modalVisible?.status || confimSignUp}
-            btnAccept={async () => {
-              confimSignUp == true
-                ? (await Linking.openURL('https://admin-app-order.vercel.app/'),
-                  setConfimSignUp(false))
-                : (setModalVisible({ error: null, status: false }), reset());
-            }}
-            btnCancel={() => {
-              confimSignUp
-                ? setConfimSignUp(false)
-                : setModalVisible({ error: null, status: false });
-            }}
-            titile={confimSignUp ? 'Thông báo' : 'Cảnh báo'}
-            content={
-              confimSignUp
-                ? 'Bạn có muốn đến trang web này không?'
-                : modalVisible?.error
-            }
-            textBtnAccept={confimSignUp ? 'Có' : 'Ok'}
-            textBtnCancel={confimSignUp ? 'Không' : undefined}
+              modalVisible={modalVisible?.status || confimSignUp}
+              btnAccept={async () => {
+                confimSignUp == true
+                  ? (await Linking.openURL('https://admin-app-order.vercel.app/'),
+                    setConfimSignUp(false))
+                  : (setModalVisible({ error: null, status: false }), reset());
+              }}
+              btnCancel={() => {
+                confimSignUp
+                  ? setConfimSignUp(false)
+                  : setModalVisible({ error: null, status: false });
+              }}
+              titile={confimSignUp ? 'Thông báo' : 'Cảnh báo'}
+              content={
+                confimSignUp
+                  ? `Hãy truy cập trang web "${' https://admin-app-order.vercel.app/'}" này để đăng ký. Bạn có muốn đến trang web này không?`
+                  : modalVisible?.error
+              }
+              textBtnAccept={confimSignUp ? 'Có' : 'Ok'}
+              textBtnCancel={confimSignUp ? 'Không' : undefined}
           />
         )}
       </SafeAreaView>
