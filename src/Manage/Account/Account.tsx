@@ -2,8 +2,6 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import React, { useState } from 'react';
