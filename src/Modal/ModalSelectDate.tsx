@@ -1,4 +1,5 @@
 import {
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -11,80 +12,233 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
-import { Size } from '../Component/size';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useReducer,
+  startTransition,
+} from 'react';
+import { Size, SizeScale } from '../Component/size';
 import moment from 'moment';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { FlatGrid } from 'react-native-super-grid';
+import { Easing } from 'react-native/Libraries/Animated/Easing';
 type Props = {
-  selectDate: any;
+  selectDateProps: any;
   hiddenSelectDate: (e: any) => void;
+  dataOrders: any;
+  textLanguage: any;
 };
-const ModalSelectDate = (props: Props) => {
+type State = {
+  buttonSelectMonth: boolean;
+  buttonSelectDate: boolean;
+  filter: number;
+  valueYear: any;
+  monthSelect: any;
+  selectCalendar: any;
+};
+const ModalSelectDate: React.FC<Props> = ({
+  selectDateProps,
+  hiddenSelectDate,
+  dataOrders,
+  textLanguage,
+}) => {
+  const widthScale = SizeScale().width;
+
+  const monthConvert = `${String(moment().month() + 1).length == 1
+      ? `0${moment().month() + 1}`
+      : moment().month() + 1
+    }`;
+  const dateConvert = `${String(moment().date()).length == 1
+      ? `0${moment().date()}`
+      : moment().date()
+    }`;
   const width = Size().width;
-  const [valueDate, setValueDate] = useState<any>();
-  const [valueMonth, setValueMonth] = useState<any>();
-  const [valueYear, setValueYear] = useState<string>();
-  const [listMonthModal, setListMonthModal] = useState<boolean>(false);
-  const [listDateModal, setListDateModal] = useState<boolean>(false);
-  const apply = () => {
-    const date = {
-      date:
-        valueDate == undefined || String(valueDate).length <= 0
-          ? String(moment().date()).length == 1
-            ? `0${moment().date()}`
-            : moment().date()
-          : String(valueDate).length == 1
-            ? `0${valueDate}`
-            : valueDate,
-      month:
-        valueMonth == undefined || String(valueMonth).length <= 0
-          ? String(moment().month() + 1).length == 1
-            ? `0${moment().month() + 1}`
-            : moment().month() + 1
-          : String(valueMonth).length == 1
-            ? `0${valueMonth}`
-            : valueMonth,
-      year:
-        valueYear == undefined || String(valueYear).length <= 0
-          ? moment().year()
-          : valueYear,
-    };
-    props.hiddenSelectDate(date);
-  };
-  const today = () => {
-    const date = {
-      date:
-        String(moment().date()).length == 1
-          ? `0${moment().date()}`
-          : moment().date(),
-      month: String(moment().month() + 1).length == 1
-        ? `0${moment().month() + 1}`
-        : moment().month() + 1,
-      year: moment().year()
-    };
-    props.hiddenSelectDate(date);
-  };
-  const monthFor = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const date = Array.from(
+  const [state, setState] = useReducer(
+    (state: State, newState: Partial<State>) => ({
+      ...state,
+      ...newState,
+    }),
     {
-      length: moment(
-        `${valueYear == undefined ? `${moment().year()}` : valueYear}-${valueMonth == undefined
-          ? `${String(moment().month() + 1).length == 1
-            ? `0${moment().month() + 1}`
-            : moment().month() + 1
-          }`
-          : `${String(valueMonth).length == 1 ? `0${valueMonth}` : valueMonth
-          }`
-        }`,
-      ).daysInMonth(),
+      buttonSelectMonth: false, //hiện tháng để chọn
+      buttonSelectDate: true, //hiện ngày để chọn
+      filter: 1, //ấn button chọn lọc theo ngày, tháng, năm
+      // selectDay: undefined, //chọn ngày
+      monthSelect: undefined, //lưu ngày trong tháng
+      valueYear: undefined,
+      selectCalendar: {
+        //lưu giá trị tháng năm khi ấn next hoặc prev
+        date: dateConvert,
+        month: monthConvert,
+        year: moment().year(),
+      },
     },
-    (v, k) => k + 1,
   );
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim1 = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    // @ts-ignore
+    Animated.timing(fadeAnim, {
+      toValue: state?.buttonSelectMonth ? 1 : 0,
+      duration: 1000,
+    }).start();
+  }, [state?.buttonSelectMonth]);
+  useEffect(() => {
+    console.log('có vào');
+    // @ts-ignore
+    Animated.timing(fadeAnim1, {
+      toValue: state?.buttonSelectDate ? 1 : 0,
+      duration: 1000,
+    }).start();
+  }, [state?.buttonSelectDate]);
+  useEffect(() => {
+    // @ts-ignore
+    Animated.timing(fadeAnim1, {
+      toValue: selectDateProps ? 1 : 0,
+      duration: 1000,
+    }).start();
+  }, [selectDateProps]);
+
+  const monthFor = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+  // lấy lịch theo tháng
+  const getWeekMonth = () => {
+    let i = 0;
+    let datanew: any = [];
+    while (
+      i <=
+      (state?.selectCalendar?.month == '1' ||
+        state?.selectCalendar?.month == '7' ||
+        state?.selectCalendar?.month == '10'
+        ? 5
+        : 4)
+    ) {
+      let dates: string[] = [];
+      const DATE_FORMAT = 'DD-MM-YYYY';
+      let time: any = `${datanew?.length <= 0
+          ? '1'
+          : datanew[datanew?.length - 1].slice(0, 2) == '1'
+            ? '2'
+            : Number(datanew[datanew?.length - 1].slice(0, 2)) + 1
+        }-${state?.selectCalendar?.month}-${state?.selectCalendar?.year}`;
+      // days by week
+      if (moment(time, DATE_FORMAT).day() == 0) {
+        time = moment(time, DATE_FORMAT).add(-1).format(DATE_FORMAT);
+      }
+      // get monday in week
+      const mondayInWeek = moment(time, DATE_FORMAT).day(1);
+      dates.push(mondayInWeek.format(DATE_FORMAT));
+      //  lấy ngày đầu trong tuần , sau đó thêm đến ngày Chủ Nhật
+      for (let index = 1; index < 7; index++) {
+        mondayInWeek.add('days', 1);
+        dates.push(mondayInWeek.format(DATE_FORMAT));
+      }
+      datanew.push(...dates);
+      i++; // tăng i lên nếu không sẽ bị lặp vô hạn
+    }
+    const data: any = [];
+    datanew.map((item: any, index: any) => {
+      if (index % 7 == 0) {
+        data.push(index);
+      }
+    });
+    const newDataMonth: any = [];
+    data.map((itemIndex: any, indexDate: any) => {
+      // lấy ra những thứ tự ngày đầu trong tuần
+      const dataIndex = datanew.filter(
+        (item: any, index: any) =>
+          index <= Number(itemIndex) + 6 && index >= indexDate,
+      );
+      if (dataIndex.length <= 7) {
+        // nếu mnarg đầu tiên là nhỏ bằng 7 thì lấy hết
+        newDataMonth.push(dataIndex);
+      } else {
+        // nếu mảng thứ 2 mà lớn hơn 7 thì lấy độ dài mảng đấy từ đi 7 rồi xét điều kiện nếu index > độ dài mảng -7
+        const findDate = dataIndex.filter(
+          (itemKo: any, indexKo: any) =>
+            indexKo > Number(dataIndex.length - 1) - 7,
+        );
+        newDataMonth.push(findDate);
+      }
+    });
+    setState({ monthSelect: newDataMonth });
+  };
+  useEffect(() => {
+    getWeekMonth();
+  }, [state?.selectCalendar]);
+  // kiều kiện để lấy ra được nhưng order theo ý chọn
+  const conditions = (item: any) => {
+    const time = new Date(item.updatedAt);
+    return state?.filter == 1
+      ? time.getDate() == state?.selectCalendar?.date &&
+      time.getMonth() + 1 == state?.selectCalendar?.month &&
+      time.getFullYear() == moment().year()
+      : state?.filter == 2
+        ? time.getMonth() + 1 == state?.selectCalendar?.month &&
+        time.getFullYear() == state?.selectCalendar?.year
+        : time.getFullYear() ==
+        (state?.valueYear == undefined || String(state?.valueYear).length <= 0
+          ? moment().year()
+          : state?.valueYear);
+  };
+  // lọc order
+  const dataProps: any = [];
+  dataOrders?.map((item: any) => {
+    if (conditions(item)) {
+      dataProps.push(item);
+    }
+  });
+  let sum = 0;
+  for (let i = 0; i < dataProps.length; i++) {
+    sum += Math.ceil(dataProps[i].sumPrice * ((100 - dataProps[i].sale) / 100));
+  }
+
+  const apply = () => {
+    hiddenSelectDate({
+      sum: sum,
+      date: {
+        ...state?.selectCalendar,
+        year:
+          state?.valueYear == undefined || String(state?.valueYear).length <= 0
+            ? moment().year()
+            : state?.valueYear,
+      },
+      data: dataProps,
+      filter: state?.filter,
+    });
+  };
+  const today = () => {
+    setState({
+      selectCalendar: {
+        date: dateConvert,
+        month: monthConvert,
+        year: moment().year(),
+      },
+    });
+    const dataProps: any = [];
+    dataOrders?.map((item: any) => {
+      const time: any = new Date(item.updatedAt);
+      if (conditions(item)) {
+        dataProps.push(item);
+      }
+    });
+    hiddenSelectDate({
+      sum: sum,
+      date: {
+        date: dateConvert,
+        month: monthConvert,
+        year: moment().year(),
+      },
+      data: dataProps,
+    });
+  };
   return (
-    <Modal transparent={true} visible={props.selectDate} animationType="slide">
+    <Modal transparent={true} visible={selectDateProps} animationType="slide">
       <View style={styles.centeredView}>
         <Pressable
-          onPress={() => props.hiddenSelectDate('')}
+          onPress={() => hiddenSelectDate('')}
           style={{
             width: '100%',
             height: '100%',
@@ -98,296 +252,488 @@ const ModalSelectDate = (props: Props) => {
         <View
           style={[
             styles.navigationContainer,
-            { width: width < 720 ? '100%' : '30%' },
+            {
+              width: widthScale * 1000,
+              height: 510,
+            },
           ]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View style={{ flexDirection: 'column' }}>
-              <Text
-                style={{
-                  textAlign: 'center',
-                  color: 'black',
-                  marginVertical: 10,
-                  fontSize: 22,
-                  fontWeight: '600',
-                }}>
-                Chọn ngày
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  width: '100%',
-                }}>
+          <View style={{ flexDirection: 'row', width: '100%', height: '100%' }}>
+            <View
+              style={{
+                width: '40%',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+              <View>
+                <Text style={styles.title}>{textLanguage?.choose_by}</Text>
                 <View
                   style={{
                     flexDirection: 'row',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
-                    justifyContent: 'space-evenly',
-                    width: '100%',
+                    marginTop: 10,
                   }}>
-                  <TextInput
-                    style={[
-                      String(valueYear).length <= 0
-                        ? styles.inputActive
-                        : styles.input,
-                      { fontSize: width < 720 ? 22 : 20, marginLeft: 10 },
-                    ]}
-                    autoCapitalize="words"
-                    onChangeText={e => setValueYear(e)}
-                    defaultValue={
-                      valueYear == undefined ? `${moment().year()}` : valueYear
-                    }
-                    placeholder="Năm"
-                    keyboardType="number-pad"
-                    placeholderTextColor={
-                      String(valueYear).length <= 0 ? 'red' : ''
-                    }
-                  />
-                  <Text style={{ fontWeight: '600' }}>/</Text>
-
-                  <TouchableOpacity onPress={() => setListMonthModal(true)}>
-                    <TextInput
-                      style={[
-                        String(valueMonth).length <= 0
-                          ? styles.inputActive
-                          : styles.input,
-                        { fontSize: width < 720 ? 22 : 20, marginHorizontal: 10 },
-                      ]}
-                      autoCapitalize="words"
-                      onChangeText={e => setValueMonth(e)}
-                      defaultValue={
-                        valueMonth == undefined
-                          ? `${String(moment().month() + 1).length == 1
-                            ? `0${moment().month() + 1}`
-                            : moment().month() + 1
-                          }`
-                          : `${String(valueMonth).length == 1
-                            ? `0${valueMonth}`
-                            : valueMonth
-                          }`
-                      }
-                      placeholder="Tháng"
-                      keyboardType="number-pad"
-                      placeholderTextColor={
-                        String(valueMonth).length <= 0 ? 'red' : ''
-                      }
-                      selectTextOnFocus={false}
-                      editable={false}
-                    />
-                  </TouchableOpacity>
-                  <Text style={{ fontWeight: '600' }}>/</Text>
-                  <TouchableOpacity onPress={() => setListDateModal(true)}>
-                    <TextInput
-                      style={[
-                        String(valueDate).length <= 0
-                          ? styles.inputActive
-                          : styles.input,
-                        { fontSize: width < 720 ? 22 : 20, marginRight: 10 },
-                      ]}
-                      autoCapitalize="words"
-                      onChangeText={e => setValueDate(e)}
-                      defaultValue={
-                        valueDate == undefined
-                          ? `${String(moment().date()).length == 1
-                            ? `0${moment().date()}`
-                            : moment().date()
-                          }`
-                          : `${String(valueDate).length == 1
-                            ? `0${valueDate}`
-                            : valueDate
-                          }`
-                      }
-                      placeholder="Ngày"
-                      keyboardType="number-pad"
-                      placeholderTextColor={
-                        String(valueDate).length <= 0 ? 'red' : ''
-                      }
-                      selectTextOnFocus={false}
-                      editable={false}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
                   <TouchableOpacity
-                    onPress={() => today()}
-                    style={{
-                      backgroundColor: '#009900',
-                      paddingVertical: 5,
-                      marginLeft: 5,
-                      width: '50%',
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: 22,
-                        fontWeight: '500',
-                        color: '#fff',
-                        textAlign: 'center',
-                      }}>
-                      Hôm nay
-                    </Text>
+                    onPress={() => {
+                      state?.filter !== 1
+                        ? setState({
+                          buttonSelectMonth: false,
+                          valueYear: undefined,
+                          filter: 1,
+                          buttonSelectDate: true,
+                          selectCalendar: {
+                            date: dateConvert,
+                            month: monthConvert,
+                            year: moment().year(),
+                          },
+                        })
+                        : null;
+                    }}
+                    style={styles.buttonFilter}>
+                    {state?.filter == 1 && <View style={styles.active}></View>}
+
+                    <Text style={styles.textFilter}>{textLanguage?.date}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => apply()}
-                    style={{
-                      backgroundColor: 'blue',
-                      paddingHorizontal: 10,
-                      paddingVertical: 5,
-                      marginLeft: 5,
-                      width: '50%',
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: 22,
-                        fontWeight: '500',
-                        color: '#fff',
-                        textAlign: 'center',
-                      }}>
-                      Chọn
-                    </Text>
+                    onPress={() => {
+                      state?.filter !== 2
+                        ? setState({
+                          buttonSelectMonth: true,
+                          valueYear: undefined,
+                          filter: 2,
+                          buttonSelectDate: false,
+                          selectCalendar: {
+                            date: dateConvert,
+                            month: monthConvert,
+                            year: moment().year(),
+                          },
+                        })
+                        : null;
+                    }}
+                    style={styles.buttonFilter}>
+                    {state?.filter == 2 && <View style={styles.active}></View>}
+                    <Text style={styles.textFilter}>{textLanguage?.month}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      state?.filter !== 3
+                        ? setState({
+                          buttonSelectMonth: false,
+                          filter: 3,
+                          buttonSelectDate: false,
+                          selectCalendar: {
+                            date: dateConvert,
+                            month: monthConvert,
+                            year: moment().year(),
+                          },
+                        })
+                        : null;
+                    }}
+                    style={styles.buttonFilter}>
+                    {state?.filter == 3 && <View style={styles.active}></View>}
+                    <Text style={styles.textFilter}>{textLanguage?.year}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
+              <View style={styles.flex}>
+                <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
+                  {textLanguage?.total_money} :{' '}
+                </Text>
+                <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
+                  {sum?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
+                </Text>
+              </View>
+
+              <View style={{ flexDirection: 'column' }}>
+                <View
+                  style={{
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '100%',
+                  }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginTop: 20,
+                    }}>
+                    <TouchableOpacity
+                      onPress={() => today()}
+                      style={{
+                        backgroundColor: '#009900',
+                        paddingVertical: 5,
+                        marginLeft: 5,
+                        width: '50%',
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 22,
+                          fontWeight: '500',
+                          color: '#fff',
+                          textAlign: 'center',
+                        }}>
+                        {textLanguage?.today}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => apply()}
+                      style={{
+                        backgroundColor: 'blue',
+                        paddingHorizontal: 10,
+                        paddingVertical: 5,
+                        marginLeft: 5,
+                        width: '50%',
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 22,
+                          fontWeight: '500',
+                          color: '#fff',
+                          textAlign: 'center',
+                        }}>
+                        {textLanguage?.select}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
             </View>
-          </KeyboardAvoidingView>
+            <View style={styles.calendar}>
+              {state?.filter !== 3 && (
+                <View style={[styles.flex, styles.titleMonth]}>
+                  <View style={[styles.flex]}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setState({
+                          selectCalendar: {
+                            date:
+                              state?.selectCalendar?.month == monthConvert &&
+                                state?.selectCalendar?.year == moment().year()
+                                ? dateConvert
+                                : undefined,
+                            month: '01',
+                            year: Number(state?.selectCalendar?.year) - 1,
+                          },
+                        })
+                      }>
+                      <AntDesign name="doubleleft" style={styles.doubleleft} />
+                    </TouchableOpacity>
+                    {state?.buttonSelectMonth == false && (
+                      <TouchableOpacity
+                        onPress={() =>
+                          setState({
+                            selectCalendar: {
+                              date:
+                                state?.selectCalendar?.month == monthConvert &&
+                                  state?.selectCalendar?.year == moment().year()
+                                  ? dateConvert
+                                  : undefined,
+                              month:
+                                Number(state?.selectCalendar.month) == 1
+                                  ? '12'
+                                  : `${String(
+                                    Number(state?.selectCalendar?.month) -
+                                    1,
+                                  ).length <= 1
+                                    ? `0${Number(
+                                      state?.selectCalendar?.month,
+                                    ) - 1
+                                    }`
+                                    : Number(state?.selectCalendar?.month) -
+                                    1
+                                  }`,
+                              year:
+                                Number(state?.selectCalendar?.month) == 1
+                                  ? Number(moment().year()) - 1
+                                  : state?.selectCalendar?.year,
+                            },
+                            // buttonSelectDate:!state?.buttonSelectDate
+                          })
+                        }>
+                        <AntDesign
+                          name="left"
+                          style={[
+                            styles.left,
+                            {
+                              paddingLeft:
+                                state?.buttonSelectMonth == false ? 40 : 0,
+                            },
+                          ]}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  <Text style={styles.textDay}>
+                    Th
+                    {state?.selectCalendar?.month} {state?.selectCalendar?.year}
+                  </Text>
+
+                  <View style={[styles.flex]}>
+                    {state?.buttonSelectMonth == false && (
+                      <TouchableOpacity
+                        disabled={
+                          state?.selectCalendar?.month == monthConvert &&
+                            state?.selectCalendar?.year == moment().year()
+                            ? true
+                            : false
+                        }
+                        onPress={() =>
+                          setState({
+                            selectCalendar: {
+                              date:
+                                state?.selectCalendar?.month == monthConvert &&
+                                  state?.selectCalendar?.year == moment().year()
+                                  ? dateConvert
+                                  : undefined,
+                              month:
+                                state?.selectCalendar.month == 12
+                                  ? '01'
+                                  : `${String(
+                                    Number(state?.selectCalendar?.month) +
+                                    1,
+                                  ).length <= 1
+                                    ? `0${Number(
+                                      state?.selectCalendar?.month,
+                                    ) + 1
+                                    }`
+                                    : Number(state?.selectCalendar?.month) +
+                                    1
+                                  }`,
+                              year:
+                                Number(state?.selectCalendar?.month) == 12
+                                  ? Number(state?.selectCalendar?.year) + 1
+                                  : state?.selectCalendar?.year,
+                            },
+                          })
+                        }>
+                        <AntDesign
+                          name="right"
+                          style={[
+                            styles.right,
+                            {
+                              color:
+                                state?.selectCalendar?.month == monthConvert &&
+                                  state?.selectCalendar?.year == moment().year()
+                                  ? '#dddddd'
+                                  : '#303E65',
+                            },
+                          ]}
+                        />
+                      </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity
+                      disabled={
+                        state?.selectCalendar?.month == monthConvert &&
+                          state?.selectCalendar?.year == moment().year()
+                          ? true
+                          : false
+                      }
+                      onPress={() =>
+                        setState({
+                          selectCalendar: {
+                            date:
+                              state?.selectCalendar?.month == monthConvert &&
+                                state?.selectCalendar?.year == moment().year()
+                                ? dateConvert
+                                : undefined,
+                            month: '01',
+                            year: Number(state?.selectCalendar?.year) + 1,
+                          },
+                        })
+                      }>
+                      <AntDesign
+                        name="doubleright"
+                        style={[
+                          styles.doubleright,
+                          {
+                            paddingLeft:
+                              state?.buttonSelectMonth == true ? 0 : 40,
+                            color:
+                              state?.selectCalendar?.month == monthConvert &&
+                                state?.selectCalendar?.year == moment().year()
+                                ? '#dddddd'
+                                : '#303E65',
+                          },
+                        ]}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              <View
+                style={{ width: '100%', height: '100%' }}
+                onTouchEndCapture={() => undefined && console.log('3e2w')}>
+                {state?.buttonSelectMonth == true ? (
+                  <Animated.View
+                    style={[
+                      {
+                        transform: [{ scale: fadeAnim }],
+                      },
+                    ]}>
+                    <View style={[styles.flex]}>
+                      <FlatGrid
+                        data={monthFor}
+                        itemDimension={100}
+                        showsVerticalScrollIndicator={false}
+                        renderItem={({ item }: any) => (
+                          <TouchableOpacity
+                            style={[
+                              {
+                                padding: 20,
+                                borderColor: '#dddddd',
+                                justifyContent: 'center',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor:
+                                  item == state?.selectCalendar?.month
+                                    ? 'red'
+                                    : '#fff',
+                                borderRadius: 100,
+                              },
+                            ]}
+                            onPress={() =>
+                              setState({
+                                selectCalendar: {
+                                  date: undefined,
+                                  month: `${String(item).length <= 1 ? `0${item}` : item
+                                    }`,
+                                  year: state?.selectCalendar?.year,
+                                },
+                              })
+                            }>
+                            <Text
+                              style={{
+                                fontSize: 20,
+                                fontWeight: '600',
+                                color:
+                                  item == state?.selectCalendar?.month
+                                    ? '#fff'
+                                    : 'black',
+                              }}>
+                              Th{item}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      />
+                    </View>
+                  </Animated.View>
+                ) : state?.buttonSelectDate == true ? (
+                  state?.monthSelect?.map((item: any, index: any) => {
+                    return (
+                      <Animated.View
+                        style={[
+                          {
+                            transform: [{ scale: fadeAnim1 }],
+                          },
+                        ]}>
+                        <View
+                          style={[
+                            styles.flex,
+                            {
+                              justifyContent: 'space-around',
+                              padding: 20,
+                              borderBottomWidth:
+                                state?.monthSelect[
+                                  state?.monthSelect.length - 1
+                                ] == index
+                                  ? 0
+                                  : 1,
+                              borderColor: '#dddddd',
+                            },
+                          ]}>
+                          {item.map((itemDate: any) => {
+                            return (
+                              <TouchableOpacity
+                                onPress={() =>
+                                  setState({
+                                    selectCalendar: {
+                                      date: itemDate?.slice(0, 2),
+                                      month: itemDate?.slice(3, 5),
+                                      year: itemDate?.slice(6, 11),
+                                    },
+                                  })
+                                }>
+                                <Text
+                                  style={[
+                                    {
+                                      fontWeight:
+                                        itemDate.slice(3, 5) ==
+                                          state?.selectCalendar?.month
+                                          ? '700'
+                                          : '400',
+                                      color:
+                                        itemDate.slice(3, 5) ==
+                                          state?.selectCalendar?.month
+                                          ? itemDate.slice(0, 2) ==
+                                            state?.selectCalendar?.date &&
+                                            itemDate.slice(3, 5) ==
+                                            state?.selectCalendar?.month
+                                            ? '#fff'
+                                            : 'black'
+                                          : '#ddddd',
+                                      fontSize:
+                                        itemDate.slice(3, 5) ==
+                                          state?.selectCalendar?.month
+                                          ? 22
+                                          : 18,
+                                      backgroundColor:
+                                        itemDate.slice(0, 2) ==
+                                          state?.selectCalendar?.date &&
+                                          itemDate.slice(3, 5) ==
+                                          state?.selectCalendar?.month
+                                          ? 'red'
+                                          : '#fff',
+                                      borderRadius: 100,
+                                      padding: 5,
+                                    },
+                                  ]}>
+                                  {itemDate.slice(0, 2)}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </Animated.View>
+                    );
+                  })
+                ) : (
+                  <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                    <Text
+                      style={[
+                        styles.textEnterYear,
+                        {
+                          marginBottom: 20,
+                          color: 'red',
+                          fontWeight: '600',
+                        },
+                      ]}>
+                      {textLanguage?.this_year} : {moment().year()}
+                    </Text>
+                    <Text style={styles.textEnterYear}>{textLanguage?.enter_year} : </Text>
+                    <TextInput
+                      onBlur={() => console.log('first')}
+                      style={styles.textEnterYearInput}
+                      value={
+                        state?.valueYear == undefined ? '' : state?.valueYear
+                      }
+                      placeholder={`${textLanguage?.enter_order}`}
+                      onChangeText={(e: any) => {
+                        startTransition(() => {
+                          setState({ valueYear: e });
+                        });
+                      }}
+                    />
+                  </KeyboardAvoidingView>
+                )}
+              </View>
+            </View>
+          </View>
         </View>
       </View>
-      {/* CHọn tháng */}
-      {listMonthModal == true && (
-        <View style={styles.listMonth}>
-          <Pressable
-            onPress={() => setListMonthModal(false)}
-            style={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }}></Pressable>
-          <View
-            style={{
-              flexDirection: 'column',
-              alignItems: 'center',
-              backgroundColor: '#fff',
-              width: 80,
-              height: 300,
-              borderRadius: 3,
-              overflow: 'hidden',
-            }}>
-            <SafeAreaView>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {monthFor?.map((item: any) => {
-                  return (
-                    <TouchableOpacity
-                      onPress={() => (
-                        setValueMonth(item), setListMonthModal(false)
-                      )}
-                      style={{
-                        padding: 10,
-                        backgroundColor:
-                          valueMonth == undefined
-                            ? item == moment().month() + 1
-                              ? 'blue'
-                              : '#fff'
-                            : item == valueMonth
-                              ? 'blue'
-                              : '#fff',
-                        width: 80,
-                      }}>
-                      <Text
-                        style={{
-                          color:
-                            valueMonth == undefined
-                              ? item == moment().month() + 1
-                                ? '#fff'
-                                : 'black'
-                              : item == valueMonth
-                                ? '#fff'
-                                : 'black',
-                          fontSize: 20,
-                          textAlign: 'center',
-                        }}>
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </SafeAreaView>
-          </View>
-        </View>
-      )}
-      {/* CHọn ngày */}
-      {listDateModal == true && (
-        <View style={styles.listMonth}>
-          <Pressable
-            onPress={() => setListDateModal(false)}
-            style={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }}></Pressable>
-
-          <View
-            style={{
-              flexDirection: 'column',
-              alignItems: 'center',
-              backgroundColor: '#fff',
-              width: 80,
-              height: 300,
-              borderRadius: 3,
-              overflow: 'hidden',
-            }}>
-            <SafeAreaView>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {date?.map((item: any) => {
-                  return (
-                    <TouchableOpacity
-                      onPress={() => (
-                        setValueDate(item), setListDateModal(false)
-                      )}
-                      style={{
-                        padding: 10,
-                        backgroundColor:
-                          valueDate == undefined
-                            ? item == moment().date()
-                              ? 'blue'
-                              : '#fff'
-                            : item == valueDate
-                              ? 'blue'
-                              : '#fff',
-                        width: 80,
-                      }}>
-                      <Text
-                        style={{
-                          color:
-                            valueDate == undefined
-                              ? item == moment().date()
-                                ? '#fff'
-                                : 'black'
-                              : item == valueDate
-                                ? '#fff'
-                                : 'black',
-                          fontSize: 20,
-                          textAlign: 'center',
-                        }}>
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </SafeAreaView>
-          </View>
-        </View>
-      )}
     </Modal>
   );
 };
@@ -395,6 +741,10 @@ const ModalSelectDate = (props: Props) => {
 export default ModalSelectDate;
 
 const styles = StyleSheet.create({
+  flex: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -403,9 +753,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   navigationContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 5,
-    padding: 10,
+    padding: 30,
   },
 
   input: {
@@ -434,5 +784,92 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonFilter: {
+    borderColor: '#33CCFF',
+    borderWidth: 0.7,
+    borderRadius: 3,
+    paddingHorizontal: 20,
+    paddingVertical: 7,
+    elevation: 10,
+    shadowColor: '#FF9966',
+    backgroundColor: '#fff',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  title: {
+    fontSize: 22,
+    color: '#303E65',
+    fontWeight: '500',
+    paddingBottom: 5,
+    borderBottomWidth: 0.5,
+    borderColor: '#303E65',
+  },
+  textFilter: {
+    fontSize: 18,
+    color: '#303E65',
+    fontWeight: '400',
+  },
+  active: {
+    position: 'absolute',
+    top: 2,
+    height: 10,
+    width: 10,
+    right: 2,
+    backgroundColor: 'red',
+    borderRadius: 100,
+  },
+
+  doubleleft: {
+    fontSize: 20,
+    color: '#303E65',
+    fontWeight: '400',
+  },
+  left: {
+    fontSize: 20,
+    color: '#303E65',
+    fontWeight: '400',
+  },
+  doubleright: {
+    fontSize: 20,
+    fontWeight: '400',
+  },
+  textDay: {
+    fontSize: 20,
+    color: '#303E65',
+    fontWeight: '500',
+  },
+  right: {
+    fontSize: 20,
+    fontWeight: '400',
+  },
+  titleMonth: {
+    width: '100%',
+    justifyContent: 'space-between',
+    borderBottomWidth: 0.6,
+    borderColor: '#dddddd',
+    paddingBottom: 8,
+  },
+  calendar: {
+    width: '60%',
+    marginLeft: 20,
+    justifyContent: 'flex-start',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    borderColor: '#dddddd',
+    borderWidth: 1,
+    padding: 10,
+  },
+  textEnterYear: {
+    fontSize: 20,
+    color: '#303E65',
+    fontWeight: '400',
+  },
+  textEnterYearInput: {
+    borderRadius: 3,
+    borderColor: '#dddddd',
+    borderWidth: 1,
+    marginTop: 5,
+    padding: 5,
   },
 });

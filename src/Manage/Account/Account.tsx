@@ -2,32 +2,31 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
-import {Size} from '../../Component/size';
+import { Size } from '../../Component/size';
 import AccountInfo from './AccountInfo';
-const Account = ({navigation}: any) => {
+type Props = {
+  navigation: any
+  checkUserStorage: any
+  background: any
+  language: any
+}
+const Account: React.FC<Props> = ({ navigation, checkUserStorage, background, language }) => {
   const width = Size()?.width;
-  const [checkSearch, setCheckSearch] = useState<any>(false);
-
+  const textLanguage = language?.data?.account;
   return (
-    <View style={{flex: 1, width: '100%'}}>
+    <View style={{ flex: 1, width: '100%' }}>
       <View style={styles.header}>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('manage')}
-            style={{position: 'absolute', left: 0}}>
-            <AntDesign name="left" style={styles.iconBack} />
-          </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
           <View
             style={{
               flexDirection: 'row',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               width: '100%',
             }}>
             <Text
@@ -37,17 +36,14 @@ const Account = ({navigation}: any) => {
                   fontSize: width < 720 ? 20 : 23,
                 },
               ]}>
-              Hồ sơ của bạn
+            {textLanguage?.your_profile}
             </Text>
           </View>
         </View>
       </View>
 
-      {checkSearch == true && (
-        <TextInput style={styles.inputSearch} placeholder="Tìm kiếm sản phẩm" />
-      )}
 
-      <AccountInfo logout={()=>navigation?.navigate('signin')}/>
+      <AccountInfo textLanguage={textLanguage} logout={() => navigation?.navigate('signin')} />
     </View>
   );
 };

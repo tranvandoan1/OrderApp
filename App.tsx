@@ -1,4 +1,4 @@
-import {LogBox, Text, View} from 'react-native';
+import { LogBox } from 'react-native';
 import * as React from 'react';
 import Router from './src/Router';
 LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message

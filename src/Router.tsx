@@ -1,6 +1,6 @@
 // In App.js in a new project
-import {ActivityIndicator, LogBox, StyleSheet, Text, View} from 'react-native';
-import React, {useEffect} from 'react';
+import {StatusBar, StyleSheet, Text, View} from 'react-native';
+import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icons from 'react-native-vector-icons/Feather';
@@ -8,23 +8,17 @@ import Icon from 'react-native-vector-icons/EvilIcons';
 
 import Manage from './Manage/Manage';
 import Signin from './Login/Signin';
-import SignUp from './Login/SignUp';
 
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import ListProducts from './Manage/Products/ListProducts';
 import {store} from './App/Store';
 import {Provider} from 'react-redux';
-import ListCate from './Manage/Categoris/ListCate';
 import {Size} from './Component/size';
-import Home from './Order/Home';
-import Order from './Order/Order';
-import {checkUserAsyncStorage} from './Component/checkUser';
-import ListTable from './Manage/Table/ListTable';
 import ListBill from './Manage/Bill/ListBill';
-import ListStatistical from './Manage/Statistical/ListStatistical';
 import Account from './Manage/Account/Account';
+import Loading from './Component/Loading';
+import Home from './Home/Home';
+import Order from './Orders/Order';
 const Tab = createBottomTabNavigator();
-
 function Router() {
   const width = Size().width;
   return (
@@ -108,27 +102,22 @@ function Router() {
 }
 const Stack = createNativeStackNavigator();
 function App() {
-  const X = checkUserAsyncStorage();
-  const checkUserStorage = Object.values(X)[2];
-
   return (
     <Provider store={store}>
+      <StatusBar hidden={true} />
       <NavigationContainer>
         <Stack.Navigator>
-          {checkUserStorage?.data == undefined && (
-            <Stack.Screen
-              name="signin"
-              component={Signin}
-              options={{headerShown: false}}
-            />
-          )}
-          {checkUserStorage?.data == undefined && (
-            <Stack.Screen
-              name="signup"
-              component={SignUp}
-              options={{headerShown: false}}
-            />
-          )}
+          <Stack.Screen
+            name="loading"
+            component={Loading}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="signin"
+            component={Signin}
+            options={{headerShown: false}}
+          />
+
           <Stack.Screen
             name="home"
             component={Home}
@@ -139,30 +128,10 @@ function App() {
             component={Order}
             options={{headerShown: false}}
           />
-          <Stack.Screen
-            name="products"
-            component={ListProducts}
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="categoris"
-            component={ListCate}
-            options={{headerShown: false}}
-          />
 
-          <Stack.Screen
-            name="table"
-            component={ListTable}
-            options={{headerShown: false}}
-          />
           <Stack.Screen
             name="bill"
             component={ListBill}
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="statistical"
-            component={ListStatistical}
             options={{headerShown: false}}
           />
           <Stack.Screen
