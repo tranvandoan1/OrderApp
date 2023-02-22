@@ -235,14 +235,7 @@ const Signin = ({ navigation }: any) => {
                     Đăng ký
                   </Text>
                 </TouchableOpacity>
-                <View style={styles.hr}></View>
-                <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                  <Text style={{fontSize: 20}}>Bạn chưa có tài khoản ?</Text>
-                  <TouchableOpacity
-                    onPress={() => navigation?.navigate('signup')}>
-                    <Text style={{color: 'blue', fontSize: 20}}> Đăng ký</Text>
-                  </TouchableOpacity>
-                </View>
+          
               </View>
             </View>
           </View>

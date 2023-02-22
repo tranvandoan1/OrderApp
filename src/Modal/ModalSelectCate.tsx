@@ -18,7 +18,6 @@ type Props = {
   valueCate: any;
 };
 const ModalSelectCate = React.memo((props: Props) => {
-  console.log('có chạy vào')
   const width = Size().width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
@@ -34,7 +33,6 @@ const ModalSelectCate = React.memo((props: Props) => {
     const pro = products?.filter((item: any) => item.cate_id == cate._id);
     props.selectCate({name: cate.name, pro: pro});
   };
-  console.log(props?.selectModalCate, 'props?.selectModalCate');
   return (
     <Modal
       transparent={true}
