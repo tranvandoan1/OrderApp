@@ -17,16 +17,10 @@ import { Size } from '../Component/size';
 import { checkUserAsyncStorage } from '../Component/checkUser';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../App/Store';
-import {
-  addSaveOrder,
-  getAllSaveOrder,
-  uploadSaveOrderFind,
-} from './../Features/SaveOrderSlice';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+
 import { FlatGrid } from 'react-native-super-grid';
 import { getProductAll } from '../Features/ProductsSlice';
 import ModalSelectCate from '../Modal/ModalSelectCate';
-import { addOrderTable, getAllTable } from '../Features/TableSlice';
 
 type Props = {
   params: any;
@@ -44,15 +38,12 @@ const ListPro = (props: Props) => {
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const products = useAppSelect((data: any) => data.products.value);
-  const tables = useAppSelect((data: any) => data.tables.value);
 
   // const tablesOrder = tables?.find(
   //   (item: any) => props?.params?.table._id == item._id,
   // );
   useEffect(() => {
-    dispatch(getAllSaveOrder());
     dispatch(getProductAll());
-    dispatch(getAllTable());
   }, []);
   const [modalVisible, setModalVisible] = useState(false);
 

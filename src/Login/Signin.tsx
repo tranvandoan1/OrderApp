@@ -176,24 +176,6 @@ const Signin = ({ navigation }: any) => {
                       placeholderTextColor={errors.password && 'red'}
                     />
                   )}
-                  <Controller
-                    control={control}
-                    rules={{
-                      required: true,
-                    }}
-                    render={({field: {onChange, onBlur, value}}: any) => (
-                      <TextInput
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        style={
-                          errors.password ? styles.inputActive : styles.input
-                        }
-                        placeholder="Password"
-                        secureTextEntry={true}
-                        placeholderTextColor={errors.password && 'red'}
-                      />
-                    )}
                     name="password"
                   />
                   {errors.password && (

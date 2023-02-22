@@ -97,9 +97,6 @@ const tableSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder.addCase(getAllTable.fulfilled, (state:any, action) => {
-      // if (action.payload.length <= 0) {
-      //   state.checkData = true;
-      // }
         state.loading = false;
         state.value = action.payload;
     });

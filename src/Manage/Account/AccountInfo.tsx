@@ -142,24 +142,11 @@ const styles = StyleSheet.create({
     elevation: 5,
     shadowColor: 'tomato',
   },
-<<<<<<< HEAD
-  loading: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-=======
->>>>>>> fixcodenew
   loading1: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
-<<<<<<< HEAD
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-=======
->>>>>>> fixcodenew
   },
   centeredView: {
     flex: 1,
@@ -176,31 +163,4 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#fff',
   },
-<<<<<<< HEAD
-  button: {
-    borderRadius: 10,
-    padding: 10,
-    elevation: 2,
-  },
-  buttonLognout: {
-    backgroundColor: 'red',
-  },
-  buttonClose: {
-    backgroundColor: '#2196F3',
-    paddingHorizontal: 30,
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-    color: 'red',
-    fontWeight: '500',
-    fontSize: 20,
-  },
-=======
->>>>>>> fixcodenew
 });
