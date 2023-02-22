@@ -1,6 +1,6 @@
 import {
   ActivityIndicator,
-  Animated,
+  Pressable,
   AppState,
   Keyboard,
   KeyboardAvoidingView,
@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import React, {
+  startTransition,
   useEffect,
   useReducer,
   useRef,
@@ -44,10 +45,10 @@ type State = {
   loading: boolean;
   value: string | undefined;
   valueAmount: any | undefined;
-  valueSale: string | undefined | number;
+  valueSale: any;
   checkPayy: boolean;
   checkAnimated: boolean;
-  valueCate: string | undefined;
+  valueCate: any;
   showInforBookTable: boolean;
   timeStartOrder: string | undefined;
   tableOrder: any;
@@ -57,18 +58,8 @@ const Order = (props: Props) => {
   const width = Size().width;
   const dispatch = useDispatch<AppDispatch>();
   const propParams = props?.route?.params;
+  const [checkAnimated, setCheckAnimated] = useState<boolean>(false);
 
-  // const [loading, setLoading] = useState<boolean>(false);
-  // const [value, setValue] = useState<any>();//lấy value khi nhập mã giảm giá
-  // const [valueAmount, setValueMount] = useState<any>();//lấy số lượng khi nhập số lượng
-  // const [valueSale, setValueSale] = useState<any>();//lấy giá trị giảm giá khi ấn áp dụng
-  // const [checkPayy, setCheckPayy] = useState<boolean>(false);
-  // const [checkAnimated, setCheckAnimated] = useState<boolean>(false);
-  // const [valueCate, setValueCate] = useState<any>();
-  // const [selectModalCate, setSelectModalCate] = useState<boolean>(false);
-  // const [infor, setInfor] = useState(false);
-  // const [timeStartOrder, setTimeStartOrder] = useState<any>();
-  // const [tableOrder, setTableOrder] = useState<any>(propParams?.table?.orders)
   const [state, setState] = useReducer(
     (state: State, newState: Partial<State>) => ({
       ...state,
@@ -106,10 +97,14 @@ const Order = (props: Props) => {
   // xóa món ăn
   const deleteOrder = async (id: any) => {
     const dataNew = state?.tableOrder?.filter((item: any) => item.id !== id);
-    setState({loading: true, valueAmount: undefined, tableOrder: dataNew});
+    setState({
+      loading: true,
+      valueAmount: {id: null, value: undefined},
+      tableOrder: dataNew,
+    });
     setState({loading: false});
   };
-
+  // thêm bớt món ăn
   const onSubmit = async (itemm: any) => {
     width < 960 && setState({loading: true});
     const dataOrder = state?.tableOrder?.find(
@@ -148,16 +143,20 @@ const Order = (props: Props) => {
         dataNew.push({
           ...itemOrder,
           amount:
-            state?.valueAmount == undefined
+            state?.valueAmount?.value == undefined
               ? item.amount
-              : state?.valueAmount.value,
+              : state?.valueAmount?.value,
         });
       } else {
         dataNew.push(itemOrder);
       }
     });
 
-    setState({loading: true, valueAmount: undefined, tableOrder: dataNew});
+    setState({
+      loading: true,
+      valueAmount: {id: null, value: undefined},
+      tableOrder: dataNew,
+    });
     setState({loading: false});
   };
 
@@ -179,6 +178,7 @@ const Order = (props: Props) => {
       setState({tableOrder: []});
     }
   });
+  console.log(state?.valueAmount, 'state?.valueAmount');
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -188,6 +188,22 @@ const Order = (props: Props) => {
         position: 'relative',
         width: '100%',
       }}>
+      {checkAnimated == true && (
+        <Pressable
+          onPress={() => setCheckAnimated(false)}
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+          }}></Pressable>
+      )}
+
       <View
         style={{
           flexDirection: 'row',
@@ -432,16 +448,20 @@ const Order = (props: Props) => {
                             </TouchableOpacity>
                             <TextInput
                               value={`${
-                                state?.valueAmount == undefined
+                                state?.valueAmount?.value == undefined
                                   ? item.amount
                                   : item.id == state?.valueAmount.id
-                                  ? state?.valueAmount.value
+                                  ? state?.valueAmount?.value
                                   : item.amount
                               }`}
                               style={styles.text}
                               keyboardType="numeric"
                               onChangeText={e =>
-                                setState({valueAmount: {value: e, id: item.id}})
+                                startTransition(() => {
+                                  setState({
+                                    valueAmount: {value: e, id: item.id},
+                                  });
+                                })
                               }
                               onBlur={() =>
                                 uploadAmount({value: item, id: item.id})
@@ -474,9 +494,7 @@ const Order = (props: Props) => {
                 }}>
                 <TextInput
                   value={state?.value}
-                  onChangeText={e =>
-                      setState({value: e})
-                  }
+                  onChangeText={e => setState({value: e})}
                   placeholder="Nhập mã giảm giá"
                   keyboardType="number-pad"
                   style={{
@@ -635,11 +653,14 @@ const Order = (props: Props) => {
           valueSale={state?.valueSale}
           value={state?.value}
           setState={() => setState({valueSale: undefined})}
+          setCheckPayy={(e: boolean) => setState({checkPayy: e})}
           setValue={(e: any) => setState({value: e})}
           setValueSale={() =>
             setState({valueSale: state?.value, value: undefined})
           }
           onSubmit={(e: any) => onSubmit(e)}
+          hiddeAnimated={(e: boolean) => setCheckAnimated(e)}
+          checkAnimated={checkAnimated}
         />
       )}
 

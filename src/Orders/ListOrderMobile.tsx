@@ -1,40 +1,20 @@
 import {
-  ActivityIndicator,
   Animated,
-  AppState,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import React, {startTransition, useRef} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ListPro from './ListPro';
-import {useDispatch} from 'react-redux';
-import {AppDispatch} from '../App/Store';
-import {getProductAll} from '../Features/ProductsSlice';
-import ModalCheckPay from '../Modal/ModalCheckPay';
 import {Size, SizeScale} from '../Component/size';
-import {addOrderTable, getAllTable} from '../Features/TableSlice';
-import {addOrder} from '../Features/OrderSlice';
-import {removeOrderTable} from '../API/TableAPI';
-import {removeOrder} from '../Features/TableSlice';
-import {add} from '../API/Order';
-import ShowInfoBookTable from './ShowInfoBookTable';
+
 type Props = {
   tableOrder: any;
   valueAmount: any;
@@ -42,11 +22,14 @@ type Props = {
   onSubmit: (e: any) => void;
   uploadAmount: (e: any) => void;
   setValue: (e: any) => void;
+  hiddeAnimated: (e: any) => void;
+  setCheckPayy: (e: any) => void;
   setState: () => void;
   setValueSale: () => void;
-  sum: string | number;
-  valueSale: string | number | undefined;
-  value: string | number | undefined;
+  sum: number;
+  valueSale: any;
+  value: string | undefined;
+  checkAnimated: boolean;
 };
 const ListOrderMobile: React.FC<Props> = ({
   tableOrder,
@@ -59,24 +42,25 @@ const ListOrderMobile: React.FC<Props> = ({
   valueSale,
   value,
   setValueSale,
-  onSubmit
+  onSubmit,
+  hiddeAnimated,
+  checkAnimated,
+  setCheckPayy,
 }) => {
   const width = Size().width;
   const widthScale = SizeScale().width;
   const fadeAnim = useRef(new Animated.Value(100 * widthScale)).current;
-  const [checkAnimated, setCheckAnimated] = useState<boolean>(false);
   checkAnimated == true
     ? // @ts-ignore
       Animated.timing(fadeAnim, {
         toValue: 1000 * widthScale,
-        duration: 1100,
+        duration: 800,
       }).start()
     : // @ts-ignore
       Animated.timing(fadeAnim, {
         toValue: 100 * widthScale,
         duration: 800,
       }).start();
-    console.log(valueSale,'valueSale')
   return (
     <View
       style={{
@@ -85,6 +69,7 @@ const ListOrderMobile: React.FC<Props> = ({
         width: '100%',
         left: 0,
         right: 0,
+        zIndex: 11,
       }}>
       <View style={styles.tab}>
         <SafeAreaView>
@@ -96,7 +81,10 @@ const ListOrderMobile: React.FC<Props> = ({
             ]}>
             {/* {checkAnimated == true && ( */}
             <ScrollView>
-              <TouchableOpacity onPress={() => setCheckAnimated(false)}>
+              <TouchableOpacity
+                onPress={() => {
+                  hiddeAnimated(false);
+                }}>
                 <Text style={styles.proOrder}>Sản phẩm đã chọn</Text>
               </TouchableOpacity>
               <View>
@@ -152,7 +140,7 @@ const ListOrderMobile: React.FC<Props> = ({
                           }}>
                           <TouchableOpacity
                             onPress={() =>
-                                onSubmit({ data: item, check: 'decrease' })
+                              onSubmit({data: item, check: 'decrease'})
                             }>
                             <Entypo
                               name="circle-with-minus"
@@ -164,7 +152,7 @@ const ListOrderMobile: React.FC<Props> = ({
                             value={`${
                               valueAmount.value == undefined
                                 ? item.amount
-                                : item._id == valueAmount.id
+                                : item.id == valueAmount.id
                                 ? valueAmount.value
                                 : item.amount
                             }`}
@@ -174,7 +162,9 @@ const ListOrderMobile: React.FC<Props> = ({
                             ]}
                             keyboardType="numeric"
                             onChangeText={e =>
-                              saveValueAmount({value: e, id: item.id})
+                              startTransition(() => {
+                                saveValueAmount({value: e, id: item.id});
+                              })
                             }
                             onBlur={() =>
                               uploadAmount({value: item, id: item.id})
@@ -182,7 +172,7 @@ const ListOrderMobile: React.FC<Props> = ({
                           />
                           <TouchableOpacity
                             onPress={() =>
-                                onSubmit({ data: item, check: 'add' })
+                              onSubmit({data: item, check: 'add'})
                             }>
                             <AntDesign
                               name="pluscircle"
@@ -198,7 +188,10 @@ const ListOrderMobile: React.FC<Props> = ({
             </ScrollView>
             {/* </View> */}
             {/* )} */}
-            <TouchableOpacity onPress={() => setCheckAnimated(true)}>
+            <TouchableOpacity
+              onPress={() => {
+                hiddeAnimated(true);
+              }}>
               {checkAnimated !== true && (
                 <View
                   style={[styles.showOrder, {height: width < 960 ? 90 : 100}]}>
@@ -247,7 +240,7 @@ const ListOrderMobile: React.FC<Props> = ({
                           fontWeight: '500',
                           marginLeft: 10,
                         }}>
-                        {tableOrder?.length}
+                        {tableOrder?.length == null ? 0 : tableOrder?.length}
                       </Text>
                     </View>
                   </View>
@@ -319,6 +312,11 @@ const ListOrderMobile: React.FC<Props> = ({
                       justifyContent: 'space-between',
                     }}>
                     <TextInput
+                      editable={
+                        tableOrder?.length == null || tableOrder?.length <= 0
+                          ? false
+                          : true
+                      }
                       value={value}
                       onChangeText={e => setValue(e)}
                       placeholder="Nhập mã giảm giá"
@@ -334,6 +332,11 @@ const ListOrderMobile: React.FC<Props> = ({
                     />
                     <TouchableOpacity
                       style={{width: '40%'}}
+                      disabled={
+                        tableOrder?.length == null || tableOrder?.length <= 0
+                          ? true
+                          : false
+                      }
                       onPress={() => {
                         setValueSale();
                         Keyboard.dismiss();
@@ -341,7 +344,15 @@ const ListOrderMobile: React.FC<Props> = ({
                       <Text
                         style={[
                           styles.xn,
-                          {fontSize: 25, paddingVertical: 10},
+                          {
+                            fontSize: 25,
+                            paddingVertical: 10,
+                            backgroundColor:
+                              tableOrder?.length == null ||
+                              tableOrder?.length <= 0
+                                ? 'gray'
+                                : 'blue',
+                          },
                         ]}>
                         Áp dụng
                       </Text>
@@ -349,9 +360,25 @@ const ListOrderMobile: React.FC<Props> = ({
                   </View>
                 </View>
                 <TouchableOpacity
-                  // onPress={() => setState({ checkPayy: true })}
+                  onPress={() => setCheckPayy(true)}
+                  disabled={
+                    tableOrder?.length == null || tableOrder?.length <= 0
+                      ? true
+                      : false
+                  }
                   style={{width: '50%'}}>
-                  <Text style={styles.tt}>Thanh toán</Text>
+                  <Text
+                    style={[
+                      styles.tt,
+                      {
+                        backgroundColor:
+                          tableOrder?.length == null || tableOrder?.length <= 0
+                            ? 'gray'
+                            : 'tomato',
+                      },
+                    ]}>
+                    Thanh toán
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -417,7 +444,6 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 10,
     textAlign: 'center',
-    backgroundColor: 'tomato',
     fontSize: 25,
     fontWeight: '600',
     color: '#fff',
@@ -430,7 +456,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 10,
     color: '#fff',
-    backgroundColor: 'blue',
     borderRadius: 3,
     fontWeight: '500',
     marginLeft: 5,

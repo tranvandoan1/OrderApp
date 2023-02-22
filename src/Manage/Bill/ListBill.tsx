@@ -7,15 +7,15 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ListTableBill from './ListTableBill';
-import {Size} from '../../Component/size';
+import { Size, SizeScale } from '../../Component/size';
 import moment from 'moment';
 import ModalSelectDate from '../../Modal/ModalSelectDate';
-import {TypedUseSelectorHook, useSelector, useDispatch} from 'react-redux';
-import {AppDispatch, RootState} from '../../App/Store';
-import {getAllOrder} from './../../Features/OrderSlice';
+import { TypedUseSelectorHook, useSelector, useDispatch } from 'react-redux';
+import { AppDispatch, RootState } from '../../App/Store';
+import { getAllOrder } from './../../Features/OrderSlice';
 type Props = {
   checkUserStorage: any;
   navigation?: any;
@@ -29,20 +29,20 @@ const ListBill: React.FC<Props> = ({
   checkUserStorage,
 }) => {
   const width = Size()?.width;
+  const widthScale = SizeScale().width;
+  const textLanguage = language?.data?.cart
   const [selectDate, setSelectDate] = useState<boolean>(false);
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const orders = useAppSelect((data: any) => data.orders);
-  const monthConvert = `${
-    String(moment().month() + 1).length == 1
-      ? `0${moment().month() + 1}`
-      : moment().month() + 1
-  }`;
-  const dateConvert = `${
-    String(moment().date()).length == 1
-      ? `0${moment().date()}`
-      : moment().date()
-  }`;
+  const monthConvert = `${String(moment().month() + 1).length == 1
+    ? `0${moment().month() + 1}`
+    : moment().month() + 1
+    }`;
+  const dateConvert = `${String(moment().date()).length == 1
+    ? `0${moment().date()}`
+    : moment().date()
+    }`;
   useEffect(() => {
     dispatch(getAllOrder());
   }, []);
@@ -81,25 +81,27 @@ const ListBill: React.FC<Props> = ({
     getOrder();
   }, [language, orders?.value]);
   return (
-    <View style={{flex: 1, width: '100%'}}>
+    <View style={{ flex: 1, width: '100%' }}>
       <View style={styles.header}>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text
             style={[
               styles.titlePro,
               {
                 fontSize: width < 720 ? 20 : 23,
+                marginLeft: widthScale * 10
               },
             ]}>
-            Hóa đơn
+            {textLanguage?.bills}
           </Text>
         </View>
         <View style={styles.date}>
           <View style={styles.date}>
-            <Text style={{fontSize: 22, fontWeight: '500', color: 'red'}}>
-              Tổng :{' '}
+            <Text style={{ fontSize: 22, fontWeight: '500', color: 'red' }}>
+              {textLanguage?.sum}
+              :{' '}
             </Text>
-            <Text style={{fontSize: 24, fontWeight: '500', color: 'tomato'}}>
+            <Text style={{ fontSize: 24, fontWeight: '500', color: 'tomato' }}>
               {data?.sum?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
             </Text>
           </View>
@@ -112,16 +114,16 @@ const ListBill: React.FC<Props> = ({
                   ? data?.date?.date == moment().date() &&
                     data?.date?.month == moment().month() + 1 &&
                     data?.date?.year == moment().year()
-                    ? 'Hôm nay'
+                    ? `${textLanguage?.today}`
                     : `${data?.date?.date}-${data?.date?.month}-${data?.date?.year}`
                   : data?.filter == 2
-                  ? data?.date?.month == moment().month() + 1 &&
-                    data?.date?.year == moment().year()
-                    ? 'Tháng này'
-                    : `${data?.date?.month}-${data?.date?.year}`
-                  : data?.date?.year == moment().year()
-                  ? 'Năm nay'
-                  : data?.date?.year
+                    ? data?.date?.month == moment().month() + 1 &&
+                      data?.date?.year == moment().year()
+                      ? `${textLanguage?.this_month}`
+                      : `${data?.date?.month}-${data?.date?.year}`
+                    : data?.date?.year == moment().year()
+                      ? `${textLanguage?.this_year}`
+                      : data?.date?.year
               }
               style={{
                 color: 'blue',
@@ -143,7 +145,7 @@ const ListBill: React.FC<Props> = ({
           <ActivityIndicator size="large" color="blue" />
         </View>
       ) : ( */}
-        <ListTableBill orderToDay={data?.data} />
+      <ListTableBill orderToDay={data?.data} textLanguage={textLanguage}/>
       {/* )} */}
       {selectDate == true && (
         <ModalSelectDate
@@ -156,6 +158,7 @@ const ListBill: React.FC<Props> = ({
             // console.log(e,'3e2wd')
           }
           dataOrders={orders?.value}
+          textLanguage={textLanguage}
         />
       )}
     </View>

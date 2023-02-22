@@ -8,18 +8,18 @@ import {
 } from 'react-native';
 import React from 'react';
 
-import { Size } from '../../Component/size';
-import { Avatar } from 'react-native-elements';
-import { checkUserAsyncStorage } from '../../Component/checkUser';
+import {Size} from '../../Component/size';
+import {Avatar} from 'react-native-elements';
+import {checkUserAsyncStorage} from '../../Component/checkUser';
 
 type Props = {
   logout: () => void;
+  textLanguage: any;
 };
-const AccountInfo = (props: Props) => {
+const AccountInfo = ({textLanguage}: Props) => {
   const width = Size()?.width;
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
-
   return (
     <View
       style={{
@@ -31,10 +31,10 @@ const AccountInfo = (props: Props) => {
         <View style={styles.loading1}>
           <ActivityIndicator size="large" color={'blue'} />
         </View>
-      ) :
+      ) : (
         <SafeAreaView>
           <ScrollView>
-            <View style={{ flexDirection: 'row', marginTop: 20 }}>
+            <View style={{flexDirection: 'row', marginTop: 20}}>
               <View
                 style={{
                   flexDirection: 'column',
@@ -78,7 +78,8 @@ const AccountInfo = (props: Props) => {
                     padding: 5,
                     fontSize: 18,
                   }}>
-                  Tên quán : BOM BOM
+                  {textLanguage?.shop_name} :{' '}
+                  {checkUserStorage?.data?.nameRestaurant}
                 </Text>
                 <Text
                   style={{
@@ -87,7 +88,7 @@ const AccountInfo = (props: Props) => {
                     fontSize: 18,
                     marginVertical: 10,
                   }}>
-                  Họ và Tên : {checkUserStorage?.data?.name}
+                  {textLanguage?.name} : {checkUserStorage?.data?.name}
                 </Text>
                 <Text
                   style={{
@@ -104,13 +105,13 @@ const AccountInfo = (props: Props) => {
                     padding: 5,
                     fontSize: 18,
                   }}>
-                  Số điện thoại : {checkUserStorage?.data?.phone}
+                  {textLanguage?.phone} : {checkUserStorage?.data?.phone}
                 </Text>
               </View>
             </View>
           </ScrollView>
         </SafeAreaView>
-      }
+      )}
     </View>
   );
 };
@@ -162,6 +163,4 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#fff',
   },
-  
-
 });

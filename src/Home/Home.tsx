@@ -1,4 +1,4 @@
-import React, {Suspense, useEffect, useReducer, useRef, useState} from 'react';
+import React, { Suspense, useEffect, useReducer, useRef, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -15,22 +15,23 @@ import {
   Animated,
   StatusBar,
 } from 'react-native';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
-import {getAllTable} from '../Features/TableSlice';
-import {FlatGrid} from 'react-native-super-grid';
-import {Size, SizeScale} from '../Component/size';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
+import { getAllTable } from '../Features/TableSlice';
+import { FlatGrid } from 'react-native-super-grid';
+import { Size, SizeScale } from '../Component/size';
 import CheckChangeTable from '../Modal/ModalCheckChangeTable/CheckChangeTable';
-import {Avatar, CheckBox} from 'react-native-elements';
+import { Avatar, CheckBox } from 'react-native-elements';
 import ModalBookTable from '../Modal/ModalBookTable';
-import {getUser} from '../Features/UserSlice';
-import {removeOrder} from '../Features/TableSlice';
+import { getUser } from '../Features/UserSlice';
+import { removeOrder } from '../Features/TableSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 // @ts-ignore
 import ImageError from '../Component/image/error.png';
 import HeaderTitle from './HeaderTitle';
-import {checkUserAsyncStorage} from '../Component/checkUser';
+import { checkUserAsyncStorage } from '../Component/checkUser';
 import ModalConfim from '../Component/ModalConfim';
+import { getData } from './../Features/SettingSlice';
 type Props = {
   route: any;
   navigation: any;
@@ -45,17 +46,18 @@ type State = {
   checked: number;
   toggerMenu: boolean;
   showModalConfim: boolean;
-  dataFake: string[];
+  dataTable: any;
 };
-const Home = ({navigation, route}: Props) => {
+const Home = ({ navigation, route }: Props) => {
   const propParams = route?.params;
   const width = Size().width;
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const tables = useAppSelect((data: any) => data.tables.value);
-
+  const tables = useAppSelect((data: any) => data.tables);
+  const setting = useAppSelect((data: any) => data.setting.value);
+  const textLanguage = setting?.data?.home;
   const [state, setState] = useReducer(
     (state: State, newState: Partial<State>) => ({
       ...state,
@@ -70,29 +72,60 @@ const Home = ({navigation, route}: Props) => {
       checked: 0,
       toggerMenu: false,
       showModalConfim: false,
-      dataFake: [],
+      dataTable: [],
     },
   );
   // sử lý khi quay lại trang 'home' thì truyền qua data để upload mảng mới trước khi thêm lên db
   useEffect(() => {
     if (propParams?.data !== undefined) {
-      console.log('có chạy và');
+      setState({ loading: true });
       const newData: any = [];
-      tables?.map((item: any) => {
+      tables?.value?.map((item: any) => {
         if (item?._id == propParams?.id_table) {
-          console.log('có chạy vào nhé bạn');
-
-          newData.push({...item, orders: propParams?.data});
+          newData.push({ ...item, orders: propParams?.data });
         } else {
           newData.push(item);
         }
       });
-      setState({dataFake: newData});
+      setState({ dataTable: newData, loading: false });
     }
-  }, [propParams?.data !== undefined]);
+  }, [propParams?.data, tables?.value]);
+
+  // upload lại data khi hủy bàn
+  const uploadData = (e: any) => {
+    setState({
+      loading: true,
+      showModalConfim: false,
+      selectionTable: undefined,
+    });
+    const time = setTimeout(() => {
+      const newData: any = [];
+      tables?.value?.map((item: any) => {
+        if (item?._id == e) {
+          newData.push({ ...item, orders: [] });
+        } else {
+          newData.push(item);
+        }
+      });
+      setState({
+        loading: false,
+        dataTable: newData,
+      });
+      dispatch(
+        // @ts-ignore
+        removeOrder({
+          id: state?.selectionTable?._id,
+        }),
+      );
+    }, 500);
+    setTimeout(() => {
+      clearTimeout(time)
+    }, 600);
+  };
 
   useEffect(() => {
     dispatch(getAllTable());
+    dispatch(getData());
   }, []);
 
   const order = (item: any) => {
@@ -110,13 +143,14 @@ const Home = ({navigation, route}: Props) => {
         item.timeBookTable == 'null')
     ) {
       navigation?.navigate('orders', {
-        table: item?.orders == null ? {...item, orders: []} : item,
+        table: item?.orders == null ? { ...item, orders: [] } : item,
       });
     } else if (item.timeBookTable !== 'null') {
-      setState({selectionTable: item});
+      setState({ selectionTable: item });
     }
   };
 
+  // tính tổng tiền từng bàn
   const renderBookTable = (item: any) => {
     const prices = item?.map((item: any) => {
       if (item?.weight > 0) {
@@ -131,20 +165,27 @@ const Home = ({navigation, route}: Props) => {
     }
     return sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
-  const statusTable = tables?.filter((item: any) =>
-    state?.checked == 0
-      ? item
-      : state?.checked == 1
-      ? item.timeBookTable == 'null' &&
-        (item?.orders?.length < 0 || item?.orders == null)
-      : state?.checked == 2
-      ? (item.timeBookTable !== 'null' && item?.orders?.length > 0) ||
-        item?.orders?.length > 0
-      : item.timeBookTable !== 'null',
-  );
+
+  // lọc dữ liệu khi chọn lọc bàn
+  useEffect(() => {
+    const statusTable = tables?.value.filter((item: any) =>
+      state?.checked == 0
+        ? item
+        : state?.checked == 1
+          ? item.timeBookTable == 'null' &&
+          (item?.orders?.length < 0 || item?.orders == null)
+          : state?.checked == 2
+            ? (item.timeBookTable !== 'null' && item?.orders?.length > 0) ||
+            item?.orders?.length > 0
+            : item.timeBookTable !== 'null',
+    );
+    console.log(statusTable, 'statusTable');
+    setState({ dataTable: statusTable });
+  }, [state?.checked, tables?.value]);
+
   const toggleCheckbox = (item: any) =>
-    setState({checked: state?.checked == item ? 0 : item});
-  const renderTable = ({item}: any) => {
+    setState({ checked: state?.checked == item ? 0 : item });
+  const renderTable = ({ item }: any) => {
     return (
       <View>
         <TouchableOpacity
@@ -154,7 +195,7 @@ const Home = ({navigation, route}: Props) => {
             alignItems: 'center',
           }}
           onPress={() =>
-            setState({checked: state?.checked == item.id ? 0 : item.id})
+            setState({ checked: state?.checked == item.id ? 0 : item.id })
           }>
           <CheckBox
             checked={state?.checked == item.id ? true : false}
@@ -179,17 +220,17 @@ const Home = ({navigation, route}: Props) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   state?.toggerMenu == true
     ? // @ts-ignore
-      Animated.timing(fadeAnim, {
-        toValue: 800,
-        duration: 2500,
-      }).start()
+    Animated.timing(fadeAnim, {
+      toValue: 800,
+      duration: 2500,
+    }).start()
     : // @ts-ignore
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 1500,
-      }).start();
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 1500,
+    }).start();
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <StatusBar translucent hidden={true} />
 
       {state?.loading == true && (
@@ -197,320 +238,277 @@ const Home = ({navigation, route}: Props) => {
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
-      {tables.length <= 0 ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size={60} color={'blue'} />
-        </View>
-      ) : (
+      <View
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+        }}>
         <View
           style={{
-            flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            width: width < 960 ? '30%' : '25%',
+            borderRightWidth: 1,
+            borderColor: '#EEEEEE',
           }}>
+          <View style={styles.header}>
+            <Suspense
+              fallback={<ActivityIndicator size="large" color="#fff" />}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Avatar
+                  rounded
+                  source={{
+                    uri: checkUserStorage?.data?.avatarRestaurant,
+                  }}
+                  size={60}
+                />
+
+                <Text
+                  style={[
+                    styles.titlePro,
+                    { fontSize: width < 960 ? 20 : 23, marginLeft: 10 },
+                  ]}>
+                  {checkUserStorage?.data?.nameRestaurant}
+                </Text>
+              </View>
+            </Suspense>
+          </View>
+          {/* hiện lựa chọn lọc bàn */}
           <View
             style={{
-              width: width < 960 ? '30%' : '20%',
-              borderRightWidth: 1,
-              borderColor: '#EEEEEE',
+              padding: 10,
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              flex: 1,
             }}>
-            <View style={styles.header}>
-              <Suspense
-                fallback={<ActivityIndicator size="large" color="#fff" />}>
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <Avatar
-                    rounded
-                    source={{
-                      uri: checkUserStorage?.data?.avatarRestaurant,
-                    }}
-                    size={60}
-                  />
-
-                  <Text
-                    style={[
-                      styles.titlePro,
-                      {fontSize: width < 960 ? 20 : 23, marginLeft: 10},
-                    ]}>
-                    {checkUserStorage?.data?.nameRestaurant}
-                  </Text>
-                </View>
-              </Suspense>
-            </View>
-            {/* hiện lựa chọn lọc bàn */}
-            <View
-              style={{
-                padding: 10,
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                flex: 1,
-              }}>
-              <View>
-                <TouchableOpacity
-                  style={styles.bookTable}
-                  onPress={() => setState({bookTable: true})}>
-                  <Text
-                    style={{
-                      color: '#fff',
-                      fontSize: 18,
-                      fontWeight: '500',
-                      textAlign: 'center',
-                    }}>
-                    Đặt bàn
-                  </Text>
-                </TouchableOpacity>
+            <View>
+              <TouchableOpacity
+                style={styles.bookTable}
+                onPress={() => setState({ bookTable: true })}>
                 <Text
                   style={{
+                    color: '#fff',
                     fontSize: 18,
-                    paddingLeft: 20,
-                    marginTop: 30,
-                    color: 'black',
                     fontWeight: '500',
-                    borderBottomWidth: 0.8,
-                    borderColor: '#DDDDDD',
-                    paddingBottom: 10,
+                    textAlign: 'center',
                   }}>
-                  Lọc bàn
+                  {textLanguage?.book_table}
                 </Text>
-                <FlatList
-                  data={[
-                    {id: 1, name: 'Trống'},
-                    {id: 2, name: 'Có khách'},
-                    {id: 3, name: 'Bàn đặt'},
-                  ]}
-                  renderItem={renderTable}
-                  keyExtractor={(item: any) => item}
-                />
-              </View>
-              <View style={{flexDirection: 'column'}}>
-                <Text style={{fontSize: 18, fontWeight: '600', color: 'black'}}>
-                  Chú ý
-                </Text>
-                <View style={{flexDirection: 'row'}}>
+              </TouchableOpacity>
+              <Text
+                style={{
+                  fontSize: 18,
+                  paddingLeft: 20,
+                  marginTop: 30,
+                  color: 'black',
+                  fontWeight: '500',
+                  borderBottomWidth: 0.8,
+                  borderColor: '#DDDDDD',
+                  paddingBottom: 10,
+                }}>
+                {textLanguage?.table_filter}
+              </Text>
+              <FlatList
+                data={[
+                  { id: 1, name: `${textLanguage?.empty}` },
+                  { id: 2, name: `${textLanguage?.have_guests}` },
+                  { id: 3, name: `${textLanguage?.preset_table}` },
+                ]}
+                renderItem={renderTable}
+                keyExtractor={(item: any) => item}
+              />
+            </View>
+            <View style={{ flexDirection: 'column' }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: 'black' }}>
+                {textLanguage?.note}
+              </Text>
+              <View style={{ flexDirection: 'column' }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginRight: 20,
+                    marginVertical: 5,
+                    borderTopWidth: 1,
+                    borderColor: 'red',
+                  }}>
                   <View
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginRight: 20,
-                    }}>
-                    <View
-                      style={{
-                        width: 15,
-                        height: 15,
-                        borderRadius: 100,
-                        backgroundColor: 'red',
-                      }}></View>
-                    <Text
-                      style={{color: 'black', fontSize: 18, marginLeft: 10}}>
-                      Bàn đặt
-                    </Text>
-                  </View>
+                      width: 15,
+                      height: 15,
+                      borderRadius: 100,
+                      backgroundColor: 'red',
+                    }}></View>
+                  <Text style={{ color: 'black', fontSize: 18, marginLeft: 10 }}>
+                    {textLanguage?.preset_table}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginRight: 20,
+                  }}>
                   <View
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginRight: 20,
-                    }}>
-                    <View
-                      style={{
-                        width: 15,
-                        height: 15,
-                        borderRadius: 100,
-                        backgroundColor: '#00FF00',
-                      }}></View>
-                    <Text
-                      style={{color: 'black', fontSize: 18, marginLeft: 10}}>
-                      Có khách
-                    </Text>
-                  </View>
+                      width: 15,
+                      height: 15,
+                      borderRadius: 100,
+                      backgroundColor: '#00FF00',
+                    }}></View>
+                  <Text style={{ color: 'black', fontSize: 18, marginLeft: 10 }}>
+                    {textLanguage?.have_guests}
+                  </Text>
                 </View>
               </View>
             </View>
           </View>
-          <View style={{flex: 1}}>
-            <View
-              style={[
-                styles.header,
-                {
-                  backgroundColor: 'blue',
-                },
-              ]}>
-              {width < 539 ? (
-                <TouchableOpacity onPress={() => setState({toggerMenu: true})}>
-                  <AntDesign
-                    name="menufold"
-                    style={{color: '#fff', fontSize: 25}}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <HeaderTitle
-                  setTableFilter={() =>
-                    setState({showTableFilter: !state?.showTableFilter})
-                  }
-                  selectTable={state?.selectTable}
-                  setSelectTable={() => setState({selectTable: undefined})}
-                  showTableFilter={state?.showTableFilter}
-                  navigation={navigation}
-                  setBookTable={() => setState({bookTable: true})}
+        </View>
+        <View style={{ flex: 1 }}>
+          <View
+            style={[
+              styles.header,
+              {
+                backgroundColor: 'blue',
+              },
+            ]}>
+            {/* chế độ điện thoại */}
+            {width < 539 ? (
+              <TouchableOpacity onPress={() => setState({ toggerMenu: true })}>
+                <AntDesign
+                  name="menufold"
+                  style={{ color: '#fff', fontSize: 25 }}
                 />
-              )}
-            </View>
-            <View
-              style={{
-                flexDirection: statusTable?.length <= 0 ? 'column' : 'row',
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'relative',
-              }}>
-              {statusTable?.length <= 0 ? (
-                <View
-                  style={{
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <Image
-                    source={ImageError}
-                    style={{width: 400, height: 400}}
-                  />
-                  <Text style={{fontSize: 20, fontWeight: '500', color: 'red'}}>
-                    Không có dữ liêu !
-                  </Text>
-                </View>
-              ) : (
-                <View
-                  style={{
-                    width: '100%',
-                    borderColor: 'rgb(219,219,219)',
-                    borderLeftWidth: 1,
-                  }}>
-                  <FlatGrid
-                    itemDimension={
-                      width < 960 ? (width < 539 ? 150 : 150) : 180
-                    }
-                    data={
-                      state?.checked == 0
-                        ? state?.dataFake?.length <= 0
-                          ? tables
-                          : state?.dataFake
-                        : statusTable
-                    }
-                    showsVerticalScrollIndicator={false}
-                    renderItem={({item, index}) => {
-                      return (
-                        <View style={[styles.listTable, {zIndex: 1}]}>
-                          <TouchableOpacity
-                            style={styles.table}
-                            onPress={() => order(item)}
-                            onLongPress={() => {
-                              // check xem bàn đó đã gọi món chưa nếu rồi hiện mockup chọn chuyển bàn hoặc hủy
-                              if (
-                                (item?.orders?.length > 0 &&
-                                  item?.timeBookTable == 'null') ||
-                                ((item?.orders?.length > 0 ||
-                                  item?.orders?.length <= 0 ||
-                                  item?.orders == null) &&
-                                  item?.timeBookTable !== 'null')
-                              ) {
-                                setState({selectionTable: item});
-                                console.log(item, '21wqs');
-                              }
-                            }}
-                            key={item._id}>
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: 10,
-                                right: 10,
-                                flexDirection: 'row',
-                                zIndex: 100,
-                              }}>
-                              {item.timeBookTable !== 'null' && (
-                                <View
-                                  key={item}
-                                  style={{
-                                    width: 20,
-                                    height: 20,
-                                    borderRadius: 100,
-                                    backgroundColor: 'red',
-                                    marginRight: 5,
-                                  }}></View>
-                              )}
-                              {item?.orders?.length > 0 && (
-                                <View
-                                  key={item}
-                                  style={{
-                                    width: 20,
-                                    height: 20,
-                                    borderRadius: 100,
-                                    backgroundColor: '#00FF00',
-                                  }}></View>
-                              )}
-                            </View>
-                            {propParams?.loading == undefined ||
-                            propParams?.loading == false ? (
-                              <Image
-                                source={require(`../assets/images/table.png`)}
+              </TouchableOpacity>
+            ) : (
+              <HeaderTitle
+                setTableFilter={() =>
+                  setState({ showTableFilter: !state?.showTableFilter })
+                }
+                selectTable={state?.selectTable}
+                setSelectTable={() => setState({ selectTable: undefined })}
+                showTableFilter={state?.showTableFilter}
+                navigation={navigation}
+                setBookTable={() => setState({ bookTable: true })}
+              />
+            )}
+          </View>
+          <View
+            style={{
+              flexDirection: state?.dataTable?.length <= 0 ? 'column' : 'row',
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'relative',
+            }}>
+            {state?.dataTable?.length <= 0 ? (
+              <View
+                style={{
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Image source={ImageError} style={{ width: 400, height: 400 }} />
+                <Text style={{ fontSize: 20, fontWeight: '500', color: 'red' }}>
+                  {textLanguage?.no_data} !
+                </Text>
+              </View>
+            ) : (
+              <View
+                style={{
+                  width: '100%',
+                  borderColor: 'rgb(219,219,219)',
+                  borderLeftWidth: 1,
+                }}>
+                <FlatGrid
+                  itemDimension={width < 960 ? (width < 539 ? 150 : 150) : 180}
+                  data={state?.dataTable}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item, index }) => {
+                    return (
+                      <View style={[styles.listTable, { zIndex: 1 }]}>
+                        <TouchableOpacity
+                          style={styles.table}
+                          onPress={() => order(item)}
+                          onLongPress={() => {
+                            // check xem bàn đó đã gọi món chưa nếu rồi hiện mockup chọn chuyển bàn hoặc hủy
+                            if (
+                              (item?.orders?.length > 0 &&
+                                item?.timeBookTable == 'null') ||
+                              ((item?.orders?.length > 0 ||
+                                item?.orders?.length <= 0 ||
+                                item?.orders == null) &&
+                                item?.timeBookTable !== 'null')
+                            ) {
+                              setState({ selectionTable: item });
+                              console.log(item, '21wqs');
+                            }
+                          }}
+                          key={item._id}>
+                          <View
+                            style={{
+                              position: 'absolute',
+                              top: 10,
+                              right: 10,
+                              flexDirection: 'row',
+                              zIndex: 100,
+                            }}>
+                            {item.timeBookTable !== 'null' && (
+                              <View
+                                key={item}
                                 style={{
-                                  width: 100,
-                                  height: 100,
-                                  tintColor: 'blue',
-                                }}
-                              />
-                            ) : propParams?.id == item._id ? (
-                              <ActivityIndicator
-                                size="large"
-                                color={'blue'}
-                                style={{width: 100, height: 100}}
-                              />
-                            ) : (
-                              <Image
-                                source={require(`../assets/images/table.png`)}
-                                style={{
-                                  width: 100,
-                                  height: 100,
-                                  tintColor: 'blue',
-                                }}
-                              />
+                                  width: 20,
+                                  height: 20,
+                                  borderRadius: 100,
+                                  backgroundColor: 'red',
+                                  marginRight: 5,
+                                }}></View>
                             )}
-                            <Text
-                              style={[
-                                styles.nameTable,
-                                {fontSize: width < 960 ? 20 : 21},
-                              ]}>
-                              {item.name}
-                            </Text>
+                            {item?.orders?.length > 0 && (
+                              <View
+                                key={item}
+                                style={{
+                                  width: 20,
+                                  height: 20,
+                                  borderRadius: 100,
+                                  backgroundColor: '#00FF00',
+                                }}></View>
+                            )}
+                          </View>
 
-                            <Text
-                              style={[
-                                {
-                                  fontSize: width < 960 ? 18 : 16,
-                                  color: '#00CC00',
-                                  fontWeight: '500',
-                                },
-                              ]}>
-                              {item.amount > 0 ? (
-                                item?.orders?.length > 0 ||
+                          <Image
+                            source={require(`../assets/images/table.png`)}
+                            style={{
+                              width: 100,
+                              height: 100,
+                              tintColor: 'blue',
+                            }}
+                          />
+
+                          <Text
+                            style={[
+                              styles.nameTable,
+                              { fontSize: width < 960 ? 20 : 21 },
+                            ]}>
+                            {item.name}
+                          </Text>
+
+                          <Text
+                            style={[
+                              {
+                                fontSize: width < 960 ? 18 : 16,
+                                color: '#00CC00',
+                                fontWeight: '500',
+                              },
+                            ]}>
+                            {item.amount > 0 ? (
+                              item?.orders?.length > 0 ||
                                 item?.orders?.length <= 0 ||
                                 item.timeBookTable !== 'null' ? (
-                                  <Text style={{color: 'red'}}>
-                                    {item.timeBookTable} (
-                                    {renderBookTable(item?.orders)}đ){' '}
-                                  </Text>
-                                ) : (
-                                  <Text
-                                    style={{
-                                      color:
-                                        item?.orders?.length > 0
-                                          ? '#00CC00'
-                                          : 'red',
-                                    }}>
-                                    {item?.orders?.length > 0
-                                      ? `Tổng ${renderBookTable(item?.orders)}đ`
-                                      : 'Trống'}
-                                  </Text>
-                                )
+                                <Text style={{ color: 'red' }}>
+                                  {item.timeBookTable} (
+                                  {renderBookTable(item?.orders)}đ){' '}
+                                </Text>
                               ) : (
                                 <Text
                                   style={{
@@ -523,29 +521,48 @@ const Home = ({navigation, route}: Props) => {
                                     ? `Tổng ${renderBookTable(item?.orders)}đ`
                                     : 'Trống'}
                                 </Text>
-                              )}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      );
-                    }}
-                  />
-                </View>
-              )}
-            </View>
+                              )
+                            ) : (
+                              <Text
+                                style={{
+                                  color:
+                                    item?.orders?.length > 0
+                                      ? '#00CC00'
+                                      : 'red',
+                                }}>
+                                {item?.orders?.length > 0
+                                  ? `${textLanguage?.total} ${renderBookTable(
+                                    item?.orders,
+                                  )}đ`
+                                  : `${textLanguage?.empty}`}
+                              </Text>
+                            )}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  }}
+                />
+              </View>
+            )}
           </View>
         </View>
-      )}
+      </View>
+      {/* )} */}
+      {/* hiện modal booking */}
       {state?.bookTable == true && (
         <ModalBookTable
           bookTable={state?.bookTable}
-          hiddenBookTable={() => setState({bookTable: false})}
-          loading={(e: boolean) => setState({loading: e})}
+          hiddenBookTable={() => setState({ bookTable: false })}
+          loading={(e: boolean) => setState({ loading: e })}
+          textLanguage={textLanguage}
+          width={width}
         />
       )}
+
       <Modal
         transparent={true}
-        style={{zIndex: 1}}
+        style={{ zIndex: 1 }}
         visible={
           state?.selectionTable !== undefined
             ? state?.selectionTable?.orders?.length <= 0 ||
@@ -558,10 +575,10 @@ const Home = ({navigation, route}: Props) => {
         <View
           style={[
             styles.centeredView,
-            {justifyContent: 'center', alignItems: 'center'},
+            { justifyContent: 'center', alignItems: 'center' },
           ]}>
           <Pressable
-            onPress={() => setState({selectionTable: undefined})}
+            onPress={() => setState({ selectionTable: undefined })}
             style={{
               width: '100%',
               height: '100%',
@@ -607,7 +624,7 @@ const Home = ({navigation, route}: Props) => {
                   alignItems: 'center',
                   marginTop: 10,
                 }}>
-                <Text style={styles.listTT}>Tên khách hàng : </Text>
+                <Text style={styles.listTT}>{textLanguage?.name} : </Text>
                 <Text style={styles.listTT}>
                   {state?.selectionTable?.nameUser}
                 </Text>
@@ -618,13 +635,15 @@ const Home = ({navigation, route}: Props) => {
                   alignItems: 'center',
                   marginVertical: 10,
                 }}>
-                <Text style={styles.listTT}>Thời gian đến : </Text>
+                <Text style={styles.listTT}>{textLanguage?.time} : </Text>
                 <Text style={styles.listTT}>
                   {state?.selectionTable?.timeBookTable}
                 </Text>
               </View>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <Text style={styles.listTT}>Số lượng khách hàng : </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.listTT}>
+                  {textLanguage?.number_clients} :{' '}
+                </Text>
                 <Text style={styles.listTT}>
                   {state?.selectionTable?.amount}
                 </Text>
@@ -640,7 +659,7 @@ const Home = ({navigation, route}: Props) => {
                     navigation?.navigate('orders', {
                       table: state?.selectionTable,
                     });
-                    setState({selectTable: undefined});
+                    setState({ selectTable: undefined });
                   }}
                   style={{
                     width: '70%',
@@ -655,7 +674,7 @@ const Home = ({navigation, route}: Props) => {
                       fontSize: 18,
                       textAlign: 'center',
                     }}>
-                    Gọi món
+                    {textLanguage?.order}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -667,7 +686,7 @@ const Home = ({navigation, route}: Props) => {
                 }}>
                 <TouchableOpacity
                   onPress={() =>
-                    setState({showModalConfim: true, selectionTable: undefined})
+                    setState({ showModalConfim: true, selectionTable: undefined })
                   }
                   style={{
                     width: '70%',
@@ -685,7 +704,7 @@ const Home = ({navigation, route}: Props) => {
                         fontSize: 18,
                         textAlign: 'center',
                       }}>
-                      Hủy bàn đặt
+                      {textLanguage?.cancel_table}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -713,53 +732,45 @@ const Home = ({navigation, route}: Props) => {
                     borderRadius: 100,
                     backgroundColor: 'red',
                   }}
-                  onPress={() => setState({toggerMenu: false})}>
-                  <Text style={{color: '#fff', fontSize: 30}}>x</Text>
+                  onPress={() => setState({ toggerMenu: false })}>
+                  <Text style={{ color: '#fff', fontSize: 30 }}>x</Text>
                 </TouchableOpacity>
                 <HeaderTitle
                   setTableFilter={() =>
-                    setState({showTableFilter: !state?.showTableFilter})
+                    setState({ showTableFilter: !state?.showTableFilter })
                   }
                   selectTable={state?.selectTable}
-                  setSelectTable={() => setState({selectTable: undefined})}
+                  setSelectTable={() => setState({ selectTable: undefined })}
                   showTableFilter={state?.showTableFilter}
-                  setBookTable={() => setState({bookTable: true})}
+                  setBookTable={() => setState({ bookTable: true })}
                 />
               </View>
             </Animated.View>
           </SafeAreaView>
         </View>
       )}
+
+      {/* hiện modal confim khi ấn giữ chuột vào bàn đã có khách */}
       <CheckChangeTable
         selectionTable={
           state?.selectionTable?.orders?.length <= 0 ||
-          state?.selectionTable?.orders == null
+            state?.selectionTable?.orders == null
             ? undefined
             : state?.selectionTable
         }
-        hiddeSelectTable={() => setState({selectionTable: undefined})}
-        showModalConfim={() => setState({showModalConfim: true})}
+        hiddeSelectTable={() => setState({ selectionTable: undefined })}
+        showModalConfim={() => setState({ showModalConfim: true })}
+        textLanguage={textLanguage}
       />
       {/* hiện modal confil hủy bàn */}
       {state?.showModalConfim == true && (
         <ModalConfim
           modalVisible={state?.showModalConfim}
           btnAccept={async () => {
-            setState({
-              loading: true,
-              showModalConfim: false,
-              selectionTable: undefined,
-            });
-            await dispatch(
-              // @ts-ignore
-              removeOrder({
-                id: state?.selectionTable?._id,
-              }),
-            );
-            setState({loading: false});
+            uploadData(state?.selectionTable?._id);
           }}
           btnCancel={() => {
-            setState({showModalConfim: false});
+            setState({ showModalConfim: false });
           }}
           titile={'Thông báo'}
           content={'Bạn có muốn hủy bàn này không ?'}

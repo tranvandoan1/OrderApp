@@ -27,6 +27,7 @@ type Props = {
   selectionTable: any;
   showModalConfim: () => void;
   hiddeSelectTable: () => void;
+  textLanguage: any
 };
 type State = {
   showListTables: boolean;
@@ -37,7 +38,8 @@ type State = {
 const CheckChangeTable: React.FC<Props> = ({
   selectionTable,
   showModalConfim,
-  hiddeSelectTable
+  hiddeSelectTable,
+  textLanguage
 }) => {
   const width = Size().width;
   const sizeScale = SizeScale().width;
@@ -86,7 +88,9 @@ const CheckChangeTable: React.FC<Props> = ({
       Alert.alert('Chưa chọn bàn muốn chuyển !');
     } else {
       hiddeSelectTable()
-      setState({ loading: true });
+      setState({ loading: true,
+        showMockUpMoveTable: false,
+       });
       const uploadTable = {
         table1: selectionTable,
         table2: state?.selectTableWantToMove._id,
@@ -96,7 +100,6 @@ const CheckChangeTable: React.FC<Props> = ({
       ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
       setState({
         loading: false,
-        showMockUpMoveTable: false,
         selectTableWantToMove: undefined,
       });
     }
@@ -180,7 +183,7 @@ const CheckChangeTable: React.FC<Props> = ({
                   textAlign: 'center',
                   fontWeight: '500',
                 }}>
-                Chuyển bàn
+                {textLanguage?.move_table}
               </Text>
             </TouchableOpacity>
 
@@ -195,7 +198,8 @@ const CheckChangeTable: React.FC<Props> = ({
                   marginVertical: 10,
                   fontWeight: '500',
                 }}>
-                Hủy bàn
+                {textLanguage?.cancel_table}
+
               </Text>
             </TouchableOpacity>
           </View>
@@ -239,7 +243,7 @@ const CheckChangeTable: React.FC<Props> = ({
                 paddingBottom: sizeScale * 20,
                 marginBottom: sizeScale * 20,
               }}>
-              Chuyển {selectionTable?.name}
+              {textLanguage?.move} {selectionTable?.name}
             </Text>
             <View
               style={{
@@ -264,7 +268,7 @@ const CheckChangeTable: React.FC<Props> = ({
                         fontSize: 20,
                         fontWeight: '500',
                       }}>
-                      Người đặt :
+                      {textLanguage?.orderer} :
                     </Text>
                     <Text
                       style={{
@@ -290,7 +294,7 @@ const CheckChangeTable: React.FC<Props> = ({
                         fontSize: 20,
                         fontWeight: '500',
                       }}>
-                      Thời gian đặt :
+                      {textLanguage?.time} :
                     </Text>
                     <Text
                       style={{
@@ -327,7 +331,7 @@ const CheckChangeTable: React.FC<Props> = ({
                     fontWeight: '500',
                     fontSize: 18,
                   }}>
-                  {selectionTable?.orders?.length} món ăn
+                  {selectionTable?.orders?.length} {textLanguage?.dish}
                 </Text>
               </View>
               <View
@@ -344,7 +348,7 @@ const CheckChangeTable: React.FC<Props> = ({
                     fontSize: 20,
                     fontWeight: '500',
                   }}>
-                  Tổng tiền :
+                  {textLanguage?.total_money} :
                 </Text>
                 <Text
                   style={{
@@ -365,7 +369,7 @@ const CheckChangeTable: React.FC<Props> = ({
                 fontWeight: '500',
                 marginVertical: 20,
               }}>
-              Chuyển đến
+              {textLanguage?.move_in}
             </Text>
             <View
               style={{
@@ -440,11 +444,11 @@ const CheckChangeTable: React.FC<Props> = ({
                   <Text
                     style={{
                       color: '#fff',
-                      fontSize: sizeScale * 18,
+                      fontSize: sizeScale * 21,
                       textAlign: 'center',
                       fontWeight: '500',
                     }}>
-                    Chuyển bàn
+                    {textLanguage?.move_table}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -462,11 +466,11 @@ const CheckChangeTable: React.FC<Props> = ({
                   <Text
                     style={{
                       color: '#fff',
-                      fontSize: sizeScale * 18,
+                      fontSize: sizeScale * 21,
                       textAlign: 'center',
                       fontWeight: '500',
                     }}>
-                    Hủy
+                    {textLanguage?.cancel}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -474,28 +478,7 @@ const CheckChangeTable: React.FC<Props> = ({
           </View>
         </View>
       </Modal>
-      {/* hiện modal confil hủy bàn */}
-      {/* <ModalConfim
-        modalVisible={state?.showModalConfim}
-        btnAccept={async () => {
-          setState({ loading: true, showModalConfim: false });
-          hiddeSelectTable();
-          await dispatch(
-            // @ts-ignore
-            removeOrder({
-              id: selectionTable?._id,
-            }),
-          );
-          setState({ loading: false });
-        }}
-        btnCancel={() => {
-          setState({ showModalConfim: false });
-        }}
-        titile={'Thông báo'}
-        content={'Bạn có muốn hủy không ?'}
-        textBtnAccept={'Có'}
-        textBtnCancel={'Không'}
-      /> */}
+   
     </>
   );
 };

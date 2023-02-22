@@ -1,6 +1,5 @@
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -12,17 +11,14 @@ import {
   TouchableOpacity,
   View,
   Linking,
-  NativeModules,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { Avatar, Button } from 'react-native-elements';
+import React, { useState } from 'react';
+import { Avatar } from 'react-native-elements';
 import { Controller, useForm } from 'react-hook-form';
 import UserAPI from '../API/Users';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { checkUserAsyncStorage } from '../Component/checkUser';
-import { Size } from './../Component/size';
+import { Size, SizeScale } from './../Component/size';
 import ModalConfim from '../Component/ModalConfim';
-import DeviceInfo from 'react-native-device-info';
 type FormData = {
   email: string;
   password: string;
@@ -33,14 +29,13 @@ type ModalVisible = {
 };
 const Signin = ({ navigation }: any) => {
   const width = Size().width;
+  const widthScale = SizeScale().width;
   const [check, setCheck] = useState<boolean>(false);
   const [confimSignUp, setConfimSignUp] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<ModalVisible>({
     error: null,
     status: false,
   });
-  const X: any = checkUserAsyncStorage();
-  const checkUserStorage: any = Object.values(X)[2];
   const {
     control,
     handleSubmit,
@@ -79,7 +74,6 @@ const Signin = ({ navigation }: any) => {
     }
   };
 
-  console.log("Device Locale", DeviceInfo.getDeviceName()); 
   return (
     <View style={{ flex: 1 }}>
       <StatusBar hidden={true} />
@@ -96,7 +90,7 @@ const Signin = ({ navigation }: any) => {
           <View
             style={{
               paddingVertical: 20,
-              paddingHorizontal: width < 960 ? (width < 593 ? 20 : 150) : 350,
+              paddingHorizontal: widthScale * 200,
             }}>
             <View
               style={{
@@ -109,14 +103,14 @@ const Signin = ({ navigation }: any) => {
                 source={{
                   uri: 'https://123design.org/wp-content/uploads/2020/07/LOGOLM0200-Chibi-%C4%90%E1%BB%87-nh%E1%BA%A5t-%C4%91%E1%BA%A7u-b%E1%BA%BFp-nh%C3%AD-Vua-%C4%91%E1%BA%A7u-b%E1%BA%BFp.jpg',
                 }}
-                size={width < 960 ? (width < 539 ? 160 : 280) : 220}
+                size={widthScale * 300}
               />
             </View>
             <View>
               <Text
                 style={[
                   styles.title,
-                  { fontSize: width < 960 ? (width < 539 ? 25 : 40) : 35 },
+                  { fontSize: widthScale * 40 },
                 ]}>
                 Đăng nhập
               </Text>
@@ -135,8 +129,9 @@ const Signin = ({ navigation }: any) => {
                           : [
                             styles.input,
                             {
-                              fontSize:
-                                width < 960 ? (width < 539 ? 14 : 25) : 20,
+                              fontSize: widthScale * 23,
+                              height: widthScale * 80,
+
                             },
                           ]
                       }
@@ -168,8 +163,8 @@ const Signin = ({ navigation }: any) => {
                           : [
                             styles.input,
                             {
-                              fontSize:
-                                width < 960 ? (width < 539 ? 14 : 25) : 20,
+                              fontSize: widthScale * 23,
+                              height: widthScale * 80,
                             },
                           ]
                       }
@@ -187,11 +182,15 @@ const Signin = ({ navigation }: any) => {
 
               <TouchableOpacity
                 onPress={handleSubmit(onSubmit)}
-                style={styles.signin}>
+                style={[styles.signin, {
+                  height: widthScale * 80,
+
+                }]}>
                 <Text
                   style={[
                     {
-                      fontSize: width < 960 ? (width < 539 ? 14 : 25) : 23,
+                      fontSize: widthScale * 26,
+                      fontWeight: '600',
                       color: '#fff',
                     },
                   ]}>
@@ -204,7 +203,7 @@ const Signin = ({ navigation }: any) => {
                         width: '100%',
                       }}>
                       <ActivityIndicator
-                        size={width < 960 ? (width < 539 ? 25 : 26) : 28}
+                        size={widthScale * 45}
                         color={'#fff'}
                       />
                     </View>
@@ -217,7 +216,7 @@ const Signin = ({ navigation }: any) => {
               <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                 <Text
                   style={{
-                    fontSize: width < 960 ? (width < 539 ? 14 : 25) : 20,
+                    fontSize: widthScale * 25,
                   }}>
                   Bạn chưa có tài khoản ?
                 </Text>
@@ -225,7 +224,7 @@ const Signin = ({ navigation }: any) => {
                   <Text
                     style={{
                       color: 'blue',
-                      fontSize: width < 960 ? (width < 539 ? 14 : 25) : 20,
+                      fontSize: widthScale * 26,
                     }}>
                     {' '}
                     Đăng ký
@@ -237,26 +236,26 @@ const Signin = ({ navigation }: any) => {
         </ScrollView>
         {(modalVisible?.status == true || confimSignUp == true) && (
           <ModalConfim
-              modalVisible={modalVisible?.status || confimSignUp}
-              btnAccept={async () => {
-                confimSignUp == true
-                  ? (await Linking.openURL('https://admin-app-order.vercel.app/'),
-                    setConfimSignUp(false))
-                  : (setModalVisible({ error: null, status: false }), reset());
-              }}
-              btnCancel={() => {
-                confimSignUp
-                  ? setConfimSignUp(false)
-                  : setModalVisible({ error: null, status: false });
-              }}
-              titile={confimSignUp ? 'Thông báo' : 'Cảnh báo'}
-              content={
-                confimSignUp
-                  ? `Hãy truy cập trang web "${' https://admin-app-order.vercel.app/'}" này để đăng ký. Bạn có muốn đến trang web này không?`
-                  : modalVisible?.error
-              }
-              textBtnAccept={confimSignUp ? 'Có' : 'Ok'}
-              textBtnCancel={confimSignUp ? 'Không' : undefined}
+            modalVisible={modalVisible?.status || confimSignUp}
+            btnAccept={async () => {
+              confimSignUp == true
+                ? (await Linking.openURL('https://admin-app-order.vercel.app/'),
+                  setConfimSignUp(false))
+                : (setModalVisible({ error: null, status: false }), reset());
+            }}
+            btnCancel={() => {
+              confimSignUp
+                ? setConfimSignUp(false)
+                : setModalVisible({ error: null, status: false });
+            }}
+            titile={confimSignUp ? 'Thông báo' : 'Cảnh báo'}
+            content={
+              confimSignUp
+                ? `Hãy truy cập trang web "${' https://admin-app-order.vercel.app/'}" này để đăng ký. Bạn có muốn đến trang web này không?`
+                : modalVisible?.error
+            }
+            textBtnAccept={confimSignUp ? 'Có' : 'Ok'}
+            textBtnCancel={confimSignUp ? 'Không' : undefined}
           />
         )}
       </SafeAreaView>
@@ -278,9 +277,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgb(219, 219, 219)',
     borderWidth: 1,
     paddingLeft: 20,
-    marginVertical: 10,
-    borderRadius: 100,
-    height: 70
+    marginVertical: 5,
+    borderRadius: 3,
   },
   hr: {
     borderBottomColor: 'rgb(219, 219, 219)',
@@ -297,8 +295,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 100,
-    height: 70,
+    borderRadius: 3,
     marginTop: 30
   },
   inputActive: {

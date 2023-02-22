@@ -19,7 +19,7 @@ import React, {
   useReducer,
   startTransition,
 } from 'react';
-import { Size } from '../Component/size';
+import { Size, SizeScale } from '../Component/size';
 import moment from 'moment';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { FlatGrid } from 'react-native-super-grid';
@@ -28,6 +28,7 @@ type Props = {
   selectDateProps: any;
   hiddenSelectDate: (e: any) => void;
   dataOrders: any;
+  textLanguage: any;
 };
 type State = {
   buttonSelectMonth: boolean;
@@ -41,7 +42,10 @@ const ModalSelectDate: React.FC<Props> = ({
   selectDateProps,
   hiddenSelectDate,
   dataOrders,
+  textLanguage,
 }) => {
+  const widthScale = SizeScale().width;
+
   const monthConvert = `${String(moment().month() + 1).length == 1
       ? `0${moment().month() + 1}`
       : moment().month() + 1
@@ -71,7 +75,7 @@ const ModalSelectDate: React.FC<Props> = ({
       },
     },
   );
-  console.log(state?.valueYear, 'valueYear');
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim1 = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -174,7 +178,8 @@ const ModalSelectDate: React.FC<Props> = ({
       : state?.filter == 2
         ? time.getMonth() + 1 == state?.selectCalendar?.month &&
         time.getFullYear() == state?.selectCalendar?.year
-        : time.getFullYear() == (state?.valueYear == undefined || String(state?.valueYear).length <= 0
+        : time.getFullYear() ==
+        (state?.valueYear == undefined || String(state?.valueYear).length <= 0
           ? moment().year()
           : state?.valueYear);
   };
@@ -203,7 +208,6 @@ const ModalSelectDate: React.FC<Props> = ({
       data: dataProps,
       filter: state?.filter,
     });
-
   };
   const today = () => {
     setState({
@@ -249,7 +253,7 @@ const ModalSelectDate: React.FC<Props> = ({
           style={[
             styles.navigationContainer,
             {
-              width: width < 960 ? (width < 539 ? '100%' : '90%') : '60%',
+              width: widthScale * 1000,
               height: 510,
             },
           ]}>
@@ -261,7 +265,7 @@ const ModalSelectDate: React.FC<Props> = ({
                 justifyContent: 'space-between',
               }}>
               <View>
-                <Text style={styles.title}>Chọn theo</Text>
+                <Text style={styles.title}>{textLanguage?.choose_by}</Text>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -274,7 +278,7 @@ const ModalSelectDate: React.FC<Props> = ({
                       state?.filter !== 1
                         ? setState({
                           buttonSelectMonth: false,
-                          valueYear:undefined,
+                          valueYear: undefined,
                           filter: 1,
                           buttonSelectDate: true,
                           selectCalendar: {
@@ -288,14 +292,14 @@ const ModalSelectDate: React.FC<Props> = ({
                     style={styles.buttonFilter}>
                     {state?.filter == 1 && <View style={styles.active}></View>}
 
-                    <Text style={styles.textFilter}>Ngày</Text>
+                    <Text style={styles.textFilter}>{textLanguage?.date}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
                       state?.filter !== 2
                         ? setState({
                           buttonSelectMonth: true,
-                          valueYear:undefined,
+                          valueYear: undefined,
                           filter: 2,
                           buttonSelectDate: false,
                           selectCalendar: {
@@ -308,7 +312,7 @@ const ModalSelectDate: React.FC<Props> = ({
                     }}
                     style={styles.buttonFilter}>
                     {state?.filter == 2 && <View style={styles.active}></View>}
-                    <Text style={styles.textFilter}>Tháng</Text>
+                    <Text style={styles.textFilter}>{textLanguage?.month}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
@@ -327,13 +331,13 @@ const ModalSelectDate: React.FC<Props> = ({
                     }}
                     style={styles.buttonFilter}>
                     {state?.filter == 3 && <View style={styles.active}></View>}
-                    <Text style={styles.textFilter}>Năm</Text>
+                    <Text style={styles.textFilter}>{textLanguage?.year}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
               <View style={styles.flex}>
                 <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
-                  Tổng tiền :{' '}
+                  {textLanguage?.total_money} :{' '}
                 </Text>
                 <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
                   {sum?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
@@ -368,7 +372,7 @@ const ModalSelectDate: React.FC<Props> = ({
                           color: '#fff',
                           textAlign: 'center',
                         }}>
-                        Hôm nay
+                        {textLanguage?.today}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -387,7 +391,7 @@ const ModalSelectDate: React.FC<Props> = ({
                           color: '#fff',
                           textAlign: 'center',
                         }}>
-                        Chọn
+                        {textLanguage?.select}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -561,9 +565,7 @@ const ModalSelectDate: React.FC<Props> = ({
 
               <View
                 style={{ width: '100%', height: '100%' }}
-                onTouchEndCapture={() =>
-               undefined && console.log('3e2w')
-                }>
+                onTouchEndCapture={() => undefined && console.log('3e2w')}>
                 {state?.buttonSelectMonth == true ? (
                   <Animated.View
                     style={[
@@ -574,6 +576,8 @@ const ModalSelectDate: React.FC<Props> = ({
                     <View style={[styles.flex]}>
                       <FlatGrid
                         data={monthFor}
+                        itemDimension={100}
+                        showsVerticalScrollIndicator={false}
                         renderItem={({ item }: any) => (
                           <TouchableOpacity
                             style={[
@@ -696,7 +700,8 @@ const ModalSelectDate: React.FC<Props> = ({
                     );
                   })
                 ) : (
-                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                  <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                     <Text
                       style={[
                         styles.textEnterYear,
@@ -706,16 +711,16 @@ const ModalSelectDate: React.FC<Props> = ({
                           fontWeight: '600',
                         },
                       ]}>
-                      Năm nay : {moment().year()}
+                      {textLanguage?.this_year} : {moment().year()}
                     </Text>
-                    <Text style={styles.textEnterYear}>Nhập năm : </Text>
+                    <Text style={styles.textEnterYear}>{textLanguage?.enter_year} : </Text>
                     <TextInput
                       onBlur={() => console.log('first')}
                       style={styles.textEnterYearInput}
                       value={
                         state?.valueYear == undefined ? '' : state?.valueYear
                       }
-                      placeholder="Nhập năm muốn tìm order"
+                      placeholder={`${textLanguage?.enter_order}`}
                       onChangeText={(e: any) => {
                         startTransition(() => {
                           setState({ valueYear: e });

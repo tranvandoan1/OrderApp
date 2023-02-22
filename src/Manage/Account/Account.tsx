@@ -19,7 +19,7 @@ type Props = {
 }
 const Account: React.FC<Props> = ({ navigation, checkUserStorage, background, language }) => {
   const width = Size()?.width;
-
+  const textLanguage = language?.data?.account;
   return (
     <View style={{ flex: 1, width: '100%' }}>
       <View style={styles.header}>
@@ -38,14 +38,14 @@ const Account: React.FC<Props> = ({ navigation, checkUserStorage, background, la
                   fontSize: width < 720 ? 20 : 23,
                 },
               ]}>
-              Hồ sơ của bạn
+            {textLanguage?.your_profile}
             </Text>
           </View>
         </View>
       </View>
 
 
-      <AccountInfo logout={() => navigation?.navigate('signin')} />
+      <AccountInfo textLanguage={textLanguage} logout={() => navigation?.navigate('signin')} />
     </View>
   );
 };

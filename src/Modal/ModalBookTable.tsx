@@ -1,7 +1,7 @@
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
+  ScrollView,
   Keyboard,
   Modal,
   Pressable,
@@ -11,6 +11,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
@@ -18,19 +20,23 @@ import { AppDispatch, RootState } from '../App/Store';
 import { editBookTable, getAllTable } from '../Features/TableSlice';
 import { Controller, useForm } from 'react-hook-form';
 import { validatePhone } from '../Component/Validate';
-import { Size } from '../Component/size';
-
 type Props = {
   bookTable: any;
   hiddenBookTable: () => void;
   loading: (e: boolean) => void;
+  textLanguage: any;
+  width: any;
 };
-const ModalBookTable = (props: Props) => {
-  const sizes = Size()
+const ModalBookTable: React.FC<Props> = ({
+  textLanguage,
+  loading,
+  hiddenBookTable,
+  bookTable,
+  width,
+}) => {
   const [showTable, setShowTable] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingBooking, setLoadingBooking] = useState<boolean>(false);
   const [selectTable, setSelectTable] = useState<any>(null);
-
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const tables = useAppSelect((data: any) => data.tables.value);
@@ -39,25 +45,12 @@ const ModalBookTable = (props: Props) => {
   }, []);
 
   // lấy những bàn trống
-  const tableFilter: any = tables?.filter((item: any) => item.timeBookTable == 'null' && (item?.orders?.length <= 0 || item?.orders == null));
-  const renderTable = ({ item }: any) => {
-    return (
-      <View>
-        <TouchableOpacity
-          style={{ marginTop: 10 }}
-          onPress={() => (setSelectTable(item), setShowTable(false))}>
-          <Text
-            style={{
-              color: 'black',
-              fontSize: 18,
-              textAlign: 'center',
-            }}>
-            {item.name}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const tableFilter: any = tables?.filter(
+    (item: any) =>
+      item.timeBookTable == 'null' &&
+      (item?.orders?.length <= 0 || item?.orders == null),
+  );
+
 
   const {
     control,
@@ -75,14 +68,16 @@ const ModalBookTable = (props: Props) => {
 
   const booxTable = async (values: any) => {
     if (validatePhone(values.phone) == false) {
-      Alert.alert("Số điện thoại chưa đúng !");
+      Alert.alert('Số điện thoại chưa đúng !');
     } else if (Number.isFinite(Number(values.amount)) == false) {
-      Alert.alert("Số lượng phải là số !");
+      Alert.alert('Số lượng phải là số !');
     } else if (isNaN(values.nameUser) == false) {
-      Alert.alert("Tên khách phải là chữ !");
+      Alert.alert('Tên khách phải là chữ !');
+    } else if (selectTable?._id == undefined) {
+      Alert.alert('Chưa chọn bàn !');
     } else {
-      props?.loading(true);
-      props?.hiddenBookTable();
+      loading(true);
+      hiddenBookTable();
       await dispatch(
         // @ts-ignore
         editBookTable({
@@ -91,46 +86,39 @@ const ModalBookTable = (props: Props) => {
           timeBookTable: values.timeBookTable,
           amount: values.amount,
           phone: values.phone,
-        })
+        }),
       );
-      // `${
-      //   String(time.getHours()).length == 1
-      //     ? `0${time.getHours()}`
-      //     : `${time.getHours()}`
-      // }:${
-      //   String(time.getMinutes()).length == 1
-      //     ? `0${time.getMinutes()}`
-      //     : `${time.getMinutes()}`
-      // }`
+
       reset({
         phone: '',
         amount: '',
         timeBookTable: '',
         nameUser: '',
       });
-      Keyboard.dismiss()
-      props?.loading(false);
-    };
+      Keyboard.dismiss();
+      loading(false);
+
+    }
   };
   const close = () => {
-    setLoading(true);
+    setLoadingBooking(true);
     reset({
       phone: '',
       amount: '',
       timeBookTable: '',
       nameUser: '',
     });
-    props?.hiddenBookTable();
-    setLoading(false);
+    hiddenBookTable();
+    setLoadingBooking(false);
   };
   return (
-    <Modal transparent={true} visible={props?.bookTable} animationType="slide">
+    <Modal transparent={true} visible={bookTable} animationType="slide">
       <View style={styles.centeredView}>
         <Pressable
           onPress={() => (
-            setLoading(false),
+            setLoadingBooking(false),
             setSelectTable({ floor_id: null, table_id: null }),
-            props?.hiddenBookTable()
+            hiddenBookTable()
           )}
           style={{
             width: '100%',
@@ -141,19 +129,18 @@ const ModalBookTable = (props: Props) => {
             left: 0,
             right: 0,
           }}></Pressable>
-        <View
-          style={[
-            {
-              width: sizes?.width < 900 ? '40' : '50%',
-              backgroundColor: '#fff',
-              padding: 20,
-              borderRadius: 4,
-              shadowColor: 'red',
-              shadowOffset: { width: 10, height: 14 },
-              shadowOpacity: 0.2,
-              shadowRadius: 3,
-            },
-          ]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{
+            width: '80%',
+            backgroundColor: '#fff',
+            padding: 20,
+            borderRadius: 4,
+            shadowColor: 'red',
+            shadowOffset: { width: 10, height: 14 },
+            shadowOpacity: 0.2,
+            shadowRadius: 3,
+          }}>
           <Text
             style={{
               color: 'black',
@@ -165,7 +152,7 @@ const ModalBookTable = (props: Props) => {
               paddingVertical: 10,
               marginBottom: 10,
             }}>
-            Thông tin đặt bàn
+            {textLanguage?.table_booking_information}
           </Text>
           <View style={styles.name}>
             <Controller
@@ -182,7 +169,7 @@ const ModalBookTable = (props: Props) => {
                       borderColor: errors.nameUser ? 'red' : '#0099FF',
                     },
                   ]}
-                  placeholder="Tên khách hàng"
+                  placeholder={`${textLanguage?.name}`}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -191,7 +178,9 @@ const ModalBookTable = (props: Props) => {
               name="nameUser"
             />
             {errors.nameUser && (
-              <Text style={{ color: 'red' }}>Chưa nhập tên !</Text>
+              <Text style={{ color: 'red' }}>
+                {textLanguage?.name_not_entered_yet} !
+              </Text>
             )}
           </View>
           <View style={[styles.name]}>
@@ -209,7 +198,7 @@ const ModalBookTable = (props: Props) => {
                       borderColor: errors.phone ? 'red' : '#0099FF',
                     },
                   ]}
-                  placeholder="Số điện thoại"
+                  placeholder={`${textLanguage?.phone}`}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -219,7 +208,9 @@ const ModalBookTable = (props: Props) => {
               name="phone"
             />
             {errors.phone && (
-              <Text style={{ color: 'red' }}>Chưa nhập số điện thoại !</Text>
+              <Text style={{ color: 'red' }}>
+                {textLanguage?.phone_not_entered} !
+              </Text>
             )}
           </View>
           <View style={styles.name}>
@@ -237,7 +228,7 @@ const ModalBookTable = (props: Props) => {
                       borderColor: errors.timeBookTable ? 'red' : '#0099FF',
                     },
                   ]}
-                  placeholder="Thời gian đặt bàn"
+                  placeholder={`${textLanguage?.time}`}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   keyboardType="number-pad"
@@ -246,8 +237,11 @@ const ModalBookTable = (props: Props) => {
               )}
               name="timeBookTable"
             />
+
             {errors.timeBookTable && (
-              <Text style={{ color: 'red' }}>Chưa nhập thời gian !</Text>
+              <Text style={{ color: 'red' }}>
+                {textLanguage?.time_not_entered} !
+              </Text>
             )}
           </View>
 
@@ -266,7 +260,7 @@ const ModalBookTable = (props: Props) => {
                       borderColor: errors.amount ? 'red' : '#0099FF',
                     },
                   ]}
-                  placeholder="Số lượng khách hàng"
+                  placeholder={`${textLanguage?.number_clients}`}
                   onBlur={onBlur}
                   keyboardType="number-pad"
                   onChangeText={onChange}
@@ -276,7 +270,9 @@ const ModalBookTable = (props: Props) => {
               name="amount"
             />
             {errors.amount && (
-              <Text style={{ color: 'red' }}>Chưa nhập số lượng khách !</Text>
+              <Text style={{ color: 'red' }}>
+                {textLanguage?.client_not_entered} !
+              </Text>
             )}
           </View>
 
@@ -287,7 +283,7 @@ const ModalBookTable = (props: Props) => {
               marginTop: 20,
               fontWeight: '500',
             }}>
-            Chọn bàn muốn đặt
+            {textLanguage?.select_you_want_book}
           </Text>
 
           <View
@@ -297,13 +293,14 @@ const ModalBookTable = (props: Props) => {
               alignItems: 'center',
               marginTop: 10,
               position: 'relative',
+              zIndex: 11
             }}>
             <View style={{ width: '100%', position: 'relative' }}>
               <TouchableOpacity
                 style={styles.floorTable}
                 onPress={() => {
-                  setShowTable(true)
-                  Keyboard.dismiss()
+                  setShowTable(!showTable);
+                  Keyboard.dismiss();
                 }}>
                 <TextInput
                   selectTextOnFocus={false}
@@ -313,7 +310,7 @@ const ModalBookTable = (props: Props) => {
                     styles.input,
                     { textAlign: 'center', fontSize: 19, borderColor: '#0099FF' },
                   ]}
-                  placeholder="Chọn bàn"
+                  placeholder={`${textLanguage?.select}`}
                 />
               </TouchableOpacity>
             </View>
@@ -322,33 +319,51 @@ const ModalBookTable = (props: Props) => {
                 style={[
                   {
                     position: 'absolute',
-                    top: 0,
+                    top: 55,
                     height: 200,
                     width: '100%',
                     backgroundColor: '#fff',
                     borderRadius: 2,
                     overflow: 'visible',
-                    zIndex: 10,
                     borderColor: '#AAAAAA',
                     borderWidth: 1,
+                    zIndex: 100
                   },
                 ]}>
                 <SafeAreaView>
-                  <FlatList
+                  {/* <FlatList
                     data={tableFilter}
                     renderItem={renderTable}
                     keyExtractor={item => item}
-                  />
+                  /> */}
+                  <ScrollView>
+                    {
+                      tableFilter?.map((item: any) => (
+                        <TouchableOpacity
+                          style={{ marginTop: 10 }}
+                          onPress={() => (setSelectTable(item), setShowTable(false))}>
+                          <Text
+                            style={{
+                              color: 'black',
+                              fontSize: 18,
+                              textAlign: 'center',
+                            }}>
+                            {item.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))
+                    }
+                  </ScrollView>
                 </SafeAreaView>
               </View>
             )}
           </View>
 
-          <View style={{ marginTop: 20,zIndex:1 }}>
+          <View style={{ marginTop: 20, zIndex: 1 }}>
             <TouchableOpacity
               style={{ backgroundColor: '#0099FF', padding: 10, borderRadius: 5 }}
               onPress={handleSubmit(booxTable)}>
-              {loading == true ? (
+              {loadingBooking == true ? (
                 <ActivityIndicator size={25} color={'#fff'} />
               ) : (
                 <Text
@@ -358,7 +373,7 @@ const ModalBookTable = (props: Props) => {
                     textAlign: 'center',
                     fontWeight: '500',
                   }}>
-                  Đặt bàn
+                  {textLanguage?.book_table}
                 </Text>
               )}
             </TouchableOpacity>
@@ -370,7 +385,7 @@ const ModalBookTable = (props: Props) => {
                 marginTop: 10,
               }}
               onPress={() => close()}>
-              {loading == true ? (
+              {loadingBooking == true ? (
                 <ActivityIndicator size={25} color={'#fff'} />
               ) : (
                 <Text
@@ -380,12 +395,12 @@ const ModalBookTable = (props: Props) => {
                     textAlign: 'center',
                     fontWeight: '500',
                   }}>
-                  Hủy
+                  {textLanguage?.cancel}
                 </Text>
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );

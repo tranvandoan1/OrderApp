@@ -4,28 +4,31 @@ import {
   Text,
   View,
   ActivityIndicator,
+  Button,
+  DrawerLayoutAndroid,
 } from 'react-native';
-import React, {useState, useEffect, Suspense} from 'react';
-import {Avatar} from 'react-native-elements';
-import {checkUserAsyncStorage} from '../Component/checkUser';
-import {Size} from '../Component/size';
-import {FlatGrid} from 'react-native-super-grid';
+import React, { useState, useEffect, useRef } from 'react';
+import { Avatar } from 'react-native-elements';
+import { checkUserAsyncStorage } from '../Component/checkUser';
+import { Size, SizeScale } from '../Component/size';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Setting from './Setting';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
 // import VerticalBarGraph from '@chartiful/react-native-vertical-bar-graph';
 // import { ECharts } from 'react-native-echarts-wrapper';
-import {getData} from './../Features/SettingSlice';
+import { getData } from './../Features/SettingSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalConfim from '../Component/ModalConfim';
 import Account from './Account/Account';
 import ListBill from './Bill/ListBill';
-const Mangage = ({navigation}: any) => {
+import Navbar from './Navbar';
+const Mangage = ({ navigation }: any) => {
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
   const width = Size().width;
-
+  const widthScale = SizeScale().width;
+  const drawer = useRef<DrawerLayoutAndroid>(null);
   const [router, setRouter] = useState<any>('bill');
   const [loading, setLoading] = useState<boolean>(false);
   const [logOut, setLogOut] = useState<boolean>(false);
@@ -33,34 +36,7 @@ const Mangage = ({navigation}: any) => {
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const setting = useAppSelect((data: any) => data.setting.value);
   const background = setting?.background;
-  console.log(background, 'background');
   const language = setting;
-  const data = [
-    {
-      id: 2,
-      name: `${language?.data?.setting?.cart}`,
-      navigation: 'bill',
-      icon: 'shoppingcart',
-    },
-    {
-      id: 3,
-      name: `${language?.data?.setting?.account}`,
-      navigation: 'account',
-      icon: 'user',
-    },
-    {
-      id: 1,
-      name: `${language?.data?.setting?.setting}`,
-      navigation: 'setting',
-      icon: 'setting',
-    },
-    {
-      id: 4,
-      name: `${language?.data?.setting?.back}`,
-      navigation: 'home',
-      icon: 'arrowleft',
-    },
-  ];
   useEffect(() => {
     dispatch(getData());
   }, []);
@@ -75,11 +51,20 @@ const Mangage = ({navigation}: any) => {
     navigation?.navigate('signin');
   };
   return (
-    <Suspense
-      fallback={
-        <View style={styles.loading_g}>
-          <ActivityIndicator size="large" color="#fff" />
-        </View>
+    <DrawerLayoutAndroid
+      ref={drawer}
+      drawerWidth={widthScale * 320}
+      drawerPosition={'left'}
+      renderNavigationView={() =>
+        <Navbar
+          width={width}
+          widthScale={widthScale}
+          background={background}
+          language={language}
+          navigation={navigation}
+          router={router}
+          setRouter={(e: any) => setRouter(e)}
+        />
       }>
       <View
         style={{
@@ -99,7 +84,7 @@ const Mangage = ({navigation}: any) => {
             backgroundColor: 'blue',
             alignItems: 'center',
             paddingVertical: 30,
-            paddingHorizontal: 10,
+            // paddingHorizontal: 10,
             position: 'relative',
             overflow: 'hidden',
           }}>
@@ -134,21 +119,43 @@ const Mangage = ({navigation}: any) => {
               {checkUserStorage?.data?.name}
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() => setLogOut(true)}
-            style={{
-              borderWidth: 1.5,
-              borderColor: '#CFCFCF',
-              borderRadius: 100,
-              padding: 3,
-              marginRight: 5,
-            }}>
-            <AntDesign
-              name="logout"
-              size={width < 960 ? 30 : 23}
-              color={'#fff'}
-            />
-          </TouchableOpacity>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {
+              width <= 960 &&
+
+              <TouchableOpacity
+                onPress={() => drawer.current?.openDrawer()}
+                style={{
+                  borderWidth: 1.5,
+                  borderColor: '#CFCFCF',
+                  borderRadius: 3,
+                  padding: 3,
+                  marginRight: 15,
+                }}>
+                <AntDesign
+                  name="menuunfold"
+                  size={width < 960 ? 30 : 23}
+                  color={'#fff'}
+                />
+              </TouchableOpacity>
+            }
+            <TouchableOpacity
+              onPress={() => setLogOut(true)}
+              style={{
+                borderWidth: 1.5,
+                borderColor: '#CFCFCF',
+                borderRadius: 100,
+                padding: 3,
+                marginRight: 5,
+              }}>
+              <AntDesign
+                name="logout"
+                size={width < 960 ? 30 : 23}
+                color={'#fff'}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <View
           style={{
@@ -157,60 +164,24 @@ const Mangage = ({navigation}: any) => {
             flexDirection: 'row',
             alignItems: 'flex-start',
           }}>
-          <View
-            style={{
-              zIndex: 0,
-              flex: 1,
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-            }}>
-            <FlatGrid
-              showsVerticalScrollIndicator={false}
-              data={data}
-              horizontal
-              renderItem={({item, index}: any) => {
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.item,
-                      {
-                        backgroundColor:
-                          router == item.navigation ? 'tomato' : '#fff',
-                      },
-                    ]}
-                    onPress={() =>
-                      item.id == 4
-                        ? navigation.goBack()
-                        : setRouter(`${item.navigation}`)
-                    }>
-                    <View style={styles.li}>
-                      <AntDesign
-                        name={`${item.icon}`}
-                        size={40}
-                        style={{
-                          marginRight: 4,
-                          color: router == item.navigation ? '#fff' : 'black',
-                        }}
-                      />
-                      <Text
-                        style={{
-                          fontSize: width < 720 ? 17 : 23,
-                          color: router == item.navigation ? '#fff' : 'black',
-                        }}>
-                        {item.name}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              }}
+          {width > 960 && (
+            <Navbar
+              width={width}
+              widthScale={widthScale}
+              background={background}
+              language={language}
+              navigation={navigation}
+              router={router}
+              setRouter={(e: any) => setRouter(e)}
             />
-          </View>
+          )}
+
           <View
             style={{
-              width: width < 960 ? '75%' : '82%',
+              width: width < 960 ? '100%' : '79%',
               borderLeftWidth: 1,
               borderColor: '#dddddd',
-              paddingLeft: 20,
+              paddingLeft: width < 960 ? 0 : 10,
             }}>
             {router == 'setting' ? (
               <Setting
@@ -252,32 +223,13 @@ const Mangage = ({navigation}: any) => {
           />
         )}
       </View>
-    </Suspense>
+    </DrawerLayoutAndroid>
   );
 };
 
 export default Mangage;
 
 const styles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    borderColor: 'rgb(219, 219, 219)',
-    borderWidth: 1,
-    marginVertical: 5,
-    paddingVertical: 20,
-    borderRadius: 3,
-    elevation: 10,
-    shadowColor: '#FF9966',
-    marginTop: 0,
-    width: 200,
-    paddingLeft:20
-  },
-  li: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
   loading: {
     flexDirection: 'row',
     justifyContent: 'center',

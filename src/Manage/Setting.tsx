@@ -1,11 +1,11 @@
 import {Platform, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React, {useState, useEffect} from 'react';
-import {Size} from '../Component/size';
+import {Size, SizeScale} from '../Component/size';
 import {RadioButton} from 'react-native-paper';
 import {useDispatch} from 'react-redux';
 import {AppDispatch} from '../App/Store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {uploadBackground} from '../Features/SettingSlice';
+import {uploadSetting} from '../Features/SettingSlice';
 import {dataEs} from '../assets/language/language';
 import {dataVn} from './../assets/language/language';
 
@@ -23,16 +23,17 @@ const Setting: React.FC<Props> = ({
   setLoading,
 }) => {
   const width = Size()?.width;
+  const widthScale = SizeScale()?.width;
   const [checked, setChecked] = useState<any>('vn');
   const dispatch = useDispatch<AppDispatch>();
   const textLanguage = language?.data?.setting;
   const languageSet = async (e: any) => {
     setLoading(true);
     await AsyncStorage.removeItem('language');
-    await AsyncStorage.setItem('language', JSON.stringify('vn'));
+    await AsyncStorage.setItem('language', JSON.stringify(e));
     await dispatch(
       // @ts-ignore
-      uploadBackground({
+      uploadSetting({
         data: e == 'vn' ? dataVn : dataEs,
         background: language?.background,
         language: e,
@@ -43,10 +44,10 @@ const Setting: React.FC<Props> = ({
   const backgroundSet = async (e: any) => {
     setLoading(true);
     await AsyncStorage.removeItem('background');
-    await AsyncStorage.setItem('background', JSON.stringify(1));
+    await AsyncStorage.setItem('background', JSON.stringify(e));
     await dispatch(
       // @ts-ignore
-      uploadBackground({
+      uploadSetting({
         data: language?.data,
         background: e,
         language: language?.language,
@@ -54,6 +55,32 @@ const Setting: React.FC<Props> = ({
     );
     setLoading(false);
   };
+
+  const renderRadio = (e: any) => (
+    <View
+      style={{
+        width: widthScale * 28,
+        height: widthScale * 28,
+        borderRadius: 100,
+        borderColor: background == 2 ? '#fff' : 'black',
+        borderWidth: 2,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: widthScale * 10,
+      }}>
+      {(language?.language == e?.status || e?.status == background) && (
+        <View
+          style={{
+            width: widthScale * 15,
+            height: widthScale * 15,
+            borderRadius: 100,
+            backgroundColor: 'blue',
+          }}></View>
+      )}
+    </View>
+  );
+
   return (
     <View
       style={{
@@ -96,7 +123,7 @@ const Setting: React.FC<Props> = ({
               color: background == 2 ? '#fff' : 'black',
               width: width < 960 ? '25%' : '15%',
             }}>
-            {textLanguage?.language} :{' '}
+            {textLanguage?.language} :
           </Text>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <TouchableOpacity
@@ -108,21 +135,14 @@ const Setting: React.FC<Props> = ({
               onPress={async () => {
                 languageSet('vn');
               }}>
-              <RadioButton
-                value="first"
-                status={language?.language == 'vn' ? 'checked' : 'unchecked'}
-                color={background == 2 ? '#fff' : 'blue'}
-                onPress={async () => {
-                  languageSet('vn');
-                }}
-              />
+              {renderRadio({status: 'vn'})}
               <Text
                 style={{
                   fontSize: 20,
                   fontWeight: '500',
                   color: background == 2 ? '#fff' : 'black',
                 }}>
-                Tiếng Việt
+                {textLanguage?.vietnamese}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -134,21 +154,14 @@ const Setting: React.FC<Props> = ({
               onPress={async () => {
                 languageSet('es');
               }}>
-              <RadioButton
-                value="first"
-                status={language?.language == 'es' ? 'checked' : 'unchecked'}
-                color={background == 2 ? '#fff' : 'blue'}
-                onPress={async () => {
-                  languageSet('es');
-                }}
-              />
+              {renderRadio({status: 'es'})}
               <Text
                 style={{
                   fontSize: 20,
                   fontWeight: '500',
                   color: background == 2 ? '#fff' : 'black',
                 }}>
-                Tiếng Anh
+                {textLanguage?.english}
               </Text>
             </TouchableOpacity>
           </View>
@@ -157,7 +170,7 @@ const Setting: React.FC<Props> = ({
       <View
         style={{
           backgroundColor: background == 1 ? '#fff' : 'black',
-          marginTop: 10,
+          marginTop: 20,
         }}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Text
@@ -179,21 +192,14 @@ const Setting: React.FC<Props> = ({
               onPress={async () => {
                 backgroundSet(1);
               }}>
-              <RadioButton
-                value="first"
-                status={background == 1 ? 'checked' : 'unchecked'}
-                color={background == 2 ? '#fff' : 'blue'}
-                onPress={async () => {
-                  backgroundSet(1);
-                }}
-              />
+              {renderRadio({status: 1})}
               <Text
                 style={{
                   fontSize: 20,
                   fontWeight: '500',
                   color: background == 2 ? '#fff' : 'black',
                 }}>
-                Trắng
+                {textLanguage?.white}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -205,21 +211,14 @@ const Setting: React.FC<Props> = ({
               onPress={async () => {
                 backgroundSet(2);
               }}>
-              <RadioButton
-                value="first"
-                status={background == 2 ? 'checked' : 'unchecked'}
-                color={background == 2 ? '#fff' : 'blue'}
-                onPress={async () => {
-                  backgroundSet(2);
-                }}
-              />
+              {renderRadio({status: 2})}
               <Text
                 style={{
                   fontSize: 20,
                   fontWeight: '500',
                   color: background == 2 ? '#fff' : 'black',
                 }}>
-                Đen
+                {textLanguage?.black}
               </Text>
             </TouchableOpacity>
           </View>

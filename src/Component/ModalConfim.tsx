@@ -1,6 +1,14 @@
-import { StyleSheet, Text, View, TouchableOpacity, Modal, StatusBar, Pressable } from 'react-native';
-import React, { useState } from 'react';
-import { Size } from './../size';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Modal,
+  StatusBar,
+  Pressable,
+} from 'react-native';
+import React, {useState} from 'react';
+import {Size, SizeScale} from './size';
 type Props = {
   titile?: any;
   content?: any;
@@ -20,6 +28,7 @@ const ModalConfim: React.FC<Props> = ({
   textBtnCancel,
 }) => {
   const width = Size().width;
+  const widthScale = SizeScale().width;
   return (
     <Modal animationType="slide" transparent={true} visible={modalVisible}>
       <View style={styles.centeredView}>
@@ -34,28 +43,37 @@ const ModalConfim: React.FC<Props> = ({
             left: 0,
             right: 0,
           }}>
-      <StatusBar translucent hidden={true} />
+          <StatusBar translucent hidden={true} />
+        </Pressable>
 
-          </Pressable>
-
-        <View style={[styles.modalView, { width: width < 960 ? (width < 593 ? 400 : 450) : 330 }]}>
+        <View style={[styles.modalView, {width: widthScale * 500}]}>
           <View>
             <Text style={styles.title}>{titile}</Text>
             <Text style={styles.content}>{content}</Text>
             <View style={styles.hr}></View>
             <View style={styles.button}>
-              {
-                textBtnCancel !== undefined &&
-                <TouchableOpacity style={styles.buttonBtnCancel} onPress={() => btnCancel()}>
+              {textBtnCancel !== undefined && (
+                <TouchableOpacity
+                  style={styles.buttonBtnCancel}
+                  onPress={() => btnCancel()}>
                   <Text style={styles.textBtnCancel}>{textBtnCancel}</Text>
                 </TouchableOpacity>
-              }
-              {
-                textBtnAccept !== undefined &&
-                <TouchableOpacity style={styles.buttonBtnAccept} onPress={() => btnAccept()}>
+              )}
+              {textBtnAccept !== undefined && (
+                <TouchableOpacity
+                  style={[
+                    styles.buttonBtnAccept,
+                    textBtnCancel == undefined && {
+                      width: '100%',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      flexDirection: 'row',
+                    },
+                  ]}
+                  onPress={() => btnAccept()}>
                   <Text style={styles.textBtnAccept}>{textBtnAccept}</Text>
                 </TouchableOpacity>
-              }
+              )}
             </View>
           </View>
         </View>
@@ -70,7 +88,7 @@ const styles = StyleSheet.create({
   hr: {
     marginTop: 20,
     borderColor: '#DDDDDD',
-    borderWidth: 0.5
+    borderWidth: 0.5,
   },
   centeredView: {
     flex: 1,

@@ -7,23 +7,17 @@ import {
   StatusBar,
 } from 'react-native';
 import React, { useEffect } from 'react';
-import { Size } from './size';
+import { Size, SizeScale } from './size';
 import { Avatar, Button } from 'react-native-elements';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../App/Store';
-import { getAllTable } from '../Features/TableSlice';
 import { checkUserAsyncStorage } from './checkUser';
 
 const Loading = ({ navigation }: any) => {
   const width = Size().width;
+  const widthScale = SizeScale().width;
+
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
-  const dispatch = useDispatch<AppDispatch>();
-  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const tables = useAppSelect((data: any) => data.tables);
-  useEffect(() => {
-    dispatch(getAllTable());
-  }, []);
+
   const image = {
     uri: 'https://hthaostudio.com/wp-content/uploads/2019/08/Anh-food-layout-11-min-1180x760.jpg',
   };
@@ -61,18 +55,19 @@ const Loading = ({ navigation }: any) => {
                   source={{
                     uri: 'https://123design.org/wp-content/uploads/2020/07/LOGOLM0200-Chibi-%C4%90%E1%BB%87-nh%E1%BA%A5t-%C4%91%E1%BA%A7u-b%E1%BA%BFp-nh%C3%AD-Vua-%C4%91%E1%BA%A7u-b%E1%BA%BFp.jpg',
                   }}
-                  size={width < 960 ? (width < 539 ? 200 : 230) : 280}
+                  size={widthScale * 350}
                 />
-
-                <Text
-                  style={{
-                    color: '#fff',
-                    fontSize: width < 960 ? (width < 539 ? 20 : 30) : 40,
-                    fontWeight: '700',
-                  }}>
-                  Order-TVD
-                </Text>
-                <ActivityIndicator size={57} color={'blue'} />
+                <View>
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontSize: widthScale * 50,
+                      fontWeight: '700',
+                    }}>
+                    Order-TVD
+                  </Text>
+                  <ActivityIndicator size={57} color={'blue'} style={{ marginTop: widthScale * 20 }} />
+                </View>
               </View>
             </ImageBackground>
           </View>
