@@ -11,7 +11,9 @@ import { Size, SizeScale } from './size';
 import { Avatar, Button } from 'react-native-elements';
 import { checkUserAsyncStorage } from './checkUser';
 
-const Loading = ({ navigation }: any) => {
+const Loading = ({ navigation,route }: any) => {
+  const propParams = route?.params;
+console.log(propParams,'propParams')
   const width = Size().width;
   const widthScale = SizeScale().width;
 
@@ -23,19 +25,18 @@ const Loading = ({ navigation }: any) => {
   };
   useEffect(() => {
     setTimeout(() => {
-      navigation?.navigate('home')
-    }, 1000);
-  }, [])
+      checkUserStorage?.check == false ? (
+        navigation?.navigate('signin')
+      ) :
+        navigation?.navigate('home')
+    }, 1600);
+  }, [propParams])
+  console.log(checkUserStorage?.check,'checkUserStorage?.check')
   return (
     <View style={{ flex: 1 }}>
       {checkUserStorage?.check == false ? (
         navigation?.navigate('signin')
       )
-        // : 
-        // (tables?.value?.length <= 0 && tables?.loading == false) ||
-        //   (tables?.value?.length > 0 && tables?.loading == false) ? (
-        //   navigation?.navigate('home')
-        // ) 
         : (
           <View style={{ position: 'relative' }}>
             <ImageBackground

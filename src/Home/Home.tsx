@@ -53,6 +53,7 @@ const Home = ({ navigation, route }: Props) => {
   const width = Size().width;
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
+  console.log(checkUserStorage,'checkUserStorage')
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const tables = useAppSelect((data: any) => data.tables);
@@ -179,7 +180,6 @@ const Home = ({ navigation, route }: Props) => {
             item?.orders?.length > 0
             : item.timeBookTable !== 'null',
     );
-    console.log(statusTable, 'statusTable');
     setState({ dataTable: statusTable });
   }, [state?.checked, tables?.value]);
 
@@ -441,7 +441,6 @@ const Home = ({ navigation, route }: Props) => {
                                 item?.timeBookTable !== 'null')
                             ) {
                               setState({ selectionTable: item });
-                              console.log(item, '21wqs');
                             }
                           }}
                           key={item._id}>

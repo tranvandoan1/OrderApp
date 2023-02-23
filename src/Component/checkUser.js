@@ -7,12 +7,11 @@ export let checkUserAsyncStorage = async () => {
     const logStorage = await AsyncStorage?.getItem('user');
     const checklogin = await AsyncStorage?.getItem('checklogin');
     const user = JSON.parse(logStorage);
-    console.log(user,'user')
     setTimeout(() => {
       setCheckUserLogin(
         { data: user?.data, check: JSON.parse(checklogin)?.check == undefined ? false : JSON.parse(checklogin)?.check }
       );
-    }, 1000);
+    }, 1600);
   }
   useEffect(() => {
     checkUser();

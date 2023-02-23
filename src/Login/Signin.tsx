@@ -19,6 +19,8 @@ import UserAPI from '../API/Users';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Size, SizeScale } from './../Component/size';
 import ModalConfim from '../Component/ModalConfim';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
 type FormData = {
   email: string;
   password: string;
@@ -32,6 +34,7 @@ const Signin = ({ navigation }: any) => {
   const widthScale = SizeScale().width;
   const [check, setCheck] = useState<boolean>(false);
   const [confimSignUp, setConfimSignUp] = useState<boolean>(false);
+  const [eye, setEye] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<ModalVisible>({
     error: null,
     status: false,
@@ -70,12 +73,8 @@ const Signin = ({ navigation }: any) => {
         JSON.stringify({ data: data.user, token: data.token }),
       );
       setCheck(false);
-      navigation?.navigate('home');
+      navigation?.navigate('loading',{id:1});
     }
-    // } catch (error: any) {
-    //   setCheck(false);
-    //   Alert.alert(error.response.data.error);
-    // }
   };
 
   return (
@@ -98,8 +97,9 @@ const Signin = ({ navigation }: any) => {
             }}>
             <View
               style={{
-                paddingVertical: 20,
-                paddingHorizontal: width < 960 ? 50 : 300,
+                width: '100%',
+                flexDirection: 'row',
+                justifyContent: 'center',
               }}>
               <Avatar
                 rounded
@@ -150,40 +150,43 @@ const Signin = ({ navigation }: any) => {
                 {errors.email && (
                   <Text style={styles.validate}>Email không để trống !</Text>
                 )}
-                <Controller
-                  control={control}
-                  rules={{
-                    required: true,
-                  }}
-                  render={({ field: { onChange, onBlur, value } }: any) => (
-                    <TextInput
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      style={
-                        errors.password
-                          ? styles.inputActive
-                          : [
-                            styles.input,
-                            {
-                              fontSize: widthScale * 23,
-                              height: widthScale * 80,
-                            },
-                          ]
-                      }
-                      placeholder="Password"
-                      secureTextEntry={true}
-                      placeholderTextColor={errors.password && 'red'}
-                    />
-                  )}
+                <View style={{ position: 'relative' }}>
+                  <Controller
+                    control={control}
+                    rules={{
+                      required: true,
+                    }}
+                    render={({ field: { onChange, onBlur, value } }: any) => (
+                      <TextInput
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                        style={
+                          errors.password
+                            ? styles.inputActive
+                            : [
+                              styles.input,
+                              {
+                                fontSize: widthScale * 23,
+                                height: widthScale * 80,
+                              },
+                            ]
+                        }
+                        placeholder="Password"
+                        secureTextEntry={eye}
+                        placeholderTextColor={errors.password && 'red'}
+                      />
+                    )}
                     name="password"
                   />
+                  <TouchableOpacity style={styles.eye} onPress={() => setEye(!eye)}>
+                    <FontAwesome5 name={eye ? 'eye' : 'eye-slash'} style={{ fontSize: widthScale * 30 }} />
+                  </TouchableOpacity>
                   {errors.password && (
-                    <Text style={styles.validate}>
-                      Password không để trống !
-                    </Text>
+                    <Text style={styles.validate}>Password không để trống !</Text>
                   )}
-                </KeyboardAvoidingView>
+                </View>
+              </KeyboardAvoidingView>
 
               <TouchableOpacity
                 onPress={handleSubmit(onSubmit)}
@@ -235,7 +238,6 @@ const Signin = ({ navigation }: any) => {
                     Đăng ký
                   </Text>
                 </TouchableOpacity>
-          
               </View>
             </View>
           </View>
@@ -247,7 +249,7 @@ const Signin = ({ navigation }: any) => {
               confimSignUp == true
                 ? (await Linking.openURL('https://admin-app-order.vercel.app/'),
                   setConfimSignUp(false))
-                : (setModalVisible({ error: null, status: false }), reset());
+                : (setModalVisible({ error: null, status: false }),reset());
             }}
             btnCancel={() => {
               confimSignUp
@@ -310,10 +312,14 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     marginVertical: 10,
     borderRadius: 3,
-    fontSize: 20,
   },
   validate: {
     color: 'red',
     fontWeight: '400',
   },
+  eye: {
+    position: 'absolute',
+    top: 25,
+    right: 20,
+  }
 });
