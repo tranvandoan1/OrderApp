@@ -4,8 +4,7 @@ import {
   Modal,
   Platform,
   Pressable,
-  SafeAreaView,
-  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -15,25 +14,26 @@ import {
 import React, {
   useEffect,
   useRef,
-  useState,
   useReducer,
   startTransition,
+  useState,
 } from 'react';
-import { Size, SizeScale } from '../Component/size';
+import {SizeScale} from '../Component/size';
 import moment from 'moment';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { FlatGrid } from 'react-native-super-grid';
-import { Easing } from 'react-native/Libraries/Animated/Easing';
+import {FlatGrid} from 'react-native-super-grid';
 type Props = {
   selectDateProps: any;
   hiddenSelectDate: (e: any) => void;
   dataOrders: any;
   textLanguage: any;
+  background: any;
+  dataTime: any;
 };
 type State = {
   buttonSelectMonth: boolean;
   buttonSelectDate: boolean;
-  filter: number;
+  filterStatusTime: number;
   valueYear: any;
   monthSelect: any;
   selectCalendar: any;
@@ -43,35 +43,45 @@ const ModalSelectDate: React.FC<Props> = ({
   hiddenSelectDate,
   dataOrders,
   textLanguage,
+  background,
+  dataTime,
 }) => {
   const widthScale = SizeScale().width;
 
-  const monthConvert = `${String(moment().month() + 1).length == 1
+  const monthConvert = `${
+    String(moment().month() + 1).length == 1
       ? `0${moment().month() + 1}`
       : moment().month() + 1
-    }`;
-  const dateConvert = `${String(moment().date()).length == 1
+  }`;
+  const dateConvert = `${
+    String(moment().date()).length == 1
       ? `0${moment().date()}`
       : moment().date()
-    }`;
-  const width = Size().width;
+  }`;
   const [state, setState] = useReducer(
     (state: State, newState: Partial<State>) => ({
       ...state,
       ...newState,
     }),
     {
-      buttonSelectMonth: false, //hiện tháng để chọn
-      buttonSelectDate: true, //hiện ngày để chọn
-      filter: 1, //ấn button chọn lọc theo ngày, tháng, năm
+      buttonSelectMonth: dataTime?.filterStatusTime == 2 ? true : false, //hiện tháng để chọn
+      buttonSelectDate:
+        dataTime?.filterStatusTime == 1 ||
+        dataTime?.filterStatusTime == undefined
+          ? true
+          : false, //hiện ngày để chọn
+      filterStatusTime:
+        dataTime?.filterStatusTime == undefined
+          ? 1
+          : dataTime?.filterStatusTime, //ấn button chọn lọc theo ngày, tháng, năm
       // selectDay: undefined, //chọn ngày
       monthSelect: undefined, //lưu ngày trong tháng
       valueYear: undefined,
       selectCalendar: {
         //lưu giá trị tháng năm khi ấn next hoặc prev
-        date: dateConvert,
-        month: monthConvert,
-        year: moment().year(),
+        date: dataTime.date.date,
+        month: dataTime.date.month,
+        year: dataTime.date.year,
       },
     },
   );
@@ -86,7 +96,6 @@ const ModalSelectDate: React.FC<Props> = ({
     }).start();
   }, [state?.buttonSelectMonth]);
   useEffect(() => {
-    console.log('có vào');
     // @ts-ignore
     Animated.timing(fadeAnim1, {
       toValue: state?.buttonSelectDate ? 1 : 0,
@@ -110,19 +119,20 @@ const ModalSelectDate: React.FC<Props> = ({
     while (
       i <=
       (state?.selectCalendar?.month == '1' ||
-        state?.selectCalendar?.month == '7' ||
-        state?.selectCalendar?.month == '10'
+      state?.selectCalendar?.month == '7' ||
+      state?.selectCalendar?.month == '10'
         ? 5
         : 4)
     ) {
       let dates: string[] = [];
       const DATE_FORMAT = 'DD-MM-YYYY';
-      let time: any = `${datanew?.length <= 0
+      let time: any = `${
+        datanew?.length <= 0
           ? '1'
           : datanew[datanew?.length - 1].slice(0, 2) == '1'
-            ? '2'
-            : Number(datanew[datanew?.length - 1].slice(0, 2)) + 1
-        }-${state?.selectCalendar?.month}-${state?.selectCalendar?.year}`;
+          ? '2'
+          : Number(datanew[datanew?.length - 1].slice(0, 2)) + 1
+      }-${state?.selectCalendar?.month}-${state?.selectCalendar?.year}`;
       // days by week
       if (moment(time, DATE_FORMAT).day() == 0) {
         time = moment(time, DATE_FORMAT).add(-1).format(DATE_FORMAT);
@@ -163,22 +173,34 @@ const ModalSelectDate: React.FC<Props> = ({
         newDataMonth.push(findDate);
       }
     });
-    setState({ monthSelect: newDataMonth });
+    setState({monthSelect: newDataMonth});
   };
   useEffect(() => {
     getWeekMonth();
   }, [state?.selectCalendar]);
   // kiều kiện để lấy ra được nhưng order theo ý chọn
   const conditions = (item: any) => {
-    const time = new Date(item.updatedAt);
-    return state?.filter == 1
-      ? time.getDate() == state?.selectCalendar?.date &&
-      time.getMonth() + 1 == state?.selectCalendar?.month &&
-      time.getFullYear() == moment().year()
-      : state?.filter == 2
-        ? time.getMonth() + 1 == state?.selectCalendar?.month &&
-        time.getFullYear() == state?.selectCalendar?.year
-        : time.getFullYear() ==
+    const time = new Date(item.dataItem.updatedAt);
+    return state?.filterStatusTime == 1
+      ? Number(time.getDate()) ==
+          Number(
+            item.today == true ? dateConvert : state?.selectCalendar?.date,
+          ) &&
+          Number(time.getMonth() + 1) ==
+            Number(
+              item.today == true ? monthConvert : state?.selectCalendar?.month,
+            ) &&
+          time.getFullYear() == moment().year()
+      : state?.filterStatusTime == 2
+      ? Number(time.getMonth() + 1) ==
+          Number(
+            item.today == true ? monthConvert : state?.selectCalendar?.month,
+          ) &&
+        time.getFullYear() ==
+          Number(
+            item.today == true ? moment().year() : state?.selectCalendar?.year,
+          )
+      : time.getFullYear() ==
         (state?.valueYear == undefined || String(state?.valueYear).length <= 0
           ? moment().year()
           : state?.valueYear);
@@ -186,7 +208,7 @@ const ModalSelectDate: React.FC<Props> = ({
   // lọc order
   const dataProps: any = [];
   dataOrders?.map((item: any) => {
-    if (conditions(item)) {
+    if (conditions({dataItem: item, today: false})) {
       dataProps.push(item);
     }
   });
@@ -206,24 +228,31 @@ const ModalSelectDate: React.FC<Props> = ({
             : state?.valueYear,
       },
       data: dataProps,
-      filter: state?.filter,
+      filterStatusTime: state?.filterStatusTime,
     });
   };
+
+  // chọn ngày hôm nay
   const today = () => {
     setState({
       selectCalendar: {
-        date: dateConvert,
-        month: monthConvert,
-        year: moment().year(),
+        date: dataTime.date.date,
+        month: dataTime.date.month,
+        year: dataTime.date.year,
       },
     });
     const dataProps: any = [];
     dataOrders?.map((item: any) => {
-      const time: any = new Date(item.updatedAt);
-      if (conditions(item)) {
+      if (conditions({dataItem: item, today: true})) {
         dataProps.push(item);
       }
     });
+    let sum = 0;
+    for (let i = 0; i < dataProps.length; i++) {
+      sum += Math.ceil(
+        dataProps[i].sumPrice * ((100 - dataProps[i].sale) / 100),
+      );
+    }
     hiddenSelectDate({
       sum: sum,
       date: {
@@ -231,9 +260,219 @@ const ModalSelectDate: React.FC<Props> = ({
         month: monthConvert,
         year: moment().year(),
       },
+      filterStatusTime: state?.filterStatusTime,
       data: dataProps,
     });
   };
+
+  // chọn tháng
+  const setNextPrevTime = (a: any) => {
+    setState({
+      selectCalendar: {
+        date: dataTime.date.date,
+        month:
+          a == 1
+            ? Number(state?.selectCalendar.month) == 1
+              ? '12'
+              : `${
+                  String(Number(state?.selectCalendar?.month) - 1).length <= 1
+                    ? `0${Number(state?.selectCalendar?.month) - 1}`
+                    : Number(state?.selectCalendar?.month) - 1
+                }`
+            : state?.selectCalendar.month == 12
+            ? '01'
+            : `${
+                String(Number(state?.selectCalendar?.month) + 1).length <= 1
+                  ? `0${Number(state?.selectCalendar?.month) + 1}`
+                  : Number(state?.selectCalendar?.month) + 1
+              }`,
+        year:
+          Number(state?.selectCalendar?.month) == 12
+            ? Number(state?.selectCalendar?.year) + 1
+            : state?.selectCalendar?.year,
+      },
+    });
+  };
+
+  // render tháng
+  const renderItem = (item: any) => {
+    return (
+      <TouchableOpacity
+        style={[
+          {
+            padding: 20,
+            borderColor: '#dddddd',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor:
+              item == state?.selectCalendar?.month ? 'red' : '#fff',
+            borderRadius: 100,
+          },
+        ]}
+        onPress={() =>
+          setState({
+            selectCalendar: {
+              date: undefined,
+              month: `${String(item).length <= 1 ? `0${item}` : item}`,
+              year: state?.selectCalendar?.year,
+            },
+          })
+        }>
+        {}
+        <Text
+          style={{
+            fontSize: 20,
+            fontWeight: '600',
+            color: item == state?.selectCalendar?.month ? '#fff' : 'black',
+          }}>
+          Th{item}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // lọc order để hiển thị những ngày có bill
+  const [orders, setOrder] = useState<any>();
+
+  useEffect(() => {
+    // lấy nhưng order theo tháng hoặc năm
+    const dataMonthSelet: any = [];
+    state?.monthSelect?.map((item: any) => {
+      item?.map((itemData: any) => {
+        dataMonthSelet.push({
+          date: itemData.slice(0, 2),
+          month: itemData.slice(3, 5),
+          year: itemData.slice(6, 10),
+          sum: 0,
+        });
+      });
+    });
+    console.log(state?.monthSelect, 'dataMonthSelet');
+    const dataOrder = dataOrders?.filter((item: any) => {
+      const time = new Date(item.createdAt);
+      if (
+        state?.selectCalendar?.date == undefined
+          ? time.getFullYear() == state?.selectCalendar?.year
+          : Number(time?.getMonth() + 1) == state?.selectCalendar?.month &&
+            time.getFullYear() == state?.selectCalendar?.year
+      ) {
+        // setOrder(item)
+        return item;
+      }
+    });
+    //  nhóm những order cùng ngày vào 1 nhóm
+    const grouped = dataOrder.reduce((acc: any, curr: any) => {
+      const timeAcc = new Date(curr.createdAt);
+      const existing = acc.find((item: any) => {
+        const timeCurr: any = new Date(item?.key);
+        return timeAcc?.getDate() === timeCurr?.getDate();
+      });
+      if (existing) {
+        existing.values.push(curr);
+      } else {
+        acc.push({key: timeAcc, values: [curr]});
+      }
+      return acc;
+    }, []);
+
+    for (let j = 0; j < grouped.length; j++) {
+      for (let i = 0; i < dataMonthSelet.length; i++) {
+        const time = new Date(grouped[j].key);
+        if (dataMonthSelet[i].date == time.getDate()) {
+          let sum = 0;
+          for (let e = 0; e < grouped[j].values.length; e++) {
+            sum += Math.ceil(
+              grouped[j].values[e].sumPrice *
+                ((100 - grouped[j].values[e].sale) / 100),
+            );
+          }
+          dataMonthSelet[i].sum = sum;
+        }
+      }
+    }
+    setOrder(dataMonthSelet);
+  }, [state?.selectCalendar, state?.monthSelect]);
+  const filterOrder = () => {
+    return (
+      <Animated.View
+        style={[
+          {
+            transform: [{scale: fadeAnim1}],
+          },
+        ]}>
+        <FlatGrid
+          data={orders}
+          itemDimension={40}
+          // @ts-ignore
+          showsVerticalScrollIndicator={false}
+          renderItem={({item, index}: any) => {
+            return (
+              <View
+                style={[
+                  styles.flex,
+                  {
+                    justifyContent: 'space-around',
+                    paddingVertical: widthScale * 20,
+                    // borderBottomWidth:
+                    //   state?.monthSelect.length - 1 == index
+                    //     ? 0
+                    //     : 0.5,
+                    // borderColor: '#dddddd',
+                  },
+                ]}>
+                <TouchableOpacity
+                  onPress={() =>
+                    setState({
+                      selectCalendar: {
+                        date: item.date,
+                        month: item.month,
+                        year: item.year,
+                      },
+                    })
+                  }>
+                  <Text
+                    style={[
+                      {
+                        fontWeight:
+                          item.month == state?.selectCalendar?.month
+                            ? '700'
+                            : '400',
+                        color:
+                          item.date == state?.selectCalendar?.date &&
+                          item.month == state?.selectCalendar?.month
+                            ? monthConvert == state?.selectCalendar?.month
+                              ? '#fff'
+                              : 'black'
+                            : item?.sum > 0
+                            ? '#fff'
+                            : 'black',
+                        fontSize:
+                          item.month == state?.selectCalendar?.month ? 22 : 18,
+                        backgroundColor:
+                          item.date == state?.selectCalendar?.date &&
+                          item.month == state?.selectCalendar?.month
+                            ? monthConvert !== state?.selectCalendar?.month
+                              ? '#fff'
+                              : 'red'
+                            : item?.sum > 0
+                            ? 'blue'
+                            : '#fff',
+                        borderRadius: 100,
+                        padding: 5,
+                      },
+                    ]}>
+                    {item.date}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }}
+        />
+      </Animated.View>
+    );
+  };
+
   return (
     <Modal transparent={true} visible={selectDateProps} animationType="slide">
       <View style={styles.centeredView}>
@@ -254,10 +493,13 @@ const ModalSelectDate: React.FC<Props> = ({
             styles.navigationContainer,
             {
               width: widthScale * 1000,
+              backgroundColor: background == 2 ? 'black' : '#fff',
               height: 510,
+              borderWidth: 0.5,
+              borderColor: '#fff',
             },
           ]}>
-          <View style={{ flexDirection: 'row', width: '100%', height: '100%' }}>
+          <View style={{flexDirection: 'row', width: '100%', height: '100%'}}>
             <View
               style={{
                 width: '40%',
@@ -275,76 +517,82 @@ const ModalSelectDate: React.FC<Props> = ({
                   }}>
                   <TouchableOpacity
                     onPress={() => {
-                      state?.filter !== 1
+                      state?.filterStatusTime !== 1
                         ? setState({
-                          buttonSelectMonth: false,
-                          valueYear: undefined,
-                          filter: 1,
-                          buttonSelectDate: true,
-                          selectCalendar: {
-                            date: dateConvert,
-                            month: monthConvert,
-                            year: moment().year(),
-                          },
-                        })
+                            buttonSelectMonth: false,
+                            valueYear: undefined,
+                            filterStatusTime: 1,
+                            buttonSelectDate: true,
+                            selectCalendar: {
+                              date: dataTime.date.date,
+                              month: dataTime.date.month,
+                              year: dataTime.date.year,
+                            },
+                          })
                         : null;
                     }}
                     style={styles.buttonFilter}>
-                    {state?.filter == 1 && <View style={styles.active}></View>}
+                    {state?.filterStatusTime == 1 && (
+                      <View style={styles.active}></View>
+                    )}
 
                     <Text style={styles.textFilter}>{textLanguage?.date}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
-                      state?.filter !== 2
+                      state?.filterStatusTime !== 2
                         ? setState({
-                          buttonSelectMonth: true,
-                          valueYear: undefined,
-                          filter: 2,
-                          buttonSelectDate: false,
-                          selectCalendar: {
-                            date: dateConvert,
-                            month: monthConvert,
-                            year: moment().year(),
-                          },
-                        })
+                            buttonSelectMonth: true,
+                            valueYear: undefined,
+                            filterStatusTime: 2,
+                            buttonSelectDate: false,
+                            selectCalendar: {
+                              date: dataTime.date.date,
+                              month: dataTime.date.month,
+                              year: dataTime.date.year,
+                            },
+                          })
                         : null;
                     }}
                     style={styles.buttonFilter}>
-                    {state?.filter == 2 && <View style={styles.active}></View>}
+                    {state?.filterStatusTime == 2 && (
+                      <View style={styles.active}></View>
+                    )}
                     <Text style={styles.textFilter}>{textLanguage?.month}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
-                      state?.filter !== 3
+                      state?.filterStatusTime !== 3
                         ? setState({
-                          buttonSelectMonth: false,
-                          filter: 3,
-                          buttonSelectDate: false,
-                          selectCalendar: {
-                            date: dateConvert,
-                            month: monthConvert,
-                            year: moment().year(),
-                          },
-                        })
+                            buttonSelectMonth: false,
+                            filterStatusTime: 3,
+                            buttonSelectDate: false,
+                            selectCalendar: {
+                              date: dataTime.date.date,
+                              month: dataTime.date.month,
+                              year: dataTime.date.year,
+                            },
+                          })
                         : null;
                     }}
                     style={styles.buttonFilter}>
-                    {state?.filter == 3 && <View style={styles.active}></View>}
+                    {state?.filterStatusTime == 3 && (
+                      <View style={styles.active}></View>
+                    )}
                     <Text style={styles.textFilter}>{textLanguage?.year}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
               <View style={styles.flex}>
-                <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
+                <Text style={{color: 'red', fontWeight: '600', fontSize: 23}}>
                   {textLanguage?.total_money} :{' '}
                 </Text>
-                <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
+                <Text style={{color: 'red', fontWeight: '600', fontSize: 23}}>
                   {sum?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'column' }}>
+              <View style={{flexDirection: 'column'}}>
                 <View
                   style={{
                     flexDirection: 'column',
@@ -372,7 +620,11 @@ const ModalSelectDate: React.FC<Props> = ({
                           color: '#fff',
                           textAlign: 'center',
                         }}>
-                        {textLanguage?.today}
+                        {state.filterStatusTime == 1
+                          ? textLanguage?.today
+                          : state.filterStatusTime == 2
+                          ? textLanguage?.this_month
+                          : textLanguage.this_year}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -399,57 +651,34 @@ const ModalSelectDate: React.FC<Props> = ({
               </View>
             </View>
             <View style={styles.calendar}>
-              {state?.filter !== 3 && (
+              {/* prev tháng */}
+
+              {state?.filterStatusTime !== 3 && (
                 <View style={[styles.flex, styles.titleMonth]}>
                   <View style={[styles.flex]}>
                     <TouchableOpacity
                       onPress={() =>
                         setState({
                           selectCalendar: {
-                            date:
-                              state?.selectCalendar?.month == monthConvert &&
-                                state?.selectCalendar?.year == moment().year()
-                                ? dateConvert
-                                : undefined,
+                            date: state?.selectCalendar?.date,
+
                             month: '01',
                             year: Number(state?.selectCalendar?.year) - 1,
                           },
                         })
                       }>
-                      <AntDesign name="doubleleft" style={styles.doubleleft} />
+                      <AntDesign
+                        name="doubleleft"
+                        style={[
+                          styles.doubleleft,
+                          {
+                            color: background == 1 ? '#303E65' : '#dddddd',
+                          },
+                        ]}
+                      />
                     </TouchableOpacity>
                     {state?.buttonSelectMonth == false && (
-                      <TouchableOpacity
-                        onPress={() =>
-                          setState({
-                            selectCalendar: {
-                              date:
-                                state?.selectCalendar?.month == monthConvert &&
-                                  state?.selectCalendar?.year == moment().year()
-                                  ? dateConvert
-                                  : undefined,
-                              month:
-                                Number(state?.selectCalendar.month) == 1
-                                  ? '12'
-                                  : `${String(
-                                    Number(state?.selectCalendar?.month) -
-                                    1,
-                                  ).length <= 1
-                                    ? `0${Number(
-                                      state?.selectCalendar?.month,
-                                    ) - 1
-                                    }`
-                                    : Number(state?.selectCalendar?.month) -
-                                    1
-                                  }`,
-                              year:
-                                Number(state?.selectCalendar?.month) == 1
-                                  ? Number(moment().year()) - 1
-                                  : state?.selectCalendar?.year,
-                            },
-                            // buttonSelectDate:!state?.buttonSelectDate
-                          })
-                        }>
+                      <TouchableOpacity onPress={() => setNextPrevTime(1)}>
                         <AntDesign
                           name="left"
                           style={[
@@ -457,6 +686,7 @@ const ModalSelectDate: React.FC<Props> = ({
                             {
                               paddingLeft:
                                 state?.buttonSelectMonth == false ? 40 : 0,
+                              color: background == 1 ? '#303E65' : '#dddddd',
                             },
                           ]}
                         />
@@ -464,58 +694,41 @@ const ModalSelectDate: React.FC<Props> = ({
                     )}
                   </View>
 
-                  <Text style={styles.textDay}>
+                  <Text
+                    style={[
+                      styles.textDay,
+                      {
+                        color: background == 1 ? '#303E65' : '#dddddd',
+                      },
+                    ]}>
                     Th
                     {state?.selectCalendar?.month} {state?.selectCalendar?.year}
                   </Text>
+
+                  {/* next tháng */}
 
                   <View style={[styles.flex]}>
                     {state?.buttonSelectMonth == false && (
                       <TouchableOpacity
                         disabled={
-                          state?.selectCalendar?.month == monthConvert &&
-                            state?.selectCalendar?.year == moment().year()
+                          state?.selectCalendar?.month == dataTime.date.month &&
+                          state?.selectCalendar?.year == moment().year()
                             ? true
                             : false
                         }
-                        onPress={() =>
-                          setState({
-                            selectCalendar: {
-                              date:
-                                state?.selectCalendar?.month == monthConvert &&
-                                  state?.selectCalendar?.year == moment().year()
-                                  ? dateConvert
-                                  : undefined,
-                              month:
-                                state?.selectCalendar.month == 12
-                                  ? '01'
-                                  : `${String(
-                                    Number(state?.selectCalendar?.month) +
-                                    1,
-                                  ).length <= 1
-                                    ? `0${Number(
-                                      state?.selectCalendar?.month,
-                                    ) + 1
-                                    }`
-                                    : Number(state?.selectCalendar?.month) +
-                                    1
-                                  }`,
-                              year:
-                                Number(state?.selectCalendar?.month) == 12
-                                  ? Number(state?.selectCalendar?.year) + 1
-                                  : state?.selectCalendar?.year,
-                            },
-                          })
-                        }>
+                        onPress={() => setNextPrevTime(2)}>
                         <AntDesign
                           name="right"
                           style={[
                             styles.right,
                             {
                               color:
-                                state?.selectCalendar?.month == monthConvert &&
-                                  state?.selectCalendar?.year == moment().year()
-                                  ? '#dddddd'
+                                state?.selectCalendar?.month ==
+                                  dataTime.date.month &&
+                                state?.selectCalendar?.year == moment().year()
+                                  ? background == 2
+                                    ? '#303E65'
+                                    : '#dddddd'
                                   : '#303E65',
                             },
                           ]}
@@ -525,19 +738,16 @@ const ModalSelectDate: React.FC<Props> = ({
 
                     <TouchableOpacity
                       disabled={
-                        state?.selectCalendar?.month == monthConvert &&
-                          state?.selectCalendar?.year == moment().year()
+                        state?.selectCalendar?.month == dataTime.date.month &&
+                        state?.selectCalendar?.year == moment().year()
                           ? true
                           : false
                       }
                       onPress={() =>
                         setState({
                           selectCalendar: {
-                            date:
-                              state?.selectCalendar?.month == monthConvert &&
-                                state?.selectCalendar?.year == moment().year()
-                                ? dateConvert
-                                : undefined,
+                            date: state?.selectCalendar?.date,
+
                             month: '01',
                             year: Number(state?.selectCalendar?.year) + 1,
                           },
@@ -551,9 +761,12 @@ const ModalSelectDate: React.FC<Props> = ({
                             paddingLeft:
                               state?.buttonSelectMonth == true ? 0 : 40,
                             color:
-                              state?.selectCalendar?.month == monthConvert &&
-                                state?.selectCalendar?.year == moment().year()
-                                ? '#dddddd'
+                              state?.selectCalendar?.month ==
+                                dataTime.date.month &&
+                              state?.selectCalendar?.year == moment().year()
+                                ? background == 2
+                                  ? '#303E65'
+                                  : '#dddddd'
                                 : '#303E65',
                           },
                         ]}
@@ -563,142 +776,27 @@ const ModalSelectDate: React.FC<Props> = ({
                 </View>
               )}
 
-              <View
-                style={{ width: '100%', height: '100%' }}
-                onTouchEndCapture={() => undefined && console.log('3e2w')}>
+              <View style={{width: '100%', height: '100%'}}>
                 {state?.buttonSelectMonth == true ? (
                   <Animated.View
                     style={[
                       {
-                        transform: [{ scale: fadeAnim }],
+                        transform: [{scale: fadeAnim}],
                       },
                     ]}>
                     <View style={[styles.flex]}>
                       <FlatGrid
                         data={monthFor}
                         itemDimension={100}
+                        // @ts-ignore
                         showsVerticalScrollIndicator={false}
-                        renderItem={({ item }: any) => (
-                          <TouchableOpacity
-                            style={[
-                              {
-                                padding: 20,
-                                borderColor: '#dddddd',
-                                justifyContent: 'center',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                backgroundColor:
-                                  item == state?.selectCalendar?.month
-                                    ? 'red'
-                                    : '#fff',
-                                borderRadius: 100,
-                              },
-                            ]}
-                            onPress={() =>
-                              setState({
-                                selectCalendar: {
-                                  date: undefined,
-                                  month: `${String(item).length <= 1 ? `0${item}` : item
-                                    }`,
-                                  year: state?.selectCalendar?.year,
-                                },
-                              })
-                            }>
-                            <Text
-                              style={{
-                                fontSize: 20,
-                                fontWeight: '600',
-                                color:
-                                  item == state?.selectCalendar?.month
-                                    ? '#fff'
-                                    : 'black',
-                              }}>
-                              Th{item}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
+                        renderItem={({item}: any) => renderItem(item)}
                       />
                     </View>
                   </Animated.View>
-                ) : state?.buttonSelectDate == true ? (
-                  state?.monthSelect?.map((item: any, index: any) => {
-                    return (
-                      <Animated.View
-                        style={[
-                          {
-                            transform: [{ scale: fadeAnim1 }],
-                          },
-                        ]}>
-                        <View
-                          style={[
-                            styles.flex,
-                            {
-                              justifyContent: 'space-around',
-                              padding: 20,
-                              borderBottomWidth:
-                                state?.monthSelect[
-                                  state?.monthSelect.length - 1
-                                ] == index
-                                  ? 0
-                                  : 1,
-                              borderColor: '#dddddd',
-                            },
-                          ]}>
-                          {item.map((itemDate: any) => {
-                            return (
-                              <TouchableOpacity
-                                onPress={() =>
-                                  setState({
-                                    selectCalendar: {
-                                      date: itemDate?.slice(0, 2),
-                                      month: itemDate?.slice(3, 5),
-                                      year: itemDate?.slice(6, 11),
-                                    },
-                                  })
-                                }>
-                                <Text
-                                  style={[
-                                    {
-                                      fontWeight:
-                                        itemDate.slice(3, 5) ==
-                                          state?.selectCalendar?.month
-                                          ? '700'
-                                          : '400',
-                                      color:
-                                        itemDate.slice(3, 5) ==
-                                          state?.selectCalendar?.month
-                                          ? itemDate.slice(0, 2) ==
-                                            state?.selectCalendar?.date &&
-                                            itemDate.slice(3, 5) ==
-                                            state?.selectCalendar?.month
-                                            ? '#fff'
-                                            : 'black'
-                                          : '#ddddd',
-                                      fontSize:
-                                        itemDate.slice(3, 5) ==
-                                          state?.selectCalendar?.month
-                                          ? 22
-                                          : 18,
-                                      backgroundColor:
-                                        itemDate.slice(0, 2) ==
-                                          state?.selectCalendar?.date &&
-                                          itemDate.slice(3, 5) ==
-                                          state?.selectCalendar?.month
-                                          ? 'red'
-                                          : '#fff',
-                                      borderRadius: 100,
-                                      padding: 5,
-                                    },
-                                  ]}>
-                                  {itemDate.slice(0, 2)}
-                                </Text>
-                              </TouchableOpacity>
-                            );
-                          })}
-                        </View>
-                      </Animated.View>
-                    );
-                  })
+                ) : // {/* lịch chọn ngày */}
+                state?.buttonSelectDate == true ? (
+                  filterOrder()
                 ) : (
                   <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -713,9 +811,11 @@ const ModalSelectDate: React.FC<Props> = ({
                       ]}>
                       {textLanguage?.this_year} : {moment().year()}
                     </Text>
-                    <Text style={styles.textEnterYear}>{textLanguage?.enter_year} : </Text>
+                    <Text style={styles.textEnterYear}>
+                      {textLanguage?.enter_year} :{' '}
+                    </Text>
                     <TextInput
-                      onBlur={() => console.log('first')}
+                      // onBlur={() => console.log('first')}
                       style={styles.textEnterYearInput}
                       value={
                         state?.valueYear == undefined ? '' : state?.valueYear
@@ -723,7 +823,7 @@ const ModalSelectDate: React.FC<Props> = ({
                       placeholder={`${textLanguage?.enter_order}`}
                       onChangeText={(e: any) => {
                         startTransition(() => {
-                          setState({ valueYear: e });
+                          setState({valueYear: e});
                         });
                       }}
                     />
@@ -753,7 +853,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   navigationContainer: {
-    backgroundColor: '#fff',
     borderRadius: 5,
     padding: 30,
   },
@@ -822,12 +921,10 @@ const styles = StyleSheet.create({
 
   doubleleft: {
     fontSize: 20,
-    color: '#303E65',
     fontWeight: '400',
   },
   left: {
     fontSize: 20,
-    color: '#303E65',
     fontWeight: '400',
   },
   doubleright: {
@@ -836,7 +933,6 @@ const styles = StyleSheet.create({
   },
   textDay: {
     fontSize: 20,
-    color: '#303E65',
     fontWeight: '500',
   },
   right: {
@@ -857,7 +953,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'flex-start',
     borderColor: '#dddddd',
-    borderWidth: 1,
+    borderWidth: 0.5,
     padding: 10,
   },
   textEnterYear: {

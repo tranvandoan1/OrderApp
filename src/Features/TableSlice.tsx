@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import TableAPI, {
   add,
   addOrdersTable,
@@ -9,9 +9,8 @@ import TableAPI, {
   uploadBookTable,
   changeTable,
 } from '../API/TableAPI';
-
 async function tableAll() {
-  const {data: tables} = await TableAPI.getAll();
+  const { data: tables } = await TableAPI.getAll();
   const logStorage: any = await AsyncStorage.getItem('user');
   const user = JSON.parse(logStorage);
   const dataTable = [];
@@ -27,7 +26,7 @@ async function tableAll() {
   });
 
   for (let i = 0; i < dataTable.length; i++) {
-    dataTable[i].name = `Bàn ${dataTable[i].name}`;
+    dataTable[i].name = `${dataTable[i].name}`;
     dataTable[i].orders =
       dataTable[i].orders == null ? null : JSON.parse(dataTable[i].orders);
   }
@@ -68,10 +67,6 @@ export const removeTable = createAsyncThunk('table/removeTable', async (id) => {
   await remove(id);
   return tableAll();
 });
-export const editTable = createAsyncThunk('table/editTable', async (data:any) => {
-  await upload(data.id, data.data);
-  return tableAll();
-});
 
 export const changeTables = createAsyncThunk(
   'saveorder/changeTables',
@@ -96,33 +91,31 @@ const tableSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(getAllTable.fulfilled, (state:any, action) => {
-        state.loading = false;
-        state.value = action.payload;
-    });
-    builder.addCase(addTable.fulfilled, (state:any, action) => {
+    builder.addCase(getAllTable.fulfilled, (state: any, action) => {
+      state.loading = false;
       state.value = action.payload;
     });
-    builder.addCase(removeTable.fulfilled, (state:any, action) => {
+    builder.addCase(addTable.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(editTable.fulfilled, (state:any, action) => {
+    builder.addCase(removeTable.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(editBookTable.fulfilled, (state:any, action) => {
+   
+    builder.addCase(editBookTable.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
 
-    builder.addCase(addOrderTable.fulfilled, (state:any, action) => {
+    builder.addCase(addOrderTable.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(changeTables.fulfilled, (state:any, action) => {
+    builder.addCase(changeTables.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(cancelTable.fulfilled, (state:any, action) => {
+    builder.addCase(cancelTable.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
-    builder.addCase(removeOrder.fulfilled, (state:any, action) => {
+    builder.addCase(removeOrder.fulfilled, (state: any, action) => {
       state.value = action.payload;
     });
   },

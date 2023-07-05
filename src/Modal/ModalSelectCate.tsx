@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   StyleSheet,
@@ -6,12 +7,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {Size} from '../Component/size';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../App/Store';
-import {getCategori} from '../Features/CateSlice';
-import {getProductAll} from './../Features/ProductsSlice';
+import React, { useEffect, useState } from 'react';
+import { Size, SizeScale } from '../Component/size';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../App/Store';
+import { getCategori } from '../Features/CateSlice';
+import { getProductAll } from './../Features/ProductsSlice';
 type Props = {
   selectCate: (e: any) => void;
   selectModalCate: any;
@@ -19,6 +20,7 @@ type Props = {
 };
 const ModalSelectCate = React.memo((props: Props) => {
   const width = Size().width;
+  const widthScale = SizeScale().width;
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const cateogoris = useAppSelect((data: any) => data.categoris.value);
@@ -31,7 +33,7 @@ const ModalSelectCate = React.memo((props: Props) => {
   const select = (cate: any) => {
     setCheck(cate._id);
     const pro = products?.filter((item: any) => item.cate_id == cate._id);
-    props.selectCate({name: cate.name, pro: pro});
+    props.selectCate({ name: cate.name, pro: pro, id: cate._id });
   };
   return (
     <Modal
@@ -54,47 +56,53 @@ const ModalSelectCate = React.memo((props: Props) => {
         <View
           style={[
             styles.navigationContainer,
-            {width: width < 720 ? '50%' : '30%'},
+            { width: width < 720 ? '50%' : '30%' },
           ]}>
-          <View style={{flexDirection: 'column', width: '100%'}}>
+          <View style={{ flexDirection: 'column', width: '100%' }}>
             <View
               style={{
                 width: '100%',
                 flexDirection: 'column',
                 alignItems: 'center',
               }}>
-              {cateogoris?.map((item: any, index: any) => {
-                return (
-                  <TouchableOpacity
-                    onPressIn={() => select(item)}
-                    key={index}
-                    style={[
-                      styles.list,
-                      // @ts-ignore
-                      check == item._id &&
-                        (props?.valueCate !== undefined ||
-                          String(props?.valueCate).length > 0) &&
-                        styles.listActive,
-                      {
-                        borderBottomWidth:
-                          cateogoris.length == index + 1 ? 0 : 0.5,
-                      },
-                    ]}
-                    onPress={() => console.log(item)}>
-                    <Text
-                      style={[
-                        styles.textName,
-                        // @ts-ignore
-                        check == item._id &&
+              <View style={[styles.boxTextCate, { paddingVertical: widthScale * 20, paddingHorizontal: widthScale * 10 }]}>
+                <Text style={[styles.textCate, { fontSize: widthScale * 35 }]}>Danh mục</Text>
+              </View>
+              {
+                cateogoris?.length <= 0 ?
+                  <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color={'blue'} />
+                  </View> :
+                  cateogoris?.map((item: any, index: any) => {
+                    return (
+                      <TouchableOpacity
+                        onPressIn={() => select(item)}
+                        key={index}
+                        style={[
+                          styles.list,
+                          // @ts-ignore
+                          props?.valueCate?.id == item._id &&
                           (props?.valueCate !== undefined ||
                             String(props?.valueCate).length > 0) &&
-                          styles.textNameActive,
-                      ]}>
-                      {item.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                          styles.listActive,
+                          {
+                            borderBottomWidth:
+                              cateogoris.length == index + 1 ? 0 : 0.5,
+                          },
+                        ]}
+                        onPress={() => console.log(item)}>
+                        <Text
+                          style={[
+                            styles.textName,
+                            // @ts-ignore
+                            props?.valueCate?.id == item._id &&
+                            styles.textNameActive,
+                          ]}>
+                          {item.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
             </View>
           </View>
         </View>
@@ -117,7 +125,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'white',
     borderRadius: 5,
-    paddingVertical: 10,
+    overflow: 'hidden'
   },
   textName: {
     color: 'black',
@@ -138,4 +146,13 @@ const styles = StyleSheet.create({
   textNameActive: {
     color: '#fff',
   },
+  boxTextCate: {
+    backgroundColor: 'red',
+    width: '100%',
+  },
+  textCate: {
+    textAlign: 'center',
+    color: '#fff',
+    fontWeight: '600'
+  }
 });

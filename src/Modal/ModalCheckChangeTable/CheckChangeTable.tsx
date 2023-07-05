@@ -27,6 +27,7 @@ type Props = {
   selectionTable: any;
   showModalConfim: () => void;
   hiddeSelectTable: () => void;
+  uploadData: (e: any) => void;
   textLanguage: any
 };
 type State = {
@@ -39,7 +40,8 @@ const CheckChangeTable: React.FC<Props> = ({
   selectionTable,
   showModalConfim,
   hiddeSelectTable,
-  textLanguage
+  textLanguage,
+  uploadData
 }) => {
   const width = Size().width;
   const sizeScale = SizeScale().width;
@@ -88,20 +90,22 @@ const CheckChangeTable: React.FC<Props> = ({
       Alert.alert('Chưa chọn bàn muốn chuyển !');
     } else {
       hiddeSelectTable()
-      setState({ loading: true,
+      setState({
+        loading: true,
         showMockUpMoveTable: false,
-       });
+      });
       const uploadTable = {
-        table1: selectionTable,
-        table2: state?.selectTableWantToMove._id,
+        table_moved: selectionTable,
+        table_received: state?.selectTableWantToMove._id,
       };
-      // @ts-ignore
-      await dispatch(changeTables(uploadTable));
+      uploadData(uploadTable)
       ToastAndroid.show('Chuyển bàn thành công', ToastAndroid.SHORT);
       setState({
         loading: false,
         selectTableWantToMove: undefined,
       });
+      // @ts-ignore
+      // dispatch(changeTables(uploadTable));
     }
   };
   const renderTable = () => {
@@ -477,7 +481,7 @@ const CheckChangeTable: React.FC<Props> = ({
           </View>
         </View>
       </Modal>
-   
+
     </>
   );
 };

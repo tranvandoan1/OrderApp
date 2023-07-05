@@ -1,18 +1,18 @@
 // In App.js in a new project
-import {StatusBar, StyleSheet, Text, View} from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icons from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/EvilIcons';
 
 import Manage from './Manage/Manage';
 import Signin from './Login/Signin';
 
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {store} from './App/Store';
-import {Provider} from 'react-redux';
-import {Size} from './Component/size';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { store } from './App/Store';
+import { Provider } from 'react-redux';
+import { Size } from './Component/size';
 import ListBill from './Manage/Bill/ListBill';
 import Account from './Manage/Account/Account';
 import Loading from './Component/Loading';
@@ -24,7 +24,7 @@ function Router() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarStyle: {height: 50, zIndex: 0},
+        tabBarStyle: { height: 50, zIndex: 0 },
       }}>
       <Tab.Screen
         name="Order"
@@ -33,7 +33,7 @@ function Router() {
           headerShown: false,
           tabBarIcon: () => <View></View>,
           tabBarActiveBackgroundColor: 'blue',
-          tabBarLabel: ({focused, color}) => (
+          tabBarLabel: ({ focused, color }) => (
             <View
               style={{
                 flexDirection: 'column',
@@ -69,7 +69,7 @@ function Router() {
           headerShown: false,
           tabBarIcon: () => <View></View>,
           tabBarActiveBackgroundColor: 'blue',
-          tabBarLabel: ({focused, color}) => (
+          tabBarLabel: ({ focused, color }) => (
             <View
               style={{
                 flexDirection: 'column',
@@ -104,45 +104,47 @@ const Stack = createNativeStackNavigator();
 function App() {
   return (
     <Provider store={store}>
-      <StatusBar hidden={true} />
+      <StatusBar animated={true} hidden={true} translucent={true} />
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen
             name="loading"
             component={Loading}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="signin"
             component={Signin}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
 
           <Stack.Screen
             name="home"
             component={Home}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="orders"
             component={Order}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
 
           <Stack.Screen
             name="bill"
+            // @ts-ignore
             component={ListBill}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="account"
+            // @ts-ignore
             component={Account}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="manage"
             component={Manage}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -9,11 +9,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {startTransition, useRef} from 'react';
+import React, { startTransition, useRef } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Size, SizeScale} from '../Component/size';
+import { Size, SizeScale } from '../Component/size';
 
 type Props = {
   tableOrder: any;
@@ -52,15 +52,15 @@ const ListOrderMobile: React.FC<Props> = ({
   const fadeAnim = useRef(new Animated.Value(100 * widthScale)).current;
   checkAnimated == true
     ? // @ts-ignore
-      Animated.timing(fadeAnim, {
-        toValue: 1000 * widthScale,
-        duration: 800,
-      }).start()
+    Animated.timing(fadeAnim, {
+      toValue: 1000 * widthScale,
+      duration: 800,
+    }).start()
     : // @ts-ignore
-      Animated.timing(fadeAnim, {
-        toValue: 100 * widthScale,
-        duration: 800,
-      }).start();
+    Animated.timing(fadeAnim, {
+      toValue: 100 * widthScale,
+      duration: 800,
+    }).start();
   return (
     <View
       style={{
@@ -85,7 +85,7 @@ const ListOrderMobile: React.FC<Props> = ({
                 onPress={() => {
                   hiddeAnimated(false);
                 }}>
-                <Text style={styles.proOrder}>Sản phẩm đã chọn</Text>
+                <Text style={[styles.proOrder, { fontSize: widthScale * 28 }]}>Sản phẩm đã chọn</Text>
               </TouchableOpacity>
               <View>
                 {tableOrder
@@ -96,7 +96,7 @@ const ListOrderMobile: React.FC<Props> = ({
                       <View
                         style={[
                           styles.listOrder,
-                          {paddingVertical: 10},
+                          { paddingVertical: 10 },
                           tableOrder?.length - 1 !== index && {
                             borderBottomWidth: 0.5,
                           },
@@ -116,13 +116,13 @@ const ListOrderMobile: React.FC<Props> = ({
                               name="closecircle"
                               color={'tomato'}
                               size={33}
-                              style={{marginRight: 15}}
+                              style={{ marginRight: 15 }}
                             />
                           </TouchableOpacity>
 
-                          <View style={{flexDirection: 'column'}}>
+                          <View style={{ flexDirection: 'column' }}>
                             <Text
-                              style={[styles.proname, {fontSize: 28}]}
+                              style={[styles.proname, { fontSize: 28 }]}
                               numberOfLines={2}>
                               {item.name}
                             </Text>
@@ -140,7 +140,7 @@ const ListOrderMobile: React.FC<Props> = ({
                           }}>
                           <TouchableOpacity
                             onPress={() =>
-                              onSubmit({data: item, check: 'decrease'})
+                              onSubmit({ data: item, check: 'decrease' })
                             }>
                             <Entypo
                               name="circle-with-minus"
@@ -149,30 +149,29 @@ const ListOrderMobile: React.FC<Props> = ({
                             />
                           </TouchableOpacity>
                           <TextInput
-                            value={`${
-                              valueAmount.value == undefined
+                            value={`${valueAmount.value == undefined
                                 ? item.amount
                                 : item.id == valueAmount.id
-                                ? valueAmount.value
-                                : item.amount
-                            }`}
+                                  ? valueAmount.value
+                                  : item.amount
+                              }`}
                             style={[
                               styles.text,
-                              {fontSize: 28, paddingHorizontal: 10},
+                              { fontSize: 28, paddingHorizontal: 10 },
                             ]}
                             keyboardType="numeric"
                             onChangeText={e =>
                               startTransition(() => {
-                                saveValueAmount({value: e, id: item.id});
+                                saveValueAmount({ value: e, id: item.id });
                               })
                             }
                             onBlur={() =>
-                              uploadAmount({value: item, id: item.id})
+                              uploadAmount({ value: item, id: item.id })
                             }
                           />
                           <TouchableOpacity
                             onPress={() =>
-                              onSubmit({data: item, check: 'add'})
+                              onSubmit({ data: item, check: 'add' })
                             }>
                             <AntDesign
                               name="pluscircle"
@@ -194,7 +193,7 @@ const ListOrderMobile: React.FC<Props> = ({
               }}>
               {checkAnimated !== true && (
                 <View
-                  style={[styles.showOrder, {height: width < 960 ? 90 : 100}]}>
+                  style={[styles.showOrder, { height: width < 960 ? 90 : 100 }]}>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -210,12 +209,12 @@ const ListOrderMobile: React.FC<Props> = ({
                       ]}>
                       Tổng tiền :{' '}
                     </Text>
-                    <Text style={[styles.priceRed, {fontSize: 30}]}>
+                    <Text style={[styles.priceRed, { fontSize: 30 }]}>
                       {sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
                     </Text>
                   </View>
 
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     {/* {loading == true && (
                       <ActivityIndicator size={40} color={'blue'} />
                     )} */}
@@ -248,20 +247,20 @@ const ListOrderMobile: React.FC<Props> = ({
               )}
             </TouchableOpacity>
             <View>
-              <View style={{width: '100%'}}>
+              <View style={{ width: '100%' }}>
                 <View style={styles.ttmb}>
                   <Text
-                    style={[styles.price, {fontSize: 30, textAlign: 'center'}]}>
+                    style={[styles.price, { fontSize: 30, textAlign: 'center' }]}>
                     Tổng tiền thanh toán :
                   </Text>
                   <Text
                     style={[
                       styles.priceRed,
-                      {fontSize: 30, textAlign: 'center'},
+                      { fontSize: 30, textAlign: 'center' },
                     ]}>
                     {(valueSale !== undefined &&
-                    valueSale !== 0 &&
-                    String(valueSale).length > 1
+                      valueSale !== 0 &&
+                      String(valueSale).length > 1
                       ? Math.ceil(sum * ((100 - valueSale) / 100))
                       : sum
                     )
@@ -281,10 +280,10 @@ const ListOrderMobile: React.FC<Props> = ({
                         justifyContent: 'center',
                         marginBottom: 10,
                       }}>
-                      <Text style={{fontSize: 25, color: 'blue'}}>
+                      <Text style={{ fontSize: 25, color: 'blue' }}>
                         Giảm giá :
                       </Text>
-                      <Text style={{fontSize: 25, color: 'red'}}>
+                      <Text style={{ fontSize: 25, color: 'red' }}>
                         {valueSale}%
                       </Text>
                       <TouchableOpacity
@@ -331,7 +330,7 @@ const ListOrderMobile: React.FC<Props> = ({
                       }}
                     />
                     <TouchableOpacity
-                      style={{width: '40%'}}
+                      style={{ width: '40%' }}
                       disabled={
                         tableOrder?.length == null || tableOrder?.length <= 0
                           ? true
@@ -349,7 +348,7 @@ const ListOrderMobile: React.FC<Props> = ({
                             paddingVertical: 10,
                             backgroundColor:
                               tableOrder?.length == null ||
-                              tableOrder?.length <= 0
+                                tableOrder?.length <= 0
                                 ? 'gray'
                                 : 'blue',
                           },
@@ -366,7 +365,7 @@ const ListOrderMobile: React.FC<Props> = ({
                       ? true
                       : false
                   }
-                  style={{width: '50%'}}>
+                  style={{ width: '50%' }}>
                   <Text
                     style={[
                       styles.tt,
@@ -398,7 +397,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 15,
     textAlign: 'center',
-    fontSize: 28,
     fontWeight: '500',
   },
   listOrder: {

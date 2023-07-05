@@ -249,7 +249,7 @@ const Signin = ({ navigation }: any) => {
               confimSignUp == true
                 ? (await Linking.openURL('https://admin-app-order.vercel.app/'),
                   setConfimSignUp(false))
-                : (setModalVisible({ error: null, status: false }),reset());
+                : (setModalVisible({ error: null, status: false }));
             }}
             btnCancel={() => {
               confimSignUp

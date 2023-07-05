@@ -11,8 +11,9 @@ type Props = {
     navigation?: any
     router: any
     setRouter: (e: any) => void
+    hiddeDrawer: () => void
 }
-const Navbar: React.FC<Props> = ({ language, background, widthScale, width, navigation, setRouter, router }) => {
+const Navbar: React.FC<Props> = ({ language, background, widthScale, width, navigation, setRouter, router, hiddeDrawer }) => {
     const data = [
         {
             id: 2,
@@ -64,12 +65,12 @@ const Navbar: React.FC<Props> = ({ language, background, widthScale, width, navi
                             onPress={() =>
                                 item.id == 4
                                     ? navigation.goBack()
-                                    : setRouter(`${item.navigation}`)
+                                    : (setRouter(`${item.navigation}`), hiddeDrawer())
                             }>
                             <View style={styles.li}>
                                 <AntDesign
                                     name={`${item.icon}`}
-                                    size={40}
+                                    size={30}
                                     style={{
                                         marginRight: 4,
                                         color: router == item.navigation ? '#fff' : 'black',
@@ -77,7 +78,7 @@ const Navbar: React.FC<Props> = ({ language, background, widthScale, width, navi
                                 />
                                 <Text
                                     style={{
-                                        fontSize: width < 720 ? 17 : 23,
+                                        fontSize: width < 720 ? widthScale * 25 : widthScale * 27,
                                         color: router == item.navigation ? '#fff' : 'black',
                                     }}>
                                     {item.name}
@@ -100,13 +101,12 @@ const styles = StyleSheet.create({
         borderColor: 'rgb(219, 219, 219)',
         borderWidth: 1,
         marginVertical: 5,
-        paddingVertical: 20,
         borderRadius: 3,
         elevation: 10,
         shadowColor: '#FF9966',
         marginTop: 0,
-        width: 200,
-        paddingLeft: 20
+        width: '100%',
+        paddingHorizontal: 20
     },
     li: {
         flexDirection: 'row',

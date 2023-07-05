@@ -36,7 +36,7 @@ const Account: React.FC<Props> = ({ navigation, checkUserStorage, background, la
                   fontSize: width < 720 ? 20 : 23,
                 },
               ]}>
-            {textLanguage?.your_profile}
+              {textLanguage?.your_profile}
             </Text>
           </View>
         </View>
@@ -63,11 +63,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   titlePro: {
-    fontSize: 18,
     color: 'black',
     fontFamily: Platform.OS == 'android' ? 'Roboto-Light' : 'Roboto-Bold',
     fontStyle: 'normal',
     textAlign: 'center',
+    marginLeft:10
   },
   iconBack: {
     fontSize: 20,

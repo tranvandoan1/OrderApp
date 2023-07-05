@@ -1,11 +1,11 @@
-import {StyleSheet, Text, View} from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import React from 'react';
-import {SizeScale} from '../Component/size';
+import { SizeScale } from '../Component/size';
 type Props = {
   togger: (e: boolean) => void;
   infoData: any;
 };
-const ShowInfoBookTable: React.FC<Props> = ({togger, infoData}) => {
+const ShowInfoBookTable: React.FC<Props> = ({ togger, infoData }) => {
   const widthScale = SizeScale().width;
   return (
     <View
@@ -27,47 +27,51 @@ const ShowInfoBookTable: React.FC<Props> = ({togger, infoData}) => {
       <View
         style={{
           width: widthScale * 400,
-          height: 200,
           backgroundColor: '#fff',
           elevation: 20,
           shadowColor: 'blue',
           borderRadius: 5,
-          padding: 20,
+          overflow: 'hidden'
         }}>
-        <Text
-          style={{
-            color: 'black',
-            fontWeight: '500',
-            fontSize: 21,
-            textAlign: 'center',
-            marginVertical: 10,
-          }}>
-          {infoData?.name}
-        </Text>
-        <Text style={{color: 'black', fontWeight: '500', fontSize: 18}}>
-          Khách hàng :
-          <Text style={{color: 'red', fontWeight: '500', fontSize: 20}}>
-            {infoData?.nameUser}
+        <View style={[styles.boxTextInfo,{paddingVertical:widthScale*10}]}>
+          <Text style={[styles.textInfo, { fontSize: widthScale * 35 }]}>Thông tin</Text>
+        </View>
+        <View style={{ padding: 20 }}>
+          <Text
+            style={{
+              color: 'black',
+              fontWeight: '500',
+              fontSize: 21,
+              textAlign: 'center',
+              marginVertical: 10,
+            }}>
+            {infoData?.name}
           </Text>
-        </Text>
-        <Text
-          style={{
-            color: 'black',
-            fontWeight: '500',
-            fontSize: 18,
-            marginVertical: 10,
-          }}>
-          Thời gian đặt :
-          <Text style={{color: 'red', fontWeight: '500', fontSize: 20}}>
-            {infoData?.timeBookTable}
+          <Text style={{ color: 'black', fontWeight: '500', fontSize: 18 }}>
+            Khách hàng :{' '}
+            <Text style={{ color: 'red', fontWeight: '500', fontSize: 20 }}>
+              {infoData?.nameUser}
+            </Text>
           </Text>
-        </Text>
-        <Text style={{color: 'black', fontWeight: '500', fontSize: 18}}>
-          Số lượng :
-          <Text style={{color: 'red', fontWeight: '500', fontSize: 20}}>
-            {infoData?.amount}
+          <Text
+            style={{
+              color: 'black',
+              fontWeight: '500',
+              fontSize: 18,
+              marginVertical: 10,
+            }}>
+            Thời gian đặt :{' '}
+            <Text style={{ color: 'red', fontWeight: '500', fontSize: 20 }}>
+              {infoData?.timeBookTable}
+            </Text>
           </Text>
-        </Text>
+          <Text style={{ color: 'black', fontWeight: '500', fontSize: 18 }}>
+            Số lượng :{' '}
+            <Text style={{ color: 'red', fontWeight: '500', fontSize: 20 }}>
+              {infoData?.amount}
+            </Text>
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -75,4 +79,16 @@ const ShowInfoBookTable: React.FC<Props> = ({togger, infoData}) => {
 
 export default ShowInfoBookTable;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  boxTextInfo: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'red'
+  },
+  textInfo: {
+    textAlign: 'center',
+    color: '#fff',
+    fontWeight:'700'
+  }
+});

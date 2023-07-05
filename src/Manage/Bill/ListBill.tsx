@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -32,6 +33,7 @@ const ListBill: React.FC<Props> = ({
   const widthScale = SizeScale().width;
   const textLanguage = language?.data?.cart
   const [selectDate, setSelectDate] = useState<boolean>(false);
+  const [sumData, setSumData] = useState<number>(0);
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const orders = useAppSelect((data: any) => data.orders);
@@ -74,7 +76,8 @@ const ListBill: React.FC<Props> = ({
         month: monthConvert,
         year: moment().year(),
       },
-      filter: 1,
+      filterStatusTime: 1,
+      loading: orders?.loading
     });
   };
   useEffect(() => {
@@ -82,6 +85,8 @@ const ListBill: React.FC<Props> = ({
   }, [language, orders?.value]);
   return (
     <View style={{ flex: 1, width: '100%' }}>
+      <StatusBar hidden />
+
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text
@@ -92,7 +97,7 @@ const ListBill: React.FC<Props> = ({
                 marginLeft: widthScale * 10
               },
             ]}>
-            {textLanguage?.bills}
+            {textLanguage?.bills} ({data?.data?.length})
           </Text>
         </View>
         <View style={styles.date}>
@@ -110,13 +115,14 @@ const ListBill: React.FC<Props> = ({
               selectTextOnFocus={false}
               editable={false}
               defaultValue={
-                data?.filter == 1
+                (data?.filterStatusTime == 1 ||
+                  data?.filterStatusTime == undefined)
                   ? data?.date?.date == moment().date() &&
-                    data?.date?.month == moment().month() + 1 &&
+                    Number(data?.date?.month) == Number(moment().month() + 1) &&
                     data?.date?.year == moment().year()
                     ? `${textLanguage?.today}`
                     : `${data?.date?.date}-${data?.date?.month}-${data?.date?.year}`
-                  : data?.filter == 2
+                  : data?.filterStatusTime == 2
                     ? data?.date?.month == moment().month() + 1 &&
                       data?.date?.year == moment().year()
                       ? `${textLanguage?.this_month}`
@@ -140,25 +146,24 @@ const ListBill: React.FC<Props> = ({
           </TouchableOpacity>
         </View>
       </View>
-      {/* {orders?.value?.length <= 0 && orders?.loading == true ? (
-        <View style={styles.loading_g}>
-          <ActivityIndicator size="large" color="blue" />
-        </View>
-      ) : ( */}
-      <ListTableBill orderToDay={data?.data} textLanguage={textLanguage}/>
-      {/* )} */}
+
+      <ListTableBill orderToDay={data} textLanguage={textLanguage} background={background}
+      />
+
       {selectDate == true && (
         <ModalSelectDate
           selectDateProps={selectDate}
           hiddenSelectDate={
-            (e: any) =>
+            (e: any) => {
               String(e).length >= 1
                 ? (setData(e), setSelectDate(false))
                 : setSelectDate(false)
-            // console.log(e,'3e2wd')
+            }
           }
           dataOrders={orders?.value}
           textLanguage={textLanguage}
+          background={background}
+          dataTime={data}
         />
       )}
     </View>
@@ -175,7 +180,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // backgroundColor: 'blue',
     borderColor: 'rgb(219,219,219)',
     borderBottomWidth: 1,
   },

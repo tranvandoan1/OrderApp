@@ -17,13 +17,12 @@ import {
 } from 'react-native';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../App/Store';
-import { getAllTable } from '../Features/TableSlice';
+import { getAllTable, changeTables } from '../Features/TableSlice';
 import { FlatGrid } from 'react-native-super-grid';
 import { Size, SizeScale } from '../Component/size';
 import CheckChangeTable from '../Modal/ModalCheckChangeTable/CheckChangeTable';
 import { Avatar, CheckBox } from 'react-native-elements';
 import ModalBookTable from '../Modal/ModalBookTable';
-import { getUser } from '../Features/UserSlice';
 import { removeOrder } from '../Features/TableSlice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 // @ts-ignore
@@ -32,6 +31,7 @@ import HeaderTitle from './HeaderTitle';
 import { checkUserAsyncStorage } from '../Component/checkUser';
 import ModalConfim from '../Component/ModalConfim';
 import { getData } from './../Features/SettingSlice';
+import { ScrollView } from 'react-native';
 type Props = {
   route: any;
   navigation: any;
@@ -51,9 +51,9 @@ type State = {
 const Home = ({ navigation, route }: Props) => {
   const propParams = route?.params;
   const width = Size().width;
+  const widthScale = SizeScale().width;
   const X = checkUserAsyncStorage();
   const checkUserStorage = Object.values(X)[2];
-  console.log(checkUserStorage,'checkUserStorage')
   const dispatch = useDispatch<AppDispatch>();
   const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
   const tables = useAppSelect((data: any) => data.tables);
@@ -76,24 +76,72 @@ const Home = ({ navigation, route }: Props) => {
       dataTable: [],
     },
   );
-  // sử lý khi quay lại trang 'home' thì truyền qua data để upload mảng mới trước khi thêm lên db
-  useEffect(() => {
-    if (propParams?.data !== undefined) {
+  // sử lý khi quay lại trang 'home' thì truyền qua data để upload mảng mới trước khi thêm lên db và trường hợp khi ấn thanh toán thì xóa sản phẩm đã order ở bàn đó đi
+  const uploadData = (e: any) => {
+    if (propParams?.data !== undefined || propParams?.pay == true) {
       setState({ loading: true });
       const newData: any = [];
       tables?.value?.map((item: any) => {
+
         if (item?._id == propParams?.id_table) {
-          newData.push({ ...item, orders: propParams?.data });
-        } else {
+          console.log('first1')
+          newData.push({
+            ...item, orders:
+              // trường hợp thanh toán
+              propParams?.pay == true ?
+
+                [] :
+
+                propParams?.data
+          });
+        }
+
+        else {
           newData.push(item);
         }
       });
-      setState({ dataTable: newData, loading: false });
+      setState({ dataTable: tables?.value, loading: false });
     }
-  }, [propParams?.data, tables?.value]);
+  }
 
+  // upload data khi chuyển bàn
+  const uploadDataChangeTable = (e: any) => {
+    setState({ loading: true });
+    const newData: any = [];
+    tables?.value?.map((item: any) => {
+      if (item?._id == e.table_moved._id) {
+        newData.push({
+          ...item, orders: [],
+          phone: null,
+          timeBookTable: 'null',
+          nameUser: '',
+          amount: null
+        });
+      }
+      else if (e.table_received == item?._id) {
+        newData.push({
+          ...item, orders: e.table_moved.orders,
+          phone: e.table_moved.phone,
+          timeBookTable: e.table_moved.timeBookTable,
+          nameUser: e.table_moved.nameUser,
+          amount: e.table_moved.amount
+
+        });
+      }
+      else {
+        newData.push(item);
+      }
+    });
+    console.log(newData, 'ewedscxewefd')
+    setState({ dataTable: newData, loading: false });
+    // @ts-ignore
+    dispatch(changeTables(e))
+  }
+  useEffect(() => {
+    uploadData(undefined)
+  }, [propParams?.data, tables?.value, propParams?.pay]);
   // upload lại data khi hủy bàn
-  const uploadData = (e: any) => {
+  const uploadDataRemove = (e: any) => {
     setState({
       loading: true,
       showModalConfim: false,
@@ -231,8 +279,7 @@ const Home = ({ navigation, route }: Props) => {
     }).start();
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar translucent hidden={true} />
-
+      <StatusBar animated={true} hidden={true} translucent={true} />
       {state?.loading == true && (
         <View style={styles.loading_g}>
           <ActivityIndicator size="large" color="#fff" />
@@ -247,124 +294,122 @@ const Home = ({ navigation, route }: Props) => {
         }}>
         <View
           style={{
-            width: width < 960 ? '30%' : '25%',
+            // width: width < 960 ? '30%' : '25%',
             borderRightWidth: 1,
             borderColor: '#EEEEEE',
+            flex: 1,
+            height: '100%'
           }}>
-          <View style={styles.header}>
-            <Suspense
-              fallback={<ActivityIndicator size="large" color="#fff" />}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Avatar
-                  rounded
-                  source={{
-                    uri: checkUserStorage?.data?.avatarRestaurant,
-                  }}
-                  size={60}
-                />
+          <SafeAreaView style={{ height: '100%' }}>
+            <ScrollView showsVerticalScrollIndicator={true} >
 
-                <Text
-                  style={[
-                    styles.titlePro,
-                    { fontSize: width < 960 ? 20 : 23, marginLeft: 10 },
-                  ]}>
-                  {checkUserStorage?.data?.nameRestaurant}
-                </Text>
+              <View style={styles.header}>
+                <Suspense
+                  fallback={<ActivityIndicator size="large" color="#fff" />}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Avatar
+                      rounded
+                      source={{
+                        uri: checkUserStorage?.data?.avatarRestaurant,
+                      }}
+                      size={60}
+                    />
+
+                    <Text
+                      style={[
+                        styles.titlePro,
+                        { fontSize: width < 960 ? 20 : 23, marginLeft: 10 },
+                      ]}>
+                      {checkUserStorage?.data?.nameRestaurant}
+                    </Text>
+                  </View>
+                </Suspense>
               </View>
-            </Suspense>
-          </View>
-          {/* hiện lựa chọn lọc bàn */}
-          <View
-            style={{
-              padding: 10,
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              flex: 1,
-            }}>
-            <View>
-              <TouchableOpacity
-                style={styles.bookTable}
-                onPress={() => setState({ bookTable: true })}>
-                <Text
-                  style={{
-                    color: '#fff',
-                    fontSize: 18,
-                    fontWeight: '500',
-                    textAlign: 'center',
-                  }}>
-                  {textLanguage?.book_table}
-                </Text>
-              </TouchableOpacity>
-              <Text
+              {/* hiện lựa chọn lọc bàn */}
+              <View
                 style={{
-                  fontSize: 18,
-                  paddingLeft: 20,
-                  marginTop: 30,
-                  color: 'black',
-                  fontWeight: '500',
-                  borderBottomWidth: 0.8,
-                  borderColor: '#DDDDDD',
-                  paddingBottom: 10,
+                  padding: 10,
+
                 }}>
-                {textLanguage?.table_filter}
-              </Text>
-              <FlatList
-                data={[
-                  { id: 1, name: `${textLanguage?.empty}` },
-                  { id: 2, name: `${textLanguage?.have_guests}` },
-                  { id: 3, name: `${textLanguage?.preset_table}` },
-                ]}
-                renderItem={renderTable}
-                keyExtractor={(item: any) => item}
-              />
-            </View>
-            <View style={{ flexDirection: 'column' }}>
-              <Text style={{ fontSize: 18, fontWeight: '600', color: 'black' }}>
-                {textLanguage?.note}
-              </Text>
-              <View style={{ flexDirection: 'column' }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginRight: 20,
-                    marginVertical: 5,
-                    borderTopWidth: 1,
-                    borderColor: 'red',
-                  }}>
-                  <View
+                <View>
+                  <TouchableOpacity
+                    style={styles.bookTable}
+                    onPress={() => setState({ bookTable: true })}>
+                    <Text
+                      style={{
+                        color: '#fff',
+                        fontSize: 18,
+                        fontWeight: '500',
+                        textAlign: 'center',
+                      }}>
+                      {textLanguage?.book_table}
+                    </Text>
+                  </TouchableOpacity>
+                  <Text
                     style={{
-                      width: 15,
-                      height: 15,
-                      borderRadius: 100,
-                      backgroundColor: 'red',
-                    }}></View>
-                  <Text style={{ color: 'black', fontSize: 18, marginLeft: 10 }}>
-                    {textLanguage?.preset_table}
+                      fontSize: 18,
+                      paddingLeft: 20,
+                      marginTop: 30,
+                      color: 'black',
+                      fontWeight: '500',
+                      borderBottomWidth: 0.8,
+                      borderColor: '#DDDDDD',
+                      paddingBottom: 10,
+                    }}>
+                    {textLanguage?.table_filter}
                   </Text>
+                  <FlatList
+                    data={[
+                      { id: 1, name: `${textLanguage?.empty}` },
+                      { id: 2, name: `${textLanguage?.have_guests}` },
+                      { id: 3, name: `${textLanguage?.preset_table}` },
+                    ]}
+                    renderItem={renderTable}
+                    keyExtractor={(item: any) => item}
+                  />
                 </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginRight: 20,
-                  }}>
-                  <View
-                    style={{
-                      width: 15,
-                      height: 15,
-                      borderRadius: 100,
-                      backgroundColor: '#00FF00',
-                    }}></View>
-                  <Text style={{ color: 'black', fontSize: 18, marginLeft: 10 }}>
-                    {textLanguage?.have_guests}
+                <View style={{ flexDirection: 'column', marginTop: 20 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '600', color: 'black' }}>
+                    {textLanguage?.note}
                   </Text>
+                  <View style={{ flexDirection: 'column' }}>
+                    <View
+                      style={styles.preset_table}>
+                      <View
+                        style={{
+                          width: widthScale * 25,
+                          height: widthScale * 25,
+                          borderRadius: 100,
+                          backgroundColor: 'red',
+                        }}></View>
+                      <Text style={{ color: 'black', fontSize: 18, marginLeft: 10 }}>
+                        {textLanguage?.preset_table}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginRight: 20,
+                      }}>
+                      <View
+                        style={{
+                          width: widthScale * 25,
+                          height: widthScale * 25,
+                          borderRadius: 100,
+                          backgroundColor: '#00FF00',
+                        }}></View>
+                      <Text style={{ color: 'black', fontSize: 18, marginLeft: 10 }}>
+                        {textLanguage?.have_guests}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               </View>
-            </View>
-          </View>
+            </ScrollView>
+          </SafeAreaView>
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 3 }}>
           <View
             style={[
               styles.header,
@@ -489,7 +534,7 @@ const Home = ({ navigation, route }: Props) => {
                               styles.nameTable,
                               { fontSize: width < 960 ? 20 : 21 },
                             ]}>
-                            {item.name}
+                            {setting?.language == 'es' ? 'Talbe' : 'Bàn'}{' '}{item.name}
                           </Text>
 
                           <Text
@@ -760,13 +805,14 @@ const Home = ({ navigation, route }: Props) => {
         hiddeSelectTable={() => setState({ selectionTable: undefined })}
         showModalConfim={() => setState({ showModalConfim: true })}
         textLanguage={textLanguage}
+        uploadData={(e: any) => uploadDataChangeTable(e)}
       />
       {/* hiện modal confil hủy bàn */}
       {state?.showModalConfim == true && (
         <ModalConfim
           modalVisible={state?.showModalConfim}
           btnAccept={async () => {
-            uploadData(state?.selectionTable?._id);
+            uploadDataRemove(state?.selectionTable?._id);
           }}
           btnCancel={() => {
             setState({ showModalConfim: false });
@@ -917,6 +963,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
+  preset_table: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+    borderTopWidth: 1,
+    borderColor: 'red',
+  }
 });
 
 export default Home;

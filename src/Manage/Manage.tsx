@@ -15,8 +15,6 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Setting from './Setting';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../App/Store';
-// import VerticalBarGraph from '@chartiful/react-native-vertical-bar-graph';
-// import { ECharts } from 'react-native-echarts-wrapper';
 import { getData } from './../Features/SettingSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalConfim from '../Component/ModalConfim';
@@ -53,7 +51,7 @@ const Mangage = ({ navigation }: any) => {
   return (
     <DrawerLayoutAndroid
       ref={drawer}
-      drawerWidth={widthScale * 320}
+      drawerWidth={widthScale * 250}
       drawerPosition={'left'}
       renderNavigationView={() =>
         <Navbar
@@ -64,6 +62,7 @@ const Mangage = ({ navigation }: any) => {
           navigation={navigation}
           router={router}
           setRouter={(e: any) => setRouter(e)}
+          hiddeDrawer={() => drawer.current?.closeDrawer()}
         />
       }>
       <View
@@ -164,21 +163,27 @@ const Mangage = ({ navigation }: any) => {
             flexDirection: 'row',
             alignItems: 'flex-start',
           }}>
-          {width > 960 && (
-            <Navbar
-              width={width}
-              widthScale={widthScale}
-              background={background}
-              language={language}
-              navigation={navigation}
-              router={router}
-              setRouter={(e: any) => setRouter(e)}
-            />
-          )}
+          <View style={{ flex: width < 960 ? 0 : 1 }}>
+            {width > 960 && (
+              <Navbar
+                width={width}
+                widthScale={widthScale}
+                background={background}
+                language={language}
+                navigation={navigation}
+                router={router}
+                setRouter={(e: any) => setRouter(e)}
+                hiddeDrawer={() => drawer.current?.closeDrawer()}
+
+              />
+            )}
+          </View>
+
 
           <View
             style={{
-              width: width < 960 ? '100%' : '79%',
+              // width: width < 960 ? '100%' : '82%',
+              flex: width < 960 ? 1 : 4.5,
               borderLeftWidth: 1,
               borderColor: '#dddddd',
               paddingLeft: width < 960 ? 0 : 10,

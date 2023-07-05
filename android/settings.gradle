@@ -10,10 +10,3 @@ if (settings.hasProperty("newArchEnabled") && settings.newArchEnabled == "true")
     include(":ReactAndroid:hermes-engine")
     project(":ReactAndroid:hermes-engine").projectDir = file('../node_modules/react-native/ReactAndroid/hermes-engine')
 }
-
-includeBuild('external/xxxx-xxxx') {
-    name "xxxx-xxxx"
-    dependencySubstitution {
-        substitute module('com.xxxx.xxxx:xxxx:1.0.0') using project(':xxxx-xxxx')
-    }
-}

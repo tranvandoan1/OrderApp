@@ -4,6 +4,7 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -14,24 +15,20 @@ import React, { useEffect, useState } from 'react';
 import { Size } from '../Component/size';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../App/Store';
-import { editBookTable, getAllTable } from '../Features/TableSlice';
+import { getAllTable } from '../Features/TableSlice';
 import moment from 'moment';
 import {
   Table,
   Row,
-  Rows,
   TableWrapper,
   Cell,
 } from 'react-native-table-component';
-import { addOrder } from '../Features/OrderSlice';
-import { removeSaveOrderAll } from '../Features/SaveOrderSlice';
-import { removeOrderTable } from './../API/TableAPI';
 type Props = {
   hiidenCheckPay: (e: any) => void;
   checkPay: any;
   valueSale: any;
   params: any;
-  saveorders: any;
+  orders: any;
   sum: any;
   data: any;
   table: any;
@@ -40,8 +37,6 @@ type Props = {
 const ModalCheckPay = (props: Props) => {
   const width = Size().width;
   const dispatch = useDispatch<AppDispatch>();
-  const useAppSelect: TypedUseSelectorHook<RootState> = useSelector;
-  const tables = useAppSelect((data: any) => data.tables.value);
   const [tableHead, setTableHead] = useState<any>([
     'Tên hàng',
     'SL',
@@ -97,7 +92,7 @@ const ModalCheckPay = (props: Props) => {
         }`,
     };
     setLoading(true);
-  
+
     setLoading(false);
     props?.hiidenCheckPay(data);
   };
@@ -123,6 +118,7 @@ const ModalCheckPay = (props: Props) => {
             left: 0,
             right: 0,
           }}></Pressable>
+      <StatusBar hidden={true} />
 
         <View
           style={[
@@ -149,12 +145,12 @@ const ModalCheckPay = (props: Props) => {
                     /{moment().year()}
                   </Text>
                   <Text style={styles.date}>
-                    Số : {props?.saveorders[0]?._id}
+                    Số : {props?.orders[0]?._id}
                   </Text>
                 </View>
                 <View style={styles.flex}>
                   <Text style={styles.date}>
-                    Giờ vào :{props?.table.time_start == null ? props?.timeStart : props?.table.time_start}
+                    Giờ vào :{' '}{props?.table.time_start == null ? props?.timeStart : props?.table.time_start}
                   </Text>
                   <Text style={styles.date}>
                     Giờ ra : {`${String(moment().hours()).length == 1

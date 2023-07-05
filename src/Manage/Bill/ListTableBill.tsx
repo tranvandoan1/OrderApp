@@ -11,30 +11,33 @@ import {
   ToastAndroid,
   FlatList,
 } from 'react-native';
-import React, {Suspense, useEffect, useState} from 'react';
-import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../../App/Store';
-import {Size} from '../../Component/size';
-import {getAllOrder, removeOrder} from './../../Features/OrderSlice';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import {Avatar} from 'react-native-elements';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../App/Store';
+import { Size } from '../../Component/size';
+import { removeOrder } from './../../Features/OrderSlice';
+import { Avatar } from 'react-native-elements';
 
-import {Table, Row, TableWrapper, Cell} from 'react-native-table-component';
+import { Table, Row, TableWrapper, Cell } from 'react-native-table-component';
 type Props = {
   orderToDay: any;
   textLanguage: any;
+  background: any;
 };
-const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
+const ListTableCate: React.FC<Props> = ({
+  orderToDay,
+  textLanguage,
+  background,
+}) => {
   const width = Size()?.width;
   const dispatch = useDispatch<AppDispatch>();
   const [order, setOrder] = useState<any>([]);
   const [deleteOrder, setDeleteOrder] = useState<any>();
   const [modalVisible, setModalVisible] = useState(false);
   const [check, setCheck] = useState<Boolean>(false);
-
   useEffect(() => {
     setOrder([]);
-  }, [orderToDay]);
+  }, [orderToDay?.data]);
   const tableData: any = [];
   order?.orders?.filter((item: any, index: any) => {
     tableData.push([
@@ -48,7 +51,7 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
   const delelteOrder = async () => {
     setCheck(true);
     // @ts-ignore
-    await dispatch(removeOrder({id: deleteOrder}));
+    await dispatch(removeOrder({ id: deleteOrder }));
     setDeleteOrder(undefined);
     setCheck(false);
     setModalVisible(false);
@@ -56,82 +59,80 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
     ToastAndroid.show(`Xóa thành công`, ToastAndroid.SHORT);
   };
   return (
-    <View style={{flex: 1, backgroundColor: '#fff', position: 'relative'}}>
-      {/* <Suspense
-        fallback={
-          <View style={styles.loading}>
-            <ActivityIndicator size="large" color={'blue'} />
-          </View>
-        }> */}
+    <View
+      style={[
+        styles.main_list_table,
+        { backgroundColor: background == 2 ? 'black' : '#fff' },
+      ]}>
       <View
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
           flex: 1,
         }}>
-        <View style={{width: '40%'}}>
-          <View style={{flex: 1}}>
+        <View style={{ width: '40%' }}>
+          <View style={{ flex: 1 }}>
             <SafeAreaView>
               <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={{flexDirection: 'column', padding: 5}}>
-                  {orderToDay?.length <= 0 ? (
+                <View style={{ flexDirection: 'column', padding: 5 }}>
+                  {orderToDay?.data?.length <= 0 && orderToDay?.loading == true ? (
+                    <View >
+                      <ActivityIndicator size="large" color="blue" />
+                    </View>
+                  ) : orderToDay?.data?.length <= 0 && (orderToDay?.loading == false || orderToDay?.loading == true) ?
                     <Text
                       style={{
                         textAlign: 'center',
                         fontSize: 20,
                         fontWeight: '500',
-                        color: 'black',
+                        color: background == 2 ? '#fff' : 'black',
                       }}>
                       {textLanguage?.no_bills}
                     </Text>
-                  ) : (
-                    <FlatList
-                      showsVerticalScrollIndicator={false}
-                      data={orderToDay?.slice().reverse()}
-                      renderItem={({item, index}) => {
-                        const time = new Date(item.createdAt);
-                        return (
-                          <TouchableOpacity
-                            onPress={() => setOrder(item)}
-                            onLongPress={() => (
-                              setModalVisible(true), setDeleteOrder(item._id)
-                            )}
-                            key={index}
-                            style={{
-                              marginTop: index == 0 ? 0 : 5,
-                              flexDirection: 'row',
-                              justifyContent: 'space-between',
-                              backgroundColor:
-                                item._id == order?._id ? 'blue' : '#fff',
-                              borderColor: '#BBBBBB',
-                              borderWidth: 1,
-                              alignItems: 'center',
-                              shadowColor: 'black',
-                              elevation: 5,
-                              borderRadius: 2,
-                            }}>
-                            <Text
-                              style={[
-                                styles.time,
-                                {
-                                  color:
-                                    item._id == order?._id ? '#fff' : 'black',
-                                },
-                              ]}>
-                              #{item._id} - {time.getHours()}:
-                              {time.getMinutes()}
-                            </Text>
-                            <AntDesign
-                              name="right"
-                              size={20}
-                              color={item._id == order?._id ? '#fff' : 'black'}
-                            />
-                          </TouchableOpacity>
-                        );
-                      }}
-                      keyExtractor={(item: any) => item._id}
-                    />
-                  )}
+                    : (
+                      <FlatList
+                        showsVerticalScrollIndicator={false}
+                        data={orderToDay?.data?.slice().reverse()}
+                        renderItem={({ item, index }: any) => {
+                          const time = new Date(item.createdAt);
+                          return (
+                            <TouchableOpacity
+                              onPress={() => setOrder(item)}
+                              onLongPress={() => (
+                                setModalVisible(true), setDeleteOrder(item._id)
+                              )}
+                              key={index}
+                              style={{
+                                marginTop: index == 0 ? 0 : 5,
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                backgroundColor:
+                                  item._id == order?._id ? 'blue' : '#fff',
+                                borderColor: '#BBBBBB',
+                                borderWidth: 1,
+                                alignItems: 'center',
+                                shadowColor: 'black',
+                                elevation: 5,
+                                borderRadius: 2,
+                              }}>
+                              <Text
+                                style={[
+                                  styles.time,
+                                  {
+                                    color:
+                                      item._id == order?._id ? '#fff' : 'black',
+                                  },
+                                ]}>
+                                #{item._id} - {time.getHours()}:
+                                {time.getMinutes()}
+                              </Text>
+
+                            </TouchableOpacity>
+                          );
+                        }}
+                        keyExtractor={(item: any) => item._id}
+                      />
+                    )}
                 </View>
               </ScrollView>
             </SafeAreaView>
@@ -167,7 +168,7 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                   fontSize: 23,
                   fontWeight: '700',
                   marginTop: 10,
-                  color: 'black',
+                  color: background == 2 ? '#fff' : 'black',
                 }}>
                 OrderTVD
               </Text>
@@ -175,13 +176,13 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
           ) : (
             <SafeAreaView>
               <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <Text
                     style={{
                       textAlign: 'center',
                       fontSize: 25,
                       fontWeight: '500',
-                      color: 'black',
+                      color: background == 2 ? '#fff' : 'black',
                     }}>
                     {textLanguage?.bills}
                   </Text>
@@ -195,11 +196,12 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                       <Text
                         style={{
                           fontSize: 18,
-                          color: 'black',
+                          color: background == 2 ? '#fff' : 'black',
+
                           marginBottom: 10,
                         }}>
                         {textLanguage?.entry_time} :{' '}
-                        <Text style={{textTransform: 'capitalize'}}>
+                        <Text style={{ textTransform: 'capitalize' }}>
                           {order?.start_time == null
                             ? 'Trống'
                             : order?.start_time}
@@ -208,11 +210,12 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                       <Text
                         style={{
                           fontSize: 18,
-                          color: 'black',
+                          color: background == 2 ? '#fff' : 'black',
+
                           marginBottom: 10,
                         }}>
                         {textLanguage?.time_out} :
-                        <Text style={{textTransform: 'capitalize'}}>
+                        <Text style={{ textTransform: 'capitalize' }}>
                           {order?.end_time}
                         </Text>
                       </Text>
@@ -220,11 +223,12 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                     <Text
                       style={{
                         fontSize: 18,
-                        color: 'black',
+                        color: background == 2 ? '#fff' : 'black',
+
                         marginBottom: 10,
                       }}>
                       {textLanguage?.seller} :
-                      <Text style={{textTransform: 'capitalize'}}>
+                      <Text style={{ textTransform: 'capitalize' }}>
                         {' '}
                         {order?.seller_name}
                       </Text>
@@ -242,42 +246,45 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                       style={styles.head}
                       textStyle={[
                         styles.text,
-                        {fontSize: 18, fontWeight: '600'},
+                        { fontSize: 18, fontWeight: '600', color: background == 1 ? 'black' : '#fff' },
                       ]}
                       flexArr={[5, 1.5, 1.5, 3, 3]}
                     />
                     {tableData?.map((rowData: any, index: any) => (
-                      <TableWrapper key={index} style={styles.row}>
+                      <TableWrapper
+                        key={index}
+                        style={[styles.row, { backgroundColor: background == 2 ? 'black' : '#fff' }]}>
                         {rowData.map((cellData: any, cellIndex: any) => (
                           <Cell
                             key={cellIndex}
                             data={cellData}
                             textStyle={[
                               styles.text,
-                              {textTransform: 'capitalize', fontSize: 16},
+                              { fontSize: 16, color: background == 1 ? 'black' : '#fff' },
                             ]}
                             style={{
                               width:
                                 cellIndex == 0
                                   ? '62.4%'
                                   : cellIndex == 1
-                                  ? '18.70%'
-                                  : '18.9%',
+                                    ? '18.70%'
+                                    : '18.9%',
                             }}
                           />
                         ))}
                       </TableWrapper>
                     ))}
                   </Table>
-                  <View style={{marginTop: 20}}>
+                  <View style={{ marginTop: 20 }}>
                     <Text
                       style={{
                         fontSize: 18,
-                        color: 'black',
+                        color: background == 2 ? '#fff' : 'black',
+
                         textAlign: 'right',
                       }}>
                       {textLanguage?.total_money} :{' '}
-                      <Text style={{color: 'red', fontWeight: '500'}}>
+                      <Text style={{ color: 'red', fontWeight: '500' }}>
                         {(order?.sumPrice)
                           .toString()
                           .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
@@ -287,11 +294,12 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                     <Text
                       style={{
                         fontSize: 18,
-                        color: 'black',
+                        color: background == 2 ? '#fff' : 'black',
+
                         textAlign: 'right',
                       }}>
                       {textLanguage?.sale} :{' '}
-                      <Text style={{color: 'red', fontWeight: '500'}}>
+                      <Text style={{ color: 'red', fontWeight: '500' }}>
                         {order?.sale}%
                       </Text>
                     </Text>
@@ -305,12 +313,13 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                   <Text
                     style={{
                       fontSize: 25,
-                      color: 'black',
+                      color: background == 2 ? '#fff' : 'black',
+
                       textAlign: 'center',
                       fontWeight: '500',
                     }}>
                     {textLanguage?.total_payment} :{' '}
-                    <Text style={{fontSize: 20, color: 'red'}}>
+                    <Text style={{ fontSize: 20, color: 'red' }}>
                       {' '}
                       {Math.ceil(order?.sumPrice * ((100 - order?.sale) / 100))
                         .toString()
@@ -343,7 +352,7 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
                 justifyContent: 'center',
               }}>
               <Pressable
-                style={[styles.button, styles.buttonClose, {marginRight: 30}]}
+                style={[styles.button, styles.buttonClose, { marginRight: 30 }]}
                 onPress={() => setModalVisible(!modalVisible)}>
                 {/* <Text style={styles.textStyle}>Hủy</Text> */}
                 {check == true ? (
@@ -373,6 +382,7 @@ const ListTableCate: React.FC<Props> = ({orderToDay, textLanguage}) => {
 export default ListTableCate;
 
 const styles = StyleSheet.create({
+  main_list_table: { flex: 1, position: 'relative' },
   loading: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -393,11 +403,18 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     padding: 10,
   },
-  head: {height: 40},
-  text: {margin: 6, color: 'black', textAlign: 'center'},
-  row: {flexDirection: 'row', backgroundColor: '#fff'},
-  btn: {width: 58, height: 18, backgroundColor: '#78B7BB', borderRadius: 2},
-  btnText: {textAlign: 'center', color: '#fff'},
+  head: {
+    height: 40
+  },
+  text: {
+    margin: 6,
+    textTransform: 'capitalize',
+    textAlign: 'center'
+  },
+  row: {
+    flexDirection: 'row'
+  },
+
   centeredView: {
     backgroundColor: 'rgba(0, 0, 0, .5)',
     position: 'absolute',

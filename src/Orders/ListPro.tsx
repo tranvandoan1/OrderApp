@@ -160,6 +160,7 @@ const ListPro = (props: Props) => {
           <View style={{ flex: 1, marginBottom: width < 960 ? 80 : 0 }}>
             <FlatGrid
               itemDimension={width < 960 ? (width < 539 ? 150 : 220) : 190}
+              // @ts-ignore
               showsVerticalScrollIndicator={false}
               data={
                 props?.valueCate == undefined ||
@@ -244,6 +245,7 @@ const ListPro = (props: Props) => {
                         { fontSize: width < 720 ? 18 : 20 },
                       ]}
                       autoCapitalize="words"
+                      // @ts-ignore
                       onChangeText={(e: number) => {
                         setValueWeight(e)
 
