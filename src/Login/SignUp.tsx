@@ -14,7 +14,6 @@ import React, {useState} from 'react';
 import {Avatar} from 'react-native-elements';
 import {useForm, Controller} from 'react-hook-form';
 import Icon from 'react-native-vector-icons/AntDesign';
-// import ImagePicker from 'react-native-image-crop-picker'
 type FormData = {
   email: string;
   password: string;
