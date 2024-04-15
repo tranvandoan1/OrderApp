@@ -124,7 +124,8 @@ const ListTableCate: React.FC<Props> = ({
                                   },
                                 ]}>
                                 #{item._id} - {time.getHours()}:
-                                {time.getMinutes()}
+                                {time.getMinutes()} - {time.getDate()}-
+                                {time.getMonth() + 1}-{time.getFullYear()}
                               </Text>
 
                             </TouchableOpacity>

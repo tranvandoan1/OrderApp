@@ -18,10 +18,10 @@ import React, {
   startTransition,
   useState,
 } from 'react';
-import {SizeScale} from '../Component/size';
+import { SizeScale } from '../Component/size';
 import moment from 'moment';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {FlatGrid} from 'react-native-super-grid';
+import { FlatGrid } from 'react-native-super-grid';
 type Props = {
   selectDateProps: any;
   hiddenSelectDate: (e: any) => void;
@@ -37,7 +37,22 @@ type State = {
   valueYear: any;
   monthSelect: any;
   selectCalendar: any;
+  monthFor: any;
 };
+const month = [
+  { id: 1, month: '1', sum: 0 },
+  { id: 2, month: '2', sum: 0 },
+  { id: 3, month: '3', sum: 0 },
+  { id: 4, month: '4', sum: 0 },
+  { id: 5, month: '5', sum: 0 },
+  { id: 6, month: '6', sum: 0 },
+  { id: 7, month: '7', sum: 0 },
+  { id: 8, month: '8', sum: 0 },
+  { id: 9, month: '9', sum: 0 },
+  { id: 10, month: '10', sum: 0 },
+  { id: 11, month: '11', sum: 0 },
+  { id: 12, month: '12', sum: 0 },
+]
 const ModalSelectDate: React.FC<Props> = ({
   selectDateProps,
   hiddenSelectDate,
@@ -48,16 +63,14 @@ const ModalSelectDate: React.FC<Props> = ({
 }) => {
   const widthScale = SizeScale().width;
 
-  const monthConvert = `${
-    String(moment().month() + 1).length == 1
-      ? `0${moment().month() + 1}`
-      : moment().month() + 1
-  }`;
-  const dateConvert = `${
-    String(moment().date()).length == 1
-      ? `0${moment().date()}`
-      : moment().date()
-  }`;
+  const monthConvert = `${String(moment().month() + 1).length == 1
+    ? `0${moment().month() + 1}`
+    : moment().month() + 1
+    }`;
+  const dateConvert = `${String(moment().date()).length == 1
+    ? `0${moment().date()}`
+    : moment().date()
+    }`;
   const [state, setState] = useReducer(
     (state: State, newState: Partial<State>) => ({
       ...state,
@@ -67,7 +80,7 @@ const ModalSelectDate: React.FC<Props> = ({
       buttonSelectMonth: dataTime?.filterStatusTime == 2 ? true : false, //hiện tháng để chọn
       buttonSelectDate:
         dataTime?.filterStatusTime == 1 ||
-        dataTime?.filterStatusTime == undefined
+          dataTime?.filterStatusTime == undefined
           ? true
           : false, //hiện ngày để chọn
       filterStatusTime:
@@ -79,10 +92,11 @@ const ModalSelectDate: React.FC<Props> = ({
       valueYear: undefined,
       selectCalendar: {
         //lưu giá trị tháng năm khi ấn next hoặc prev
-        date: dataTime.date.date,
-        month: dataTime.date.month,
-        year: dataTime.date.year,
+        date: dateConvert,
+        month: monthConvert,
+        year: moment().year(),
       },
+      monthFor: month,
     },
   );
 
@@ -110,8 +124,6 @@ const ModalSelectDate: React.FC<Props> = ({
     }).start();
   }, [selectDateProps]);
 
-  const monthFor = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-
   // lấy lịch theo tháng
   const getWeekMonth = () => {
     let i = 0;
@@ -119,20 +131,19 @@ const ModalSelectDate: React.FC<Props> = ({
     while (
       i <=
       (state?.selectCalendar?.month == '1' ||
-      state?.selectCalendar?.month == '7' ||
-      state?.selectCalendar?.month == '10'
+        state?.selectCalendar?.month == '7' ||
+        state?.selectCalendar?.month == '10'
         ? 5
         : 4)
     ) {
       let dates: string[] = [];
       const DATE_FORMAT = 'DD-MM-YYYY';
-      let time: any = `${
-        datanew?.length <= 0
-          ? '1'
-          : datanew[datanew?.length - 1].slice(0, 2) == '1'
+      let time: any = `${datanew?.length <= 0
+        ? '1'
+        : datanew[datanew?.length - 1].slice(0, 2) == '1'
           ? '2'
           : Number(datanew[datanew?.length - 1].slice(0, 2)) + 1
-      }-${state?.selectCalendar?.month}-${state?.selectCalendar?.year}`;
+        }-${state?.selectCalendar?.month}-${state?.selectCalendar?.year}`;
       // days by week
       if (moment(time, DATE_FORMAT).day() == 0) {
         time = moment(time, DATE_FORMAT).add(-1).format(DATE_FORMAT);
@@ -173,7 +184,7 @@ const ModalSelectDate: React.FC<Props> = ({
         newDataMonth.push(findDate);
       }
     });
-    setState({monthSelect: newDataMonth});
+    setState({ monthSelect: newDataMonth });
   };
   useEffect(() => {
     getWeekMonth();
@@ -183,24 +194,24 @@ const ModalSelectDate: React.FC<Props> = ({
     const time = new Date(item.dataItem.updatedAt);
     return state?.filterStatusTime == 1
       ? Number(time.getDate()) ==
-          Number(
-            item.today == true ? dateConvert : state?.selectCalendar?.date,
-          ) &&
-          Number(time.getMonth() + 1) ==
-            Number(
-              item.today == true ? monthConvert : state?.selectCalendar?.month,
-            ) &&
-          time.getFullYear() == moment().year()
+      Number(
+        item.today == true ? dateConvert : state?.selectCalendar?.date,
+      ) &&
+      Number(time.getMonth() + 1) ==
+      Number(
+        item.today == true ? monthConvert : state?.selectCalendar?.month,
+      ) &&
+      time.getFullYear() == moment().year()
       : state?.filterStatusTime == 2
-      ? Number(time.getMonth() + 1) ==
-          Number(
-            item.today == true ? monthConvert : state?.selectCalendar?.month,
-          ) &&
+        ? Number(time.getMonth() + 1) ==
+        Number(
+          item.today == true ? monthConvert : state?.selectCalendar?.month,
+        ) &&
         time.getFullYear() ==
-          Number(
-            item.today == true ? moment().year() : state?.selectCalendar?.year,
-          )
-      : time.getFullYear() ==
+        Number(
+          item.today == true ? moment().year() : state?.selectCalendar?.year,
+        )
+        : time.getFullYear() ==
         (state?.valueYear == undefined || String(state?.valueYear).length <= 0
           ? moment().year()
           : state?.valueYear);
@@ -208,7 +219,7 @@ const ModalSelectDate: React.FC<Props> = ({
   // lọc order
   const dataProps: any = [];
   dataOrders?.map((item: any) => {
-    if (conditions({dataItem: item, today: false})) {
+    if (conditions({ dataItem: item, today: false })) {
       dataProps.push(item);
     }
   });
@@ -243,7 +254,7 @@ const ModalSelectDate: React.FC<Props> = ({
     });
     const dataProps: any = [];
     dataOrders?.map((item: any) => {
-      if (conditions({dataItem: item, today: true})) {
+      if (conditions({ dataItem: item, today: true })) {
         dataProps.push(item);
       }
     });
@@ -269,64 +280,94 @@ const ModalSelectDate: React.FC<Props> = ({
   const setNextPrevTime = (a: any) => {
     setState({
       selectCalendar: {
-        date: dataTime.date.date,
+        date:
+          // nếu trường hợp prev tháng lớn hơn tháng thiện tại thì prev thêm lần nữa sẽ lấy ngày hiện tại và nếu trường hợp next tháng bé hơn tháng thiện tại thì next thêm lần nữa sẽ lấy ngày hiện
+          a == 1
+            ? Number(state?.selectCalendar?.month) - 1 == Number(monthConvert)
+              ? dateConvert
+              : undefined
+            : Number(state?.selectCalendar?.month) + 1 == Number(monthConvert)
+              ? dateConvert
+              : undefined,
         month:
           a == 1
             ? Number(state?.selectCalendar.month) == 1
               ? '12'
-              : `${
-                  String(Number(state?.selectCalendar?.month) - 1).length <= 1
-                    ? `0${Number(state?.selectCalendar?.month) - 1}`
-                    : Number(state?.selectCalendar?.month) - 1
-                }`
+              : `${String(Number(state?.selectCalendar?.month) - 1).length <= 1
+                ? `0${Number(state?.selectCalendar?.month) - 1}`
+                : Number(state?.selectCalendar?.month) - 1
+              }`
             : state?.selectCalendar.month == 12
-            ? '01'
-            : `${
-                String(Number(state?.selectCalendar?.month) + 1).length <= 1
-                  ? `0${Number(state?.selectCalendar?.month) + 1}`
-                  : Number(state?.selectCalendar?.month) + 1
+              ? '01'
+              : `${String(Number(state?.selectCalendar?.month) + 1).length <= 1
+                ? `0${Number(state?.selectCalendar?.month) + 1}`
+                : Number(state?.selectCalendar?.month) + 1
               }`,
         year:
-          Number(state?.selectCalendar?.month) == 12
-            ? Number(state?.selectCalendar?.year) + 1
-            : state?.selectCalendar?.year,
+          a == 1
+            ? Number(state?.selectCalendar?.month) == 1
+              ? Number(state?.selectCalendar?.year) - 1
+              : state?.selectCalendar?.year
+            : Number(state?.selectCalendar?.month) == 12
+              ? Number(state?.selectCalendar?.year) + 1
+              : state?.selectCalendar?.year,
       },
     });
   };
-
+  console.log(state?.monthFor, '3r2ewd')
   // render tháng
   const renderItem = (item: any) => {
     return (
       <TouchableOpacity
+        // disabled={
+        //   Number(item.month) > Number(state?.selectCalendar?.month)
+        //     ? true
+        //     : false
+        // }
         style={[
           {
-            padding: 20,
+            paddingVertical: widthScale * 60,
             borderColor: '#dddddd',
             justifyContent: 'center',
             flexDirection: 'row',
             alignItems: 'center',
             backgroundColor:
-              item == state?.selectCalendar?.month ? 'red' : '#fff',
-            borderRadius: 100,
+              Number(item.month) == Number(state?.selectCalendar?.month)
+                ? 'red'
+                : Number(item.month) > Number(monthConvert) &&
+                  state?.selectCalendar.year == moment().year()
+                  ? '#BBBBBB'
+                  : item.sum > 0
+                    ? '#009900'
+                    : '#fff',
+            borderRadius: 20,
           },
         ]}
         onPress={() =>
           setState({
             selectCalendar: {
               date: undefined,
-              month: `${String(item).length <= 1 ? `0${item}` : item}`,
+              month: `${String(item.month).length <= 1 ? `0${item.month}` : item.month
+                }`,
               year: state?.selectCalendar?.year,
             },
           })
         }>
-        {}
+        { }
         <Text
           style={{
             fontSize: 20,
             fontWeight: '600',
-            color: item == state?.selectCalendar?.month ? '#fff' : 'black',
+            color:
+              Number(item.month) == Number(state?.selectCalendar?.month) ||
+                item.sum > 0
+                ? '#fff'
+                : Number(item.month) > Number(monthConvert) &&
+                  state?.selectCalendar.year == moment().year()
+                  ? '#EEEEEE'
+                  : 'black',
           }}>
-          Th{item}
+          Th {item.month}
         </Text>
       </TouchableOpacity>
     );
@@ -334,7 +375,6 @@ const ModalSelectDate: React.FC<Props> = ({
 
   // lọc order để hiển thị những ngày có bill
   const [orders, setOrder] = useState<any>();
-
   useEffect(() => {
     // lấy nhưng order theo tháng hoặc năm
     const dataMonthSelet: any = [];
@@ -348,57 +388,81 @@ const ModalSelectDate: React.FC<Props> = ({
         });
       });
     });
-    console.log(state?.monthSelect, 'dataMonthSelet');
+    // lấy những order trong tháng đã chọn
     const dataOrder = dataOrders?.filter((item: any) => {
       const time = new Date(item.createdAt);
       if (
-        state?.selectCalendar?.date == undefined
-          ? time.getFullYear() == state?.selectCalendar?.year
-          : Number(time?.getMonth() + 1) == state?.selectCalendar?.month &&
-            time.getFullYear() == state?.selectCalendar?.year
+        state?.filterStatusTime == 1
+          ? Number(time?.getMonth() + 1) ==
+          Number(state?.selectCalendar?.month) &&
+          time.getFullYear() == state?.selectCalendar?.year
+          : time.getFullYear() == state?.selectCalendar?.year
       ) {
-        // setOrder(item)
         return item;
       }
     });
-    //  nhóm những order cùng ngày vào 1 nhóm
+    // //  nhóm những order cùng ngày vào 1 nhóm
     const grouped = dataOrder.reduce((acc: any, curr: any) => {
       const timeAcc = new Date(curr.createdAt);
       const existing = acc.find((item: any) => {
         const timeCurr: any = new Date(item?.key);
-        return timeAcc?.getDate() === timeCurr?.getDate();
+        return state?.filterStatusTime == 1
+          ? timeAcc?.getDate() === timeCurr?.getDate()
+          : timeAcc?.getMonth() + 1 === timeCurr?.getMonth() + 1;
       });
       if (existing) {
         existing.values.push(curr);
       } else {
-        acc.push({key: timeAcc, values: [curr]});
+        acc.push({ key: timeAcc, values: [curr] });
       }
       return acc;
     }, []);
-
+    console.log(grouped, '3ewds')
     for (let j = 0; j < grouped.length; j++) {
-      for (let i = 0; i < dataMonthSelet.length; i++) {
+      for (
+        let i = 0;
+        i <
+        (state?.filterStatusTime == 1
+          ? dataMonthSelet.length
+          : state?.monthFor.length);
+        i++
+      ) {
         const time = new Date(grouped[j].key);
-        if (dataMonthSelet[i].date == time.getDate()) {
+        if (
+          state?.filterStatusTime == 1
+            ? dataMonthSelet[i].date == time.getDate()
+            : Number(state?.monthFor[i].month) == Number(time.getMonth() + 1)
+        ) {
+          console.log('có vào')
           let sum = 0;
+          // tính tổng tiền
           for (let e = 0; e < grouped[j].values.length; e++) {
             sum += Math.ceil(
               grouped[j].values[e].sumPrice *
-                ((100 - grouped[j].values[e].sale) / 100),
+              ((100 - grouped[j].values[e].sale) / 100),
             );
           }
-          dataMonthSelet[i].sum = sum;
+          state?.filterStatusTime == 1
+            ? (dataMonthSelet[i].sum = sum)
+            : (state.monthFor[i].sum = sum);
+        } else {
+          state?.filterStatusTime == 1
+            ? (dataMonthSelet[i].sum = 0)
+            : (state.monthFor[i].sum = 0);
         }
       }
     }
-    setOrder(dataMonthSelet);
-  }, [state?.selectCalendar, state?.monthSelect]);
+    state?.filterStatusTime == 1
+      ? setOrder(dataMonthSelet)
+      : setState({ monthFor: grouped?.length <= 0 ? month : state.monthFor });
+  }, [state?.selectCalendar, state?.monthSelect, state?.filterStatusTime, state?.monthFor]);
+  // render lịch tháng
   const filterOrder = () => {
     return (
       <Animated.View
         style={[
           {
-            transform: [{scale: fadeAnim1}],
+            transform: [{ scale: fadeAnim1 }],
           },
         ]}>
         <FlatGrid
@@ -406,7 +470,7 @@ const ModalSelectDate: React.FC<Props> = ({
           itemDimension={40}
           // @ts-ignore
           showsVerticalScrollIndicator={false}
-          renderItem={({item, index}: any) => {
+          renderItem={({ item, index }: any) => {
             return (
               <View
                 style={[
@@ -414,11 +478,6 @@ const ModalSelectDate: React.FC<Props> = ({
                   {
                     justifyContent: 'space-around',
                     paddingVertical: widthScale * 20,
-                    // borderBottomWidth:
-                    //   state?.monthSelect.length - 1 == index
-                    //     ? 0
-                    //     : 0.5,
-                    // borderColor: '#dddddd',
                   },
                 ]}>
                 <TouchableOpacity
@@ -439,26 +498,30 @@ const ModalSelectDate: React.FC<Props> = ({
                             ? '700'
                             : '400',
                         color:
-                          item.date == state?.selectCalendar?.date &&
-                          item.month == state?.selectCalendar?.month
-                            ? monthConvert == state?.selectCalendar?.month
-                              ? '#fff'
-                              : 'black'
-                            : item?.sum > 0
+                          Number(item.date) ==
+                            Number(state?.selectCalendar?.date) &&
+                            Number(item.month) ==
+                            Number(state?.selectCalendar?.month) &&
+                            item.year ==
+                            moment().year()
                             ? '#fff'
-                            : 'black',
+                            : item?.sum > 0
+                              ? '#fff'
+                              : 'black',
                         fontSize:
                           item.month == state?.selectCalendar?.month ? 22 : 18,
                         backgroundColor:
-                          item.date == state?.selectCalendar?.date &&
-                          item.month == state?.selectCalendar?.month
-                            ? monthConvert !== state?.selectCalendar?.month
-                              ? '#fff'
-                              : 'red'
+                          Number(item.date) ==
+                            Number(state?.selectCalendar?.date) &&
+                            Number(item.month) ==
+                            Number(state?.selectCalendar?.month) &&
+                            item.year ==
+                            moment().year()
+                            ? 'red'
                             : item?.sum > 0
-                            ? 'blue'
-                            : '#fff',
-                        borderRadius: 100,
+                              ? '#009900'
+                              : '#fff',
+                        borderRadius: 10,
                         padding: 5,
                       },
                     ]}>
@@ -499,7 +562,7 @@ const ModalSelectDate: React.FC<Props> = ({
               borderColor: '#fff',
             },
           ]}>
-          <View style={{flexDirection: 'row', width: '100%', height: '100%'}}>
+          <View style={{ flexDirection: 'row', width: '100%', height: '100%' }}>
             <View
               style={{
                 width: '40%',
@@ -519,16 +582,16 @@ const ModalSelectDate: React.FC<Props> = ({
                     onPress={() => {
                       state?.filterStatusTime !== 1
                         ? setState({
-                            buttonSelectMonth: false,
-                            valueYear: undefined,
-                            filterStatusTime: 1,
-                            buttonSelectDate: true,
-                            selectCalendar: {
-                              date: dataTime.date.date,
-                              month: dataTime.date.month,
-                              year: dataTime.date.year,
-                            },
-                          })
+                          buttonSelectMonth: false,
+                          valueYear: undefined,
+                          filterStatusTime: 1,
+                          buttonSelectDate: true,
+                          selectCalendar: {
+                            date: dateConvert,
+                            month: monthConvert,
+                            year: moment().year(),
+                          },
+                        })
                         : null;
                     }}
                     style={styles.buttonFilter}>
@@ -542,16 +605,16 @@ const ModalSelectDate: React.FC<Props> = ({
                     onPress={() => {
                       state?.filterStatusTime !== 2
                         ? setState({
-                            buttonSelectMonth: true,
-                            valueYear: undefined,
-                            filterStatusTime: 2,
-                            buttonSelectDate: false,
-                            selectCalendar: {
-                              date: dataTime.date.date,
-                              month: dataTime.date.month,
-                              year: dataTime.date.year,
-                            },
-                          })
+                          buttonSelectMonth: true,
+                          valueYear: undefined,
+                          filterStatusTime: 2,
+                          buttonSelectDate: false,
+                          selectCalendar: {
+                            date: moment().date(),
+                            month: monthConvert,
+                            year: moment().year(),
+                          },
+                        })
                         : null;
                     }}
                     style={styles.buttonFilter}>
@@ -564,15 +627,15 @@ const ModalSelectDate: React.FC<Props> = ({
                     onPress={() => {
                       state?.filterStatusTime !== 3
                         ? setState({
-                            buttonSelectMonth: false,
-                            filterStatusTime: 3,
-                            buttonSelectDate: false,
-                            selectCalendar: {
-                              date: dataTime.date.date,
-                              month: dataTime.date.month,
-                              year: dataTime.date.year,
-                            },
-                          })
+                          buttonSelectMonth: false,
+                          filterStatusTime: 3,
+                          buttonSelectDate: false,
+                          selectCalendar: {
+                            date: dateConvert,
+                            month: monthConvert,
+                            year: moment().year(),
+                          },
+                        })
                         : null;
                     }}
                     style={styles.buttonFilter}>
@@ -584,15 +647,15 @@ const ModalSelectDate: React.FC<Props> = ({
                 </View>
               </View>
               <View style={styles.flex}>
-                <Text style={{color: 'red', fontWeight: '600', fontSize: 23}}>
+                <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
                   {textLanguage?.total_money} :{' '}
                 </Text>
-                <Text style={{color: 'red', fontWeight: '600', fontSize: 23}}>
+                <Text style={{ color: 'red', fontWeight: '600', fontSize: 23 }}>
                   {sum?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}đ
                 </Text>
               </View>
 
-              <View style={{flexDirection: 'column'}}>
+              <View style={{ flexDirection: 'column' }}>
                 <View
                   style={{
                     flexDirection: 'column',
@@ -623,14 +686,24 @@ const ModalSelectDate: React.FC<Props> = ({
                         {state.filterStatusTime == 1
                           ? textLanguage?.today
                           : state.filterStatusTime == 2
-                          ? textLanguage?.this_month
-                          : textLanguage.this_year}
+                            ? textLanguage?.this_month
+                            : textLanguage.this_year}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      disabled={
+                        state?.filterStatusTime == 1 &&
+                          state?.selectCalendar?.date == undefined
+                          ? true
+                          : false
+                      }
                       onPress={() => apply()}
                       style={{
-                        backgroundColor: 'blue',
+                        backgroundColor:
+                          state?.filterStatusTime == 1 &&
+                            state?.selectCalendar?.date == undefined
+                            ? '#dddd'
+                            : 'blue',
                         paddingHorizontal: 10,
                         paddingVertical: 5,
                         marginLeft: 5,
@@ -640,7 +713,11 @@ const ModalSelectDate: React.FC<Props> = ({
                         style={{
                           fontSize: 22,
                           fontWeight: '500',
-                          color: '#fff',
+                          color:
+                            state?.filterStatusTime == 1 &&
+                              state?.selectCalendar?.date == undefined
+                              ? '#BBBBBB'
+                              : '#fff',
                           textAlign: 'center',
                         }}>
                         {textLanguage?.select}
@@ -660,11 +737,11 @@ const ModalSelectDate: React.FC<Props> = ({
                       onPress={() =>
                         setState({
                           selectCalendar: {
-                            date: state?.selectCalendar?.date,
-
-                            month: '01',
+                            date: undefined,
+                            month: state?.filterStatusTime == 1 ? 1 : undefined,
                             year: Number(state?.selectCalendar?.year) - 1,
                           },
+                          monthFor: month
                         })
                       }>
                       <AntDesign
@@ -686,7 +763,7 @@ const ModalSelectDate: React.FC<Props> = ({
                             {
                               paddingLeft:
                                 state?.buttonSelectMonth == false ? 40 : 0,
-                              color: background == 1 ? '#303E65' : '#dddddd',
+                              color: Number(state?.selectCalendar.month - 1) == Number(monthConvert) && state?.selectCalendar.year == moment().year() ? '#303E65' : '#dddddd',
                             },
                           ]}
                         />
@@ -701,8 +778,9 @@ const ModalSelectDate: React.FC<Props> = ({
                         color: background == 1 ? '#303E65' : '#dddddd',
                       },
                     ]}>
-                    Th
-                    {state?.selectCalendar?.month} {state?.selectCalendar?.year}
+                    {state?.filterStatusTime == 1 &&
+                      `Th ${state?.selectCalendar?.month}`}{' '}
+                    {state?.selectCalendar?.year}
                   </Text>
 
                   {/* next tháng */}
@@ -711,8 +789,9 @@ const ModalSelectDate: React.FC<Props> = ({
                     {state?.buttonSelectMonth == false && (
                       <TouchableOpacity
                         disabled={
-                          state?.selectCalendar?.month == dataTime.date.month &&
-                          state?.selectCalendar?.year == moment().year()
+                          Number(state?.selectCalendar?.month) ==
+                            Number(moment().month() + 1) &&
+                            state?.selectCalendar?.year == moment().year()
                             ? true
                             : false
                         }
@@ -722,14 +801,7 @@ const ModalSelectDate: React.FC<Props> = ({
                           style={[
                             styles.right,
                             {
-                              color:
-                                state?.selectCalendar?.month ==
-                                  dataTime.date.month &&
-                                state?.selectCalendar?.year == moment().year()
-                                  ? background == 2
-                                    ? '#303E65'
-                                    : '#dddddd'
-                                  : '#303E65',
+                              color: Number(state?.selectCalendar.month) == Number(monthConvert) && state?.selectCalendar?.year == moment().year() ? '#303E65' : '#dddddd',
                             },
                           ]}
                         />
@@ -738,19 +810,19 @@ const ModalSelectDate: React.FC<Props> = ({
 
                     <TouchableOpacity
                       disabled={
-                        state?.selectCalendar?.month == dataTime.date.month &&
-                        state?.selectCalendar?.year == moment().year()
+                        state?.selectCalendar?.year == moment().year() &&
+                          background == 2
                           ? true
                           : false
                       }
                       onPress={() =>
                         setState({
                           selectCalendar: {
-                            date: state?.selectCalendar?.date,
-
-                            month: '01',
+                            date: undefined,
+                            month: state?.filterStatusTime == 1 ? 1 : undefined,
                             year: Number(state?.selectCalendar?.year) + 1,
                           },
+                          monthFor: month
                         })
                       }>
                       <AntDesign
@@ -761,13 +833,10 @@ const ModalSelectDate: React.FC<Props> = ({
                             paddingLeft:
                               state?.buttonSelectMonth == true ? 0 : 40,
                             color:
-                              state?.selectCalendar?.month ==
-                                dataTime.date.month &&
-                              state?.selectCalendar?.year == moment().year()
-                                ? background == 2
-                                  ? '#303E65'
-                                  : '#dddddd'
-                                : '#303E65',
+                              state?.selectCalendar?.year == moment().year() &&
+                                background == 2
+                                ? '#303E65'
+                                : '#dddddd',
                           },
                         ]}
                       />
@@ -776,59 +845,58 @@ const ModalSelectDate: React.FC<Props> = ({
                 </View>
               )}
 
-              <View style={{width: '100%', height: '100%'}}>
+              <View style={{ width: '100%', height: '100%' }}>
                 {state?.buttonSelectMonth == true ? (
                   <Animated.View
                     style={[
                       {
-                        transform: [{scale: fadeAnim}],
+                        transform: [{ scale: fadeAnim }],
                       },
                     ]}>
-                    <View style={[styles.flex]}>
+                    <View style={[styles.flex, { overflow: 'hidden' }]}>
                       <FlatGrid
-                        data={monthFor}
-                        itemDimension={100}
+                        data={state?.monthFor}
+                        itemDimension={80}
                         // @ts-ignore
                         showsVerticalScrollIndicator={false}
-                        renderItem={({item}: any) => renderItem(item)}
+                        renderItem={({ item }: any) => renderItem(item)}
                       />
                     </View>
                   </Animated.View>
                 ) : // {/* lịch chọn ngày */}
-                state?.buttonSelectDate == true ? (
-                  filterOrder()
-                ) : (
-                  <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                    <Text
-                      style={[
-                        styles.textEnterYear,
-                        {
-                          marginBottom: 20,
-                          color: 'red',
-                          fontWeight: '600',
-                        },
-                      ]}>
-                      {textLanguage?.this_year} : {moment().year()}
-                    </Text>
-                    <Text style={styles.textEnterYear}>
-                      {textLanguage?.enter_year} :{' '}
-                    </Text>
-                    <TextInput
-                      // onBlur={() => console.log('first')}
-                      style={styles.textEnterYearInput}
-                      value={
-                        state?.valueYear == undefined ? '' : state?.valueYear
-                      }
-                      placeholder={`${textLanguage?.enter_order}`}
-                      onChangeText={(e: any) => {
-                        startTransition(() => {
-                          setState({valueYear: e});
-                        });
-                      }}
-                    />
-                  </KeyboardAvoidingView>
-                )}
+                  state?.buttonSelectDate == true ? (
+                    filterOrder()
+                  ) : (
+                    <KeyboardAvoidingView
+                      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                      <Text
+                        style={[
+                          styles.textEnterYear,
+                          {
+                            marginBottom: 20,
+                            color: 'red',
+                            fontWeight: '600',
+                          },
+                        ]}>
+                        {textLanguage?.this_year} : {moment().year()}
+                      </Text>
+                      <Text style={styles.textEnterYear}>
+                        {textLanguage?.enter_year} :{' '}
+                      </Text>
+                      <TextInput
+                        style={styles.textEnterYearInput}
+                        value={
+                          state?.valueYear == undefined ? '' : state?.valueYear
+                        }
+                        placeholder={`${textLanguage?.enter_order}`}
+                        onChangeText={(e: any) => {
+                          startTransition(() => {
+                            setState({ valueYear: e });
+                          });
+                        }}
+                      />
+                    </KeyboardAvoidingView>
+                  )}
               </View>
             </View>
           </View>
@@ -955,6 +1023,7 @@ const styles = StyleSheet.create({
     borderColor: '#dddddd',
     borderWidth: 0.5,
     padding: 10,
+    overflow: 'hidden'
   },
   textEnterYear: {
     fontSize: 20,
